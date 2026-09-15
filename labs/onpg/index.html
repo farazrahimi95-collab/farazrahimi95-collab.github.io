@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Interactive undergraduate virtual laboratory for ONPG hydrolysis, Michaelis–Menten kinetics, and diffusion in immobilized-enzyme beads.">
+  <meta name="author" content="Faraz Rahimi">
+  <title>ONPG Bead Reactor | Virtual Lab</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b3046'/%3E%3Cpath d='M23 13h18M27 13v14L16 47c-2 4 1 7 6 7h20c5 0 8-3 6-7L37 27V13' fill='none' stroke='%23fff' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M21 44h22' stroke='%23f2c14e' stroke-width='7' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="portal-ribbon">
+    <a href="../../" aria-label="Return to Virtual Lab home"><span aria-hidden="true">←</span> Virtual Lab</a>
+    <span>Created by <strong>Faraz Rahimi</strong></span>
+  </div>
+  <header class="app-header">
+    <div class="brand-lockup">
+      <span class="brand-mark" aria-hidden="true">β</span>
+      <div>
+        <p class="eyebrow">BIOCHEMICAL ENGINEERING · VIRTUAL LABORATORY</p>
+        <h1>ONPG Bead Reactor</h1>
+      </div>
+    </div>
+    <div class="header-actions">
+      <a class="button button-secondary" href="ONPG_Virtual_Lab_Worksheet.pdf" target="_blank" rel="noopener">Open worksheet</a>
+      <button class="button button-dark" id="openData" type="button">Run data <span id="dataCount" class="button-count">0</span></button>
+    </div>
+  </header>
+
+  <nav class="stepper" aria-label="Virtual laboratory stages">
+    <button class="step active" data-stage="1" type="button"><span>1</span><strong>Small beads</strong><small>2.8 mm run</small></button>
+    <button class="step" data-stage="2" type="button"><span>2</span><strong>Large beads</strong><small>4.6 mm run</small></button>
+    <button class="step" data-stage="3" type="button"><span>3</span><strong>Compare</strong><small>Mass transfer</small></button>
+    <button class="step" data-stage="4" type="button"><span>4</span><strong>Kinetic scan</strong><small>Six assays</small></button>
+    <button class="step" data-stage="5" type="button"><span>5</span><strong>Rate curve</strong><small>Michaelis–Menten</small></button>
+    <button class="step" data-stage="6" type="button"><span>6</span><strong>Bead design</strong><small>η<sub>i</sub> target</small></button>
+  </nav>
+
+  <main id="stageArea" tabindex="-1"></main>
+
+  <footer class="app-footer">
+    <p><strong>Evidence key:</strong> circles are supplied laboratory measurements; solid curves are simulation or fitted-model results.</p>
+    <p>Session results are saved automatically in this browser · Virtual Lab by Faraz Rahimi</p>
+  </footer>
+
+  <dialog id="dataDialog" class="data-dialog">
+    <div class="dialog-head">
+      <div>
+        <p class="eyebrow">PERSISTENT SESSION RECORD</p>
+        <h2>Run data</h2>
+      </div>
+      <button class="icon-button" id="closeData" type="button" aria-label="Close run data">×</button>
+    </div>
+    <div id="dataDialogBody"></div>
+    <div class="dialog-actions">
+      <button class="button button-secondary" id="downloadCsv" type="button">Download CSV</button>
+      <button class="button button-danger" id="clearData" type="button">Clear session</button>
+    </div>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>
