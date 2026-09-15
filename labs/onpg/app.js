@@ -6,7 +6,6 @@ const INITIAL_ONPG = 0.83;
 // Concentration scale that preserves the supplied MATLAB cBulk = 0.403 at 0.83 mM.
 // This profile-model scale is distinct from the free-enzyme kinetic fit (Km = 2.00 mM).
 const PROFILE_CONCENTRATION_SCALE = 2.059220522647014;
-const STORAGE_KEY = "onpg-virtual-lab-session-v3";
 const FAST_MODE = new URLSearchParams(location.search).get("fast") === "1";
 const RUN_SECONDS = 120;
 const SAMPLE_INTERVAL_SECONDS = 10;
@@ -66,36 +65,13 @@ const defaultState = () => ({
   designTrials: []
 });
 
-function loadState() {
-  try {
-    // Keep each browser tab as an independent student lab session while
-    // preserving progress when that same tab is refreshed.
-    const parsed = JSON.parse(sessionStorage.getItem(STORAGE_KEY));
-    return parsed ? mergeState(defaultState(), parsed) : defaultState();
-  } catch (_) {
-    return defaultState();
-  }
-}
-
-function mergeState(base, saved) {
-  return {
-    ...base,
-    ...saved,
-    beadRuns: {
-      small: { ...base.beadRuns.small, ...(saved.beadRuns?.small || {}) },
-      large: { ...base.beadRuns.large, ...(saved.beadRuns?.large || {}) }
-    },
-    kinetics: { ...base.kinetics, ...(saved.kinetics || {}) },
-    designTrials: Array.isArray(saved.designTrials) ? saved.designTrials : []
-  };
-}
-
-let state = loadState();
+// Student work exists only in this page's memory. Opening or reloading the
+// experiment always creates a fresh, independent session.
+let state = defaultState();
 let cleanupStage = () => {};
 let toastTimer = null;
 
 function saveState() {
-  sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   updateDataCount();
   updateStepper();
 }
@@ -978,7 +954,7 @@ function initGlobal() {
     const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="ONPG_virtual_lab_session.csv";a.click();URL.revokeObjectURL(url);
   });
   document.getElementById("clearData").addEventListener("click",()=>{
-    if(!confirm("Clear every saved sample, kinetic result, and bead-design trial from this browser?"))return;
+    if(!confirm("Clear every sample, kinetic result, and bead-design trial from this session?"))return;
     state=defaultState();saveState();dialog.close();navigate(1);toast("Session cleared.");
   });
   updateDataCount();updateStepper();navigate(state.stage || 1);
