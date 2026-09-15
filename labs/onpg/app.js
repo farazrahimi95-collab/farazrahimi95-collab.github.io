@@ -68,7 +68,9 @@ const defaultState = () => ({
 
 function loadState() {
   try {
-    const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    // Keep each browser tab as an independent student lab session while
+    // preserving progress when that same tab is refreshed.
+    const parsed = JSON.parse(sessionStorage.getItem(STORAGE_KEY));
     return parsed ? mergeState(defaultState(), parsed) : defaultState();
   } catch (_) {
     return defaultState();
@@ -93,7 +95,7 @@ let cleanupStage = () => {};
 let toastTimer = null;
 
 function saveState() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   updateDataCount();
   updateStepper();
 }
