@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Interactive undergraduate virtual laboratory for heat transfer through an insulated cylindrical vessel, parallel convection and radiation, and safe insulation design.">
+  <meta name="author" content="Faraz Rahimi">
+  <title>Parallel Heat Transfer | Virtual Lab</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b3046'/%3E%3Cpath d='M21 10v26a13 13 0 1 0 22 9 13 13 0 0 0-7-11V10a7 7 0 0 0-15 0Z' fill='none' stroke='%23fff' stroke-width='5'/%3E%3Cpath d='M28.5 18v23' stroke='%23f2c14e' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="portal-ribbon">
+    <a href="../../" aria-label="Return to Virtual Lab home"><span aria-hidden="true">←</span> Virtual Lab</a>
+    <span>Created by <strong>Faraz Rahimi</strong></span>
+  </div>
+
+  <header class="app-header">
+    <div class="brand-lockup">
+      <span class="brand-mark" aria-hidden="true">Q̇</span>
+      <div>
+        <p class="eyebrow">HEAT TRANSFER · VIRTUAL LABORATORY</p>
+        <h1>Parallel Heat Transfer and Safe Insulation Design</h1>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="button button-secondary" id="openModel" type="button">Model basis</button>
+      <a class="button button-secondary" href="Parallel_Heat_Transfer_Worksheet.pdf" target="_blank" rel="noopener">Open worksheet</a>
+      <button class="button button-dark" id="openData" type="button">Run data <span id="dataCount" class="button-count">0</span></button>
+    </div>
+  </header>
+
+  <nav class="stepper" aria-label="Virtual laboratory experiments">
+    <button class="step active" data-stage="1" type="button">
+      <span>1</span><strong>Parallel paths</strong><small>Trials 1–3</small>
+    </button>
+    <button class="step" data-stage="2" type="button">
+      <span>2</span><strong>Series conduction</strong><small>Trials 4–6</small>
+    </button>
+    <button class="step" data-stage="3" type="button">
+      <span>3</span><strong>Safety limit</strong><small>Trials 7–8</small>
+    </button>
+  </nav>
+
+  <main id="stageArea" tabindex="-1"></main>
+
+  <footer class="app-footer">
+    <p><strong>Model boundary:</strong> steady radial heat transfer through the straight cylindrical shell; heads, nozzles, saddles, and thermal bridges are excluded.</p>
+    <p>Results remain only in this open page and reset when it is refreshed or closed · Virtual Lab by Faraz Rahimi</p>
+  </footer>
+
+  <dialog id="dataDialog" class="data-dialog">
+    <div class="dialog-head">
+      <div>
+        <p class="eyebrow">CURRENT SESSION RECORD</p>
+        <h2>Run data</h2>
+      </div>
+      <button class="icon-button" id="closeData" type="button" aria-label="Close run data">×</button>
+    </div>
+    <div id="dataDialogBody"></div>
+    <div class="dialog-actions">
+      <button class="button button-secondary" id="downloadCsv" type="button">Download CSV</button>
+      <button class="button button-danger" id="clearData" type="button">Clear session</button>
+    </div>
+  </dialog>
+
+  <dialog id="modelDialog" class="data-dialog model-dialog">
+    <div class="dialog-head">
+      <div>
+        <p class="eyebrow">UNCHANGED NUMERICAL MODEL</p>
+        <h2>Geometry and governing equations</h2>
+      </div>
+      <button class="icon-button" id="closeModel" type="button" aria-label="Close model basis">×</button>
+    </div>
+    <div class="model-body">
+      <div class="model-constants">
+        <div><span>Internal diameter</span><strong>1.00 m</strong></div>
+        <div><span>Straight length</span><strong>6.00 m</strong></div>
+        <div><span>Steel thickness</span><strong>0.025 m</strong></div>
+        <div><span>Steel conductivity</span><strong>45 W/(m·K)</strong></div>
+        <div><span>Ambient temperature</span><strong>25 °C</strong></div>
+        <div><span>Safety limit</span><strong>60 °C</strong></div>
+      </div>
+      <div class="equation-list" aria-label="Governing equations">
+        <div class="equation">R<sub>steel</sub> = ln(r<sub>s</sub>/r<sub>i</sub>) ÷ (2πLk<sub>steel</sub>)</div>
+        <div class="equation">R<sub>ins</sub> = ln(r<sub>o</sub>/r<sub>s</sub>) ÷ (2πLk<sub>ins</sub>)</div>
+        <div class="equation">Q̇<sub>conv</sub> = hA<sub>o</sub>(T<sub>s</sub> − T<sub>∞</sub>)</div>
+        <div class="equation">Q̇<sub>rad</sub> = εσA<sub>o</sub>(T<sub>s,K</sub><sup>4</sup> − T<sub>∞,K</sub><sup>4</sup>)</div>
+        <div class="equation">Q̇<sub>cond</sub> = Q̇<sub>conv</sub> + Q̇<sub>rad</sub></div>
+      </div>
+      <p class="model-copy">The specified process temperature is applied at the inner steel surface. The model solves the outer-surface temperature by balancing conduction through the steel and insulation with convection and radiation from the same outer-surface node. Celsius inputs are converted to kelvin inside the radiation calculation.</p>
+    </div>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="app.js?v=20260916-reset"></script>
+</body>
+</html>
