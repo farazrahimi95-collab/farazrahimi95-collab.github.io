@@ -470,6 +470,9 @@ h1, h2, h3, h4, p { margin-top: 0; }
 .evidence-grid { margin-top: 20px; display: grid; grid-template-columns: minmax(430px, .82fr) minmax(560px, 1.18fr); gap: 20px; align-items: start; }
 .interactive-chart { min-height: 330px; }
 .records-panel { min-width: 0; }
+.records-panel .data-table { font-size: 11px; }
+.records-panel .data-table th { padding: 8px 6px; font-size: 10px; line-height: 1.15; overflow-wrap: anywhere; white-space: normal; }
+.records-panel .data-table td { padding: 8px 6px; white-space: nowrap; }
 .empty-records { min-height: 168px; padding: 24px; display: grid; place-content: center; gap: 5px; border: 1px dashed #b7c8cc; border-radius: 10px; color: var(--muted); background: #f8fbfa; text-align: center; }
 .empty-records strong { color: var(--ink); }
 .empty-records span { max-width: 370px; font-size: 12px; line-height: 1.45; }

@@ -353,7 +353,7 @@ function thermalApparatus(inputs, result) {
     <title>Live temperature and insulation response of the process vessel</title>
     <defs>
       <linearGradient id="fluidThermal" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stop-color="#fff8d7"/><stop offset=".45" stop-color="${processColor}"/><stop offset="1" stop-color="${mixColor(processColor, "#7a1f1f", .28)}"/>
+        <stop offset="0" stop-color="#fff8d7"/><stop offset=".45" stop-color="${processColor}"/><stop offset="1" stop-color="${mixColor(processColor, "#d95531", .34)}"/>
       </linearGradient>
       <linearGradient id="steelThermal" x1="0" y1="0" x2="0" y2="1">
         <stop offset="0" stop-color="#edf3f5"/><stop offset=".42" stop-color="${wallColor}"/><stop offset="1" stop-color="#647b86"/>
