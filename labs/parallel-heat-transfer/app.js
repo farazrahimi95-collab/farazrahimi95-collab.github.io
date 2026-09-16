@@ -294,21 +294,28 @@ function controlsPanel(stage) {
   </section>`;
 }
 
-function hexToRgb(hex) {
-  const normalized = hex.replace("#", "");
-  return [0, 2, 4].map(index => Number.parseInt(normalized.slice(index, index + 2), 16));
+function colorToRgb(color) {
+  if (color.startsWith("#")) {
+    const normalized = color.replace("#", "");
+    return [0, 2, 4].map(index => Number.parseInt(normalized.slice(index, index + 2), 16));
+  }
+  const channels = color.match(/[\d.]+/g);
+  if (!channels || channels.length < 3) return [174, 191, 198];
+  return channels.slice(0, 3).map(Number);
 }
 
 function mixColor(start, end, fraction) {
-  const a = hexToRgb(start);
-  const b = hexToRgb(end);
+  const a = colorToRgb(start);
+  const b = colorToRgb(end);
   const t = Math.min(1, Math.max(0, fraction));
   return `rgb(${a.map((value, index) => Math.round(value + (b[index] - value) * t)).join(",")})`;
 }
 
-function temperatureColor(temperatureC) {
+function temperatureColor(temperatureC, endpointA = AMBIENT_C, endpointB = MAX_PROCESS_C) {
   if (!Number.isFinite(temperatureC)) return "#aebfc6";
-  const fraction = Math.min(1, Math.max(0, (temperatureC - AMBIENT_C) / (MAX_PROCESS_C - AMBIENT_C)));
+  const lower = Math.min(endpointA, endpointB);
+  const upper = Math.max(endpointA, endpointB);
+  const fraction = Math.min(1, Math.max(0, (temperatureC - lower) / Math.max(upper - lower, 1e-9)));
   const stops = [
     [0.00, "#2f86c4"],
     [0.22, "#6fc2e5"],
@@ -335,9 +342,9 @@ function thermalApparatus(inputs, result) {
   const outerWidth = 543 + insulationPx * 2;
   const outerHeight = 168 + insulationPx * 2;
   const outerRadius = 84 + insulationPx;
-  const processColor = temperatureColor(inputs.processC);
-  const wallColor = temperatureColor(result.wallOuterC);
-  const surfaceColor = temperatureColor(result.surfaceC);
+  const processColor = temperatureColor(inputs.processC, AMBIENT_C, inputs.processC);
+  const wallColor = temperatureColor(result.wallOuterC, AMBIENT_C, inputs.processC);
+  const surfaceColor = temperatureColor(result.surfaceC, AMBIENT_C, inputs.processC);
   const totalMagnitude = Math.max(Math.abs(result.qConvW) + Math.abs(result.qRadW), 1);
   const convWidth = result.qConvW === 0 ? 0 : 2.5 + 5.5 * Math.abs(result.qConvW) / totalMagnitude;
   const radWidth = result.qRadW === 0 ? 0 : 2.5 + 5.5 * Math.abs(result.qRadW) / totalMagnitude;
@@ -979,7 +986,9 @@ const MODEL_API = {
   INPUTS,
   STAGES,
   solveInsulatedVessel,
-  safetyAnalysis
+  safetyAnalysis,
+  temperatureColor,
+  mixColor
 };
 
 if (typeof globalThis !== "undefined") globalThis.ParallelHeatTransferModel = MODEL_API;
