@@ -1,9 +1,12 @@
 "use strict";
 
-// This browser model is a direct port of reactor_simulation10(3).py.
-// The teaching trials and all numerical constants are intentionally unchanged.
+// Direct browser port of reactor_simulation10(3).py. The geometry, governing
+// equations, constants, and input limits match the original Streamlit model.
 const SIGMA = 5.670374419e-8;
 const AMBIENT_C = 25.0;
+const MAX_PROCESS_C = 800.0;
+const MAX_INSULATION_M = 0.50;
+const MAX_CONVECTION = 50.0;
 const SAFETY_LIMIT_C = 60.0;
 const STEP_M = 0.005;
 
@@ -18,27 +21,52 @@ const GEOMETRY = Object.freeze({
   steelConductivity: 45.0
 });
 
-const TRIALS = Object.freeze({
-  1: { caseName: "Case A", processC: 400, insulationM: 0.100, conductivity: 0.080, emissivity: 0.00, h: 8.0 },
-  2: { caseName: "Case A", processC: 400, insulationM: 0.100, conductivity: 0.080, emissivity: 0.85, h: 0.0 },
-  3: { caseName: "Case A", processC: 400, insulationM: 0.100, conductivity: 0.080, emissivity: 0.85, h: 8.0 },
-  4: { caseName: "Case A", processC: 600, insulationM: 0.000, conductivity: 0.080, emissivity: 0.85, h: 8.0 },
-  5: { caseName: "Case A", processC: 600, insulationM: 0.100, conductivity: 0.080, emissivity: 0.85, h: 8.0 },
-  6: { caseName: "Case A", processC: 600, insulationM: 0.150, conductivity: 0.080, emissivity: 0.85, h: 8.0 }
-});
+const INPUTS = Object.freeze([
+  { key: "processC", label: "Internal process temperature", symbol: "Tᵢₙ", unit: "°C", min: 0, max: MAX_PROCESS_C, step: 5, digits: 0 },
+  { key: "insulationM", label: "Insulation thickness", symbol: "t", unit: "m", min: 0, max: MAX_INSULATION_M, step: STEP_M, digits: 3 },
+  { key: "conductivity", label: "Insulation conductivity", symbol: "k", unit: "W/(m·K)", min: 0.02, max: 0.20, step: 0.005, digits: 3 },
+  { key: "emissivity", label: "Outer-surface emissivity", symbol: "ε", unit: "", min: 0, max: 1, step: 0.01, digits: 2 },
+  { key: "h", label: "External convection coefficient", symbol: "h", unit: "W/(m²·K)", min: 0, max: MAX_CONVECTION, step: 0.5, digits: 1 }
+]);
 
-const SAFETY_INPUTS = Object.freeze({
-  caseName: "Case B",
-  processC: 800,
-  conductivity: 0.080,
-  emissivity: 0.85,
-  h: 8.0
+const INPUT_BY_KEY = Object.freeze(Object.fromEntries(INPUTS.map(definition => [definition.key, definition])));
+
+const STAGES = Object.freeze({
+  1: {
+    title: "Convection and radiation act in parallel",
+    description: "Enter your own operating conditions, then compare how convection and radiation leave the same outer-surface node.",
+    chip: "Case A · parallel paths",
+    defaultInputs: { processC: 400, insulationM: 0.100, conductivity: 0.080, emissivity: 0.85, h: 8.0 },
+    worksheetTitle: "Worksheet route · Table 1",
+    worksheetText: "Keep Tᵢₙ = 400 °C, t = 0.100 m, and k = 0.080 W/(m·K). Enter and run (ε, h) = (0.00, 8), (0.85, 0), and (0.85, 8). You can then explore any values within the displayed ranges.",
+    chartTitle: "Parallel heat-loss paths",
+    chartText: "Each recorded run adds convection, radiation, and total heat transfer to the comparison."
+  },
+  2: {
+    title: "Steel and insulation resist heat flow in series",
+    description: "Change the insulation thickness or any operating input and observe the live temperature profile through the vessel layers.",
+    chip: "Case A · series conduction",
+    defaultInputs: { processC: 600, insulationM: 0.100, conductivity: 0.080, emissivity: 0.85, h: 8.0 },
+    worksheetTitle: "Worksheet route · Table 2",
+    worksheetText: "Use Tᵢₙ = 600 °C, k = 0.080 W/(m·K), ε = 0.85, and h = 8 W/(m²·K). Enter and run t = 0.000, 0.100, and 0.150 m. Additional settings may be explored.",
+    chartTitle: "Effect of insulation thickness",
+    chartText: "Recorded points compare outer-surface temperature and total heat transfer against insulation thickness."
+  },
+  3: {
+    title: "Find a safe insulation design",
+    description: "Adjust the design live and determine the first 0.005 m insulation setting that keeps the touchable surface at or below 60 °C.",
+    chip: "Case B · safety search",
+    defaultInputs: { processC: 800, insulationM: 0.100, conductivity: 0.080, emissivity: 0.85, h: 8.0 },
+    worksheetTitle: "Worksheet route · Table 3",
+    worksheetText: "Use Tᵢₙ = 800 °C, k = 0.080 W/(m·K), ε = 0.85, and h = 8 W/(m²·K). Change t in exact 0.005 m steps until the first passing setting is found, then test one step lower.",
+    chartTitle: "Surface temperature versus insulation thickness",
+    chartText: "The full model curve updates for the current Tᵢₙ, k, ε, and h. Recorded runs appear as individual points."
+  }
 });
 
 const COLORS = Object.freeze({
   navy: "#0f3047",
   teal: "#008d83",
-  tealPale: "#dcefeb",
   blue: "#2575aa",
   orange: "#ed8a3a",
   yellow: "#c69000",
@@ -134,24 +162,27 @@ function solveInsulatedVessel({
   };
 }
 
+function cloneInputs(inputs) {
+  return { ...inputs };
+}
+
 function defaultState() {
   return {
     stage: 1,
-    trials: {},
-    safetyStep: 20,
-    exploredSteps: [20]
+    inputs: {
+      1: cloneInputs(STAGES[1].defaultInputs),
+      2: cloneInputs(STAGES[2].defaultInputs),
+      3: cloneInputs(STAGES[3].defaultInputs)
+    },
+    records: { 1: [], 2: [], 3: [] }
   };
 }
 
-// Student work exists only in this page's memory. Opening or reloading the
-// experiment always creates a fresh, independent session.
+// Student work remains only in this page's memory. A new tab or reload starts
+// with a separate, empty session.
 let state = defaultState();
 let toastTimer = null;
 let resizeTimer = null;
-
-function saveState() {
-  updateNavigation();
-}
 
 function format(value, digits = 3) {
   return Number(value).toFixed(digits);
@@ -172,26 +203,15 @@ function toast(message) {
   element.textContent = message;
   element.classList.add("show");
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => element.classList.remove("show"), 2200);
-}
-
-function trialRecord(number, inputs) {
-  return {
-    trial: number,
-    ...inputs,
-    result: solveInsulatedVessel(inputs),
-    recordedAt: new Date().toISOString()
-  };
+  toastTimer = setTimeout(() => element.classList.remove("show"), 2400);
 }
 
 function stageComplete(stage) {
-  if (stage === 1) return [1, 2, 3].every(number => state.trials[number]);
-  if (stage === 2) return [4, 5, 6].every(number => state.trials[number]);
-  return Boolean(state.trials[7] && state.trials[8]);
+  return state.records[stage].length > 0;
 }
 
 function recordCount() {
-  return Object.keys(state.trials).filter(key => state.trials[key]).length;
+  return Object.values(state.records).reduce((total, records) => total + records.length, 0);
 }
 
 function updateNavigation() {
@@ -204,15 +224,16 @@ function updateNavigation() {
   if (count) count.textContent = recordCount();
 }
 
-function stageHeader(stage, title, description, chip) {
+function stageHeader(stage) {
+  const config = STAGES[stage];
   return `<div class="stage-heading">
     <div>
       <div class="stage-number">EXPERIMENT ${stage} OF 3</div>
-      <h2>${title}</h2>
-      <p>${description}</p>
+      <h2>${config.title}</h2>
+      <p>${config.description}</p>
     </div>
     <div class="stage-heading-actions">
-      <div class="stage-chip">${chip}</div>
+      <div class="stage-chip">${config.chip}</div>
       <button class="stage-reset" id="resetStage" type="button" aria-label="Reset experiment ${stage}">
         <span aria-hidden="true">↻</span> Reset experiment
       </button>
@@ -220,427 +241,437 @@ function stageHeader(stage, title, description, chip) {
   </div>`;
 }
 
-function fixedSettings(inputs) {
-  return `<div class="settings-grid">
-    <div class="setting"><span>Process</span><strong>${format(inputs.processC, 0)} °C</strong></div>
-    <div class="setting"><span>Insulation</span><strong>${format(inputs.insulationM, 3)} m</strong></div>
-    <div class="setting"><span>k insulation</span><strong>${format(inputs.conductivity, 3)} W/(m·K)</strong></div>
-    <div class="setting"><span>Emissivity</span><strong>${format(inputs.emissivity, 2)}</strong></div>
-    <div class="setting"><span>h convection</span><strong>${format(inputs.h, 1)} W/(m²·K)</strong></div>
-    <div class="setting"><span>Ambient</span><strong>${format(AMBIENT_C, 0)} °C</strong></div>
+function fixedParameters() {
+  return `<div class="fixed-basis-card" aria-label="Fixed vessel and boundary parameters">
+    <div class="section-label">FIXED MODEL BASIS</div>
+    <div class="fixed-basis-grid">
+      <div><span>Ambient</span><strong>${format(AMBIENT_C, 0)} °C</strong></div>
+      <div><span>Inner diameter</span><strong>${format(GEOMETRY.innerDiameterM, 2)} m</strong></div>
+      <div><span>Straight length</span><strong>${format(GEOMETRY.straightLengthM, 2)} m</strong></div>
+      <div><span>Steel wall</span><strong>${format(GEOMETRY.wallThicknessM, 3)} m</strong></div>
+      <div><span>Steel k</span><strong>${format(GEOMETRY.steelConductivity, 0)} W/(m·K)</strong></div>
+      <div><span>Safety limit</span><strong>${format(SAFETY_LIMIT_C, 0)} °C</strong></div>
+    </div>
   </div>`;
 }
 
-function temperatureColor(surfaceC) {
-  if (!Number.isFinite(surfaceC)) return "#b7c9c9";
-  const fraction = Math.min(1, Math.max(0, (surfaceC - 25) / 560));
-  if (fraction < 0.35) {
-    const t = fraction / 0.35;
-    return `rgb(${Math.round(73 + 168 * t)}, ${Math.round(166 + 45 * t)}, ${Math.round(203 - 78 * t)})`;
-  }
-  const t = (fraction - 0.35) / 0.65;
-  return `rgb(${Math.round(241 - 13 * t)}, ${Math.round(211 - 145 * t)}, ${Math.round(125 - 80 * t)})`;
+function inputControl(stage, definition, value) {
+  const id = `stage-${stage}-${definition.key}`;
+  const unit = definition.unit ? `<span>${definition.unit}</span>` : "";
+  return `<div class="variable-control" data-key="${definition.key}">
+    <div class="variable-heading">
+      <label for="${id}-number"><strong>${definition.label}</strong><small>${definition.symbol}</small></label>
+      <div class="number-with-unit">
+        <input id="${id}-number" class="variable-number" data-number-input="${definition.key}" type="number" min="${definition.min}" max="${definition.max}" step="${definition.step}" value="${format(value, definition.digits)}" inputmode="decimal" aria-describedby="${id}-range-text">
+        ${unit}
+      </div>
+    </div>
+    <input id="${id}-range" class="variable-range" data-range-input="${definition.key}" type="range" min="${definition.min}" max="${definition.max}" step="${definition.step}" value="${value}" aria-label="${definition.label}">
+    <div class="input-range-text" id="${id}-range-text"><span>${format(definition.min, definition.digits)}${definition.unit ? ` ${definition.unit}` : ""}</span><span>step ${format(definition.step, definition.digits)}</span><span>${format(definition.max, definition.digits)}${definition.unit ? ` ${definition.unit}` : ""}</span></div>
+  </div>`;
 }
 
-function thermalApparatus(inputs, result, running = false) {
-  const insulationPx = 7 + Math.round(Math.min(0.5, inputs.insulationM) / 0.5 * 27);
-  const surface = result ? result.surfaceC : NaN;
-  const surfaceColor = temperatureColor(surface);
-  const qTotal = result ? Math.max(Math.abs(result.qTotalW), 1) : 1;
-  const convOpacity = result ? Math.min(1, 0.2 + Math.abs(result.qConvW) / qTotal * 0.8) : 0.18;
-  const radOpacity = result ? Math.min(1, 0.2 + Math.abs(result.qRadW) / qTotal * 0.8) : 0.18;
-  const convWidth = result && result.qConvW !== 0 ? 2 + 5 * Math.abs(result.qConvW) / qTotal : 0;
-  const radWidth = result && result.qRadW !== 0 ? 2 + 5 * Math.abs(result.qRadW) / qTotal : 0;
-  const outerY = 141 - insulationPx;
-  const outerH = 218 + 2 * insulationPx;
-  const outerRx = 102 + insulationPx;
-  const tLabel = format(inputs.insulationM, 3);
-  const surfaceLabel = result ? `${format(surface, 1)} °C` : "— °C";
-  const wallLabel = result ? `${format(result.wallOuterC, 1)} °C` : "— °C";
-  const status = result ? (surface <= SAFETY_LIMIT_C ? "Surface at or below 60 °C" : "Surface above 60 °C") : "Ready for a trial";
-  return `<svg class="thermal-apparatus ${running ? "running" : ""}" viewBox="0 0 900 480" role="img" aria-label="Horizontal insulated vessel showing radial conduction through steel and insulation and parallel convection and radiation from the outer surface">
-    <title>Insulated process vessel heat-transfer apparatus</title>
+function controlsPanel(stage) {
+  const config = STAGES[stage];
+  const values = state.inputs[stage];
+  return `<section class="panel panel-pad simulator-controls-panel">
+    <div class="panel-title">
+      <div><h3>Enter experimental conditions</h3><p>Type a value or move its slider. The vessel and calculated preview update immediately.</p></div>
+      <span class="live-badge"><i></i> Live model</span>
+    </div>
+    <div class="worksheet-guide">
+      <strong>${config.worksheetTitle}</strong>
+      <p>${config.worksheetText}</p>
+    </div>
+    <div class="variable-stack">
+      ${INPUTS.map(definition => inputControl(stage, definition, values[definition.key])).join("")}
+    </div>
+    ${fixedParameters()}
+    <div class="run-actions">
+      <button class="button run-current" id="runCurrent" type="button">Run and record current settings</button>
+      <p>The preview is live. Clicking Run stores one snapshot in this tab's session data.</p>
+    </div>
+  </section>`;
+}
+
+function hexToRgb(hex) {
+  const normalized = hex.replace("#", "");
+  return [0, 2, 4].map(index => Number.parseInt(normalized.slice(index, index + 2), 16));
+}
+
+function mixColor(start, end, fraction) {
+  const a = hexToRgb(start);
+  const b = hexToRgb(end);
+  const t = Math.min(1, Math.max(0, fraction));
+  return `rgb(${a.map((value, index) => Math.round(value + (b[index] - value) * t)).join(",")})`;
+}
+
+function temperatureColor(temperatureC) {
+  if (!Number.isFinite(temperatureC)) return "#aebfc6";
+  const fraction = Math.min(1, Math.max(0, (temperatureC - AMBIENT_C) / (MAX_PROCESS_C - AMBIENT_C)));
+  const stops = [
+    [0.00, "#2f86c4"],
+    [0.22, "#6fc2e5"],
+    [0.45, "#c6eaf7"],
+    [0.64, "#fff4be"],
+    [0.82, "#ff9737"],
+    [1.00, "#dc2626"]
+  ];
+  for (let index = 1; index < stops.length; index += 1) {
+    if (fraction <= stops[index][0]) {
+      const [leftPoint, leftColor] = stops[index - 1];
+      const [rightPoint, rightColor] = stops[index];
+      return mixColor(leftColor, rightColor, (fraction - leftPoint) / (rightPoint - leftPoint));
+    }
+  }
+  return stops.at(-1)[1];
+}
+
+function thermalApparatus(inputs, result) {
+  const insulationPx = Math.round(Math.min(MAX_INSULATION_M, inputs.insulationM) / MAX_INSULATION_M * 38);
+  const ringPx = Math.round(Math.min(MAX_INSULATION_M, inputs.insulationM) / MAX_INSULATION_M * 28);
+  const outerX = 118 - insulationPx;
+  const outerY = 146 - insulationPx;
+  const outerWidth = 543 + insulationPx * 2;
+  const outerHeight = 168 + insulationPx * 2;
+  const outerRadius = 84 + insulationPx;
+  const processColor = temperatureColor(inputs.processC);
+  const wallColor = temperatureColor(result.wallOuterC);
+  const surfaceColor = temperatureColor(result.surfaceC);
+  const totalMagnitude = Math.max(Math.abs(result.qConvW) + Math.abs(result.qRadW), 1);
+  const convWidth = result.qConvW === 0 ? 0 : 2.5 + 5.5 * Math.abs(result.qConvW) / totalMagnitude;
+  const radWidth = result.qRadW === 0 ? 0 : 2.5 + 5.5 * Math.abs(result.qRadW) / totalMagnitude;
+  const outerRing = 58 + ringPx;
+  const insulationShape = inputs.insulationM > 1e-12
+    ? `<rect x="${outerX}" y="${outerY}" width="${outerWidth}" height="${outerHeight}" rx="${outerRadius}" fill="url(#insulationThermal)" stroke="#3f6977" stroke-width="3"/>`
+    : "";
+  const insulationRing = inputs.insulationM > 1e-12
+    ? `<circle cx="810" cy="225" r="${outerRing}" fill="url(#radialInsulation)" stroke="#3f6977" stroke-width="3"/>`
+    : "";
+
+  return `<svg class="thermal-apparatus" viewBox="0 0 940 430" role="img" aria-label="Live insulated vessel. Layer thickness and thermal colors change with the entered operating conditions.">
+    <title>Live temperature and insulation response of the process vessel</title>
     <defs>
-      <linearGradient id="processHeat" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stop-color="#fff0a8"/><stop offset=".52" stop-color="#f3983e"/><stop offset="1" stop-color="#d95531"/>
+      <linearGradient id="fluidThermal" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#fff8d7"/><stop offset=".45" stop-color="${processColor}"/><stop offset="1" stop-color="${mixColor(processColor, "#7a1f1f", .28)}"/>
       </linearGradient>
-      <linearGradient id="steelShell" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stop-color="#eaf1f3"/><stop offset=".35" stop-color="#879ca7"/><stop offset=".7" stop-color="#d6e1e4"/><stop offset="1" stop-color="#6b818c"/>
+      <linearGradient id="steelThermal" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#edf3f5"/><stop offset=".42" stop-color="${wallColor}"/><stop offset="1" stop-color="#647b86"/>
       </linearGradient>
-      <linearGradient id="insulationShell" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stop-color="#f8fbfb"/><stop offset=".42" stop-color="${surfaceColor}" stop-opacity=".72"/><stop offset="1" stop-color="#cbdadd"/>
+      <linearGradient id="insulationThermal" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="${mixColor(wallColor, "#ffffff", .40)}"/><stop offset=".48" stop-color="${surfaceColor}"/><stop offset="1" stop-color="${mixColor(surfaceColor, "#304e5d", .25)}"/>
       </linearGradient>
-      <filter id="vesselShadow" x="-20%" y="-30%" width="140%" height="180%"><feDropShadow dx="0" dy="8" stdDeviation="9" flood-color="#0f3047" flood-opacity=".17"/></filter>
+      <radialGradient id="radialInsulation"><stop offset=".58" stop-color="${wallColor}"/><stop offset="1" stop-color="${surfaceColor}"/></radialGradient>
+      <filter id="vesselShadow" x="-20%" y="-30%" width="140%" height="180%"><feDropShadow dx="0" dy="9" stdDeviation="9" flood-color="#0f3047" flood-opacity=".17"/></filter>
       <marker id="arrowBlue" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#2575aa"/></marker>
       <marker id="arrowOrange" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#ed8a3a"/></marker>
-      <marker id="arrowGray" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#486571"/></marker>
     </defs>
-    <rect width="900" height="480" rx="20" fill="#eaf3f1"/>
-    <path d="M75 395 H830" stroke="#c2d3d3" stroke-width="3"/>
+    <rect width="940" height="430" rx="22" fill="#edf5f3"/>
+    <path d="M56 362 H704" stroke="#c6d7d7" stroke-width="3"/>
     <g filter="url(#vesselShadow)">
-      <rect x="118" y="${outerY}" width="585" height="${outerH}" rx="${outerRx}" fill="url(#insulationShell)" stroke="#557b87" stroke-width="3"/>
-      <rect x="137" y="154" width="547" height="192" rx="92" fill="url(#steelShell)" stroke="#304e5d" stroke-width="3"/>
-      <rect x="155" y="170" width="511" height="160" rx="78" fill="url(#processHeat)" stroke="#a1482b" stroke-width="2"/>
-      <path d="M183 207 C282 187 542 187 638 209" fill="none" stroke="#fff7cf" stroke-width="8" opacity=".55"/>
-      <ellipse class="thermal-pulse" cx="410" cy="250" rx="230" ry="65" fill="#ffe474"/>
+      ${insulationShape}
+      <rect x="126" y="154" width="527" height="152" rx="76" fill="url(#steelThermal)" stroke="#304e5d" stroke-width="3"/>
+      <rect x="142" y="170" width="495" height="120" rx="60" fill="url(#fluidThermal)" stroke="#8e3f29" stroke-width="2.5"/>
+      <path d="M173 199 C277 181 512 181 605 201" fill="none" stroke="#fff" stroke-width="7" opacity=".40"/>
     </g>
-    <g>
-      <path d="M228 351 L207 395 H288 L270 351" fill="#496574"/>
-      <path d="M548 351 L528 395 H609 L589 351" fill="#496574"/>
-      <rect x="196" y="393" width="103" height="10" rx="4" fill="#304e5d"/>
-      <rect x="517" y="393" width="103" height="10" rx="4" fill="#304e5d"/>
-      <path d="M333 154 V105 H378 V154" fill="url(#steelShell)" stroke="#304e5d" stroke-width="3"/>
-      <rect x="323" y="90" width="65" height="16" rx="6" fill="#54717f"/>
+    <g aria-hidden="true">
+      <path d="M223 305 L205 362 H279 L263 305" fill="#496574"/>
+      <path d="M521 305 L503 362 H577 L561 305" fill="#496574"/>
+      <rect x="196" y="359" width="94" height="10" rx="4" fill="#304e5d"/>
+      <rect x="494" y="359" width="94" height="10" rx="4" fill="#304e5d"/>
+      <path d="M329 154 V115 H369 V154" fill="url(#steelThermal)" stroke="#304e5d" stroke-width="3"/>
+      <rect x="319" y="102" width="60" height="14" rx="6" fill="#54717f"/>
     </g>
-    <g>
-      <line x1="410" y1="250" x2="410" y2="${outerY - 9}" stroke="#486571" stroke-width="2.5" marker-end="url(#arrowGray)"/>
-      <text x="423" y="119" class="apparatus-label">RADIAL CONDUCTION</text>
-      <text x="423" y="135" class="minor">steel wall + insulation in series</text>
+    <g class="convection-flow" opacity="${result.qConvW === 0 ? 0 : .95}">
+      <path d="M210 ${outerY - 7} C190 ${outerY - 31} 227 ${outerY - 47} 207 ${outerY - 72}" fill="none" stroke="#2575aa" stroke-width="${convWidth}" stroke-dasharray="8 7" marker-end="url(#arrowBlue)"/>
+      <path d="M280 ${outerY - 7} C260 ${outerY - 31} 297 ${outerY - 47} 277 ${outerY - 72}" fill="none" stroke="#2575aa" stroke-width="${convWidth}" stroke-dasharray="8 7" marker-end="url(#arrowBlue)"/>
     </g>
-    <g style="--air-opacity:${convOpacity}">
-      <path class="air-line" d="M218 ${outerY - 12} C198 ${outerY - 42} 237 ${outerY - 55} 215 ${outerY - 86}" stroke-width="${convWidth}" stroke-dasharray="8 7" marker-end="url(#arrowBlue)"/>
-      <path class="air-line" d="M287 ${outerY - 10} C267 ${outerY - 39} 308 ${outerY - 57} 286 ${outerY - 90}" stroke-width="${convWidth}" stroke-dasharray="8 7" marker-end="url(#arrowBlue)"/>
-      <text x="194" y="42" class="apparatus-label" style="fill:#2575aa">CONVECTION</text>
-      <text x="194" y="58" class="minor">h = ${format(inputs.h, 1)} W/(m²·K)</text>
+    <g class="radiation-flow" opacity="${result.qRadW === 0 ? 0 : .95}">
+      <path d="M492 ${outerY - 2} L519 ${outerY - 64}" fill="none" stroke="#ed8a3a" stroke-width="${radWidth}" marker-end="url(#arrowOrange)"/>
+      <path d="M555 ${outerY - 2} L591 ${outerY - 59}" fill="none" stroke="#ed8a3a" stroke-width="${radWidth}" marker-end="url(#arrowOrange)"/>
+      <path d="M616 ${outerY + 7} L661 ${outerY - 46}" fill="none" stroke="#ed8a3a" stroke-width="${radWidth}" marker-end="url(#arrowOrange)"/>
     </g>
-    <g style="--ray-opacity:${radOpacity}">
-      <path class="heat-ray" d="M512 ${outerY - 7} L536 ${outerY - 74}" stroke-width="${radWidth}" marker-end="url(#arrowOrange)"/>
-      <path class="heat-ray" d="M570 ${outerY - 5} L604 ${outerY - 69}" stroke-width="${radWidth}" marker-end="url(#arrowOrange)"/>
-      <path class="heat-ray" d="M628 ${outerY + 4} L672 ${outerY - 53}" stroke-width="${radWidth}" marker-end="url(#arrowOrange)"/>
-      <text x="553" y="42" class="apparatus-label" style="fill:#d36b21">RADIATION</text>
-      <text x="553" y="58" class="minor">ε = ${format(inputs.emissivity, 2)}</text>
-    </g>
-    <g>
-      <rect x="726" y="113" width="143" height="116" rx="16" fill="#0f3047"/>
-      <text x="744" y="139" style="fill:#b7cbd3;font-size:10px;letter-spacing:.09em">SURFACE SENSOR</text>
-      <text x="851" y="178" text-anchor="end" style="fill:#f6c843;font:700 26px Consolas,monospace">${surfaceLabel}</text>
-      <text x="744" y="205" style="fill:#d6e4e8;font-size:10px">${status}</text>
-      <path d="M726 173 C702 173 701 193 682 193" fill="none" stroke="#66828e" stroke-width="2"/>
-      <circle cx="682" cy="193" r="6" fill="${surfaceColor}" stroke="#0f3047" stroke-width="2"/>
-    </g>
-    <g transform="translate(750 286)">
-      <circle cx="48" cy="48" r="45" fill="#f8fbfb" stroke="#6d9199" stroke-width="3"/>
-      <circle cx="48" cy="48" r="37" fill="${surfaceColor}" opacity=".75" stroke="#54717f" stroke-width="5"/>
-      <circle cx="48" cy="48" r="30" fill="#aebdc4" stroke="#4d6570" stroke-width="6"/>
-      <circle cx="48" cy="48" r="23" fill="#ed8a3a"/>
-      <line x1="48" y1="2" x2="48" y2="95" stroke="#0f3047" stroke-width="1.5" stroke-dasharray="3 4" opacity=".6"/>
-      <text x="48" y="112" text-anchor="middle" class="apparatus-label">RADIAL CROSS-SECTION</text>
-    </g>
-    <g>
-      <text x="410" y="246" text-anchor="middle" class="apparatus-label" style="fill:#6b2c20">PROCESS FLUID · ${format(inputs.processC, 0)} °C</text>
-      <text x="410" y="268" text-anchor="middle" class="minor" style="fill:#7d392a">inner steel-surface boundary</text>
-      <text x="410" y="326" text-anchor="middle" class="minor">steel outer surface ${wallLabel}</text>
-      <text x="410" y="375" text-anchor="middle" class="apparatus-label">INSULATION t = ${tLabel} m · k = ${format(inputs.conductivity, 3)} W/(m·K)</text>
-      <text x="786" y="433" text-anchor="middle" class="apparatus-label">AMBIENT AIR · ${format(AMBIENT_C, 0)} °C</text>
-      <text x="786" y="449" text-anchor="middle" class="minor">straight cylindrical section only</text>
+    <g aria-hidden="true">
+      ${insulationRing}
+      <circle cx="810" cy="225" r="58" fill="${wallColor}" stroke="#304e5d" stroke-width="5"/>
+      <circle cx="810" cy="225" r="49" fill="${processColor}" stroke="#7f3b29" stroke-width="2.5"/>
+      <circle cx="810" cy="225" r="8" fill="#fff" opacity=".42"/>
+      <path d="M716 335 H898" stroke="#c6d7d7" stroke-width="3"/>
     </g>
   </svg>`;
 }
 
-function apparatusPanel(inputs, result, title = "Insulated process vessel") {
-  const statusClass = result ? (result.surfaceC <= SAFETY_LIMIT_C ? "ready" : "hot") : "";
-  const statusTitle = result ? "Steady state solved" : "Apparatus ready";
-  const statusCopy = result ? `${format(result.qTotalW / 1000, 3)} kW leaves the cylindrical shell` : "Run a trial to calculate the steady state.";
-  return `<section class="panel">
-    <div class="apparatus-wrap">${thermalApparatus(inputs, result)}</div>
-    <div class="apparatus-readout">
-      <div class="apparatus-status"><i class="status-light ${statusClass}"></i><div><strong>${title}</strong><small>${statusTitle} · ${statusCopy}</small></div></div>
-      <div class="digital-readout"><span>OUTER-SURFACE TEMPERATURE</span><strong>${result ? `${format(result.surfaceC, 2)} °C` : "—"}</strong></div>
+function visualPanel(inputs, result) {
+  const safe = result.surfaceC <= SAFETY_LIMIT_C + 1e-9;
+  return `<section class="panel live-visual-panel">
+    <div class="visual-stat-strip">
+      <div><span>Process</span><strong>${format(inputs.processC, 0)} °C</strong></div>
+      <div><span>Steel outer face</span><strong>${format(result.wallOuterC, 1)} °C</strong></div>
+      <div class="${safe ? "safe-value" : "hot-value"}"><span>Touchable surface</span><strong>${format(result.surfaceC, 1)} °C</strong></div>
+      <div><span>Ambient</span><strong>${format(AMBIENT_C, 0)} °C</strong></div>
+    </div>
+    <div class="apparatus-wrap live-apparatus-wrap">${thermalApparatus(inputs, result)}</div>
+    <div class="visual-key" aria-label="Vessel layer and heat-path legend">
+      <span><i class="key-process"></i>Process fluid</span>
+      <span><i class="key-steel"></i>Steel wall · 25 mm</span>
+      <span><i class="key-insulation"></i>Insulation · ${format(inputs.insulationM * 1000, 0)} mm</span>
+      <span><i class="key-convection"></i>Convection</span>
+      <span><i class="key-radiation"></i>Radiation</span>
+    </div>
+    <div class="temperature-scale" aria-label="Thermal color scale from ambient to process temperature">
+      <span>Ambient ${format(AMBIENT_C, 0)} °C</span><i></i><span>Process ${format(inputs.processC, 0)} °C</span>
     </div>
   </section>`;
 }
 
 function resultMetrics(result) {
-  if (!result) {
-    return `<div class="metric-row">
-      <div class="metric primary"><span>Surface temperature</span><strong>—</strong></div>
-      <div class="metric"><span>Total heat loss</span><strong>—</strong></div>
-      <div class="metric"><span>Outer area</span><strong>—</strong></div>
-    </div>`;
-  }
-  return `<div class="metric-row">
-    <div class="metric primary"><span>Surface temperature</span><strong>${format(result.surfaceC, 2)} <small>°C</small></strong></div>
-    <div class="metric"><span>Total heat loss</span><strong>${format(kw(result.qTotalW), 3)} <small>kW</small></strong></div>
-    <div class="metric"><span>Outer area</span><strong>${format(result.areaOuterM2, 2)} <small>m²</small></strong></div>
+  return `<div class="result-grid">
+    <div class="result-card primary"><span>Outer-surface temperature</span><strong>${format(result.surfaceC, 2)} <small>°C</small></strong></div>
+    <div class="result-card"><span>Total heat transfer</span><strong>${format(kw(result.qTotalW), 3)} <small>kW</small></strong></div>
+    <div class="result-card"><span>Conduction</span><strong>${format(kw(result.qCondW), 3)} <small>kW</small></strong></div>
+    <div class="result-card path-conv"><span>Convection</span><strong>${format(kw(result.qConvW), 3)} <small>kW</small></strong></div>
+    <div class="result-card path-rad"><span>Radiation</span><strong>${format(kw(result.qRadW), 3)} <small>kW</small></strong></div>
+    <div class="result-card"><span>Outside diameter</span><strong>${format(result.outerDiameterM, 3)} <small>m</small></strong></div>
   </div>`;
 }
 
-function trialsTable(numbers, includeStatus = false) {
-  const rows = numbers.map(number => {
-    const record = state.trials[number];
-    if (!record) return `<tr><td>Trial ${number}</td><td colspan="${includeStatus ? 11 : 10}" class="pending">Not recorded</td></tr>`;
-    const r = record.result;
-    const status = r.surfaceC <= SAFETY_LIMIT_C ? "PASS" : "FAIL";
+function safetyAnalysis(inputs) {
+  const points = [];
+  let firstSafe = null;
+  for (let step = 0; step <= Math.round(MAX_INSULATION_M / STEP_M); step += 1) {
+    const thickness = step * STEP_M;
+    const result = solveInsulatedVessel({ ...inputs, insulationM: thickness });
+    const point = { step, thickness, result };
+    points.push(point);
+    if (!firstSafe && result.surfaceC <= SAFETY_LIMIT_C + 1e-9) firstSafe = point;
+  }
+  return { points, firstSafe };
+}
+
+function safetySummary(inputs, result) {
+  const passed = result.surfaceC <= SAFETY_LIMIT_C + 1e-9;
+  const analysis = safetyAnalysis(inputs);
+  const boundary = analysis.firstSafe;
+  let boundaryText = `No selectable thickness up to ${format(MAX_INSULATION_M, 3)} m meets the limit for these conditions.`;
+  if (boundary) {
+    const lower = boundary.step > 0 ? analysis.points[boundary.step - 1] : null;
+    boundaryText = `First selectable safe thickness: <strong>${format(boundary.thickness, 3)} m</strong> (${format(boundary.result.surfaceC, 2)} °C).${lower ? ` One step lower, ${format(lower.thickness, 3)} m, gives ${format(lower.result.surfaceC, 2)} °C.` : ""}`;
+  }
+  return `<div class="safety-summary ${passed ? "pass" : "fail"}">
+    <div><span>Selected design</span><strong>${passed ? "PASS" : "FAIL"}</strong></div>
+    <p>Surface = <strong>${format(result.surfaceC, 2)} °C</strong>; requirement is Tₛ ≤ ${format(SAFETY_LIMIT_C, 0)} °C.</p>
+    <p>${boundaryText}</p>
+  </div>`;
+}
+
+function liveOutput(stage) {
+  const inputs = state.inputs[stage];
+  const result = solveInsulatedVessel(inputs);
+  return `<div class="simulation-output">
+    <div id="liveVisual">${visualPanel(inputs, result)}</div>
+    <section class="panel panel-pad live-results-panel">
+      <div class="panel-title"><div><h3>Live calculated results</h3><p>Steady radial conduction equals convection plus radiation at the outer surface.</p></div><span class="preview-label">PREVIEW</span></div>
+      <div id="liveMetrics">${resultMetrics(result)}</div>
+      ${stage === 3 ? `<div id="liveSafety">${safetySummary(inputs, result)}</div>` : ""}
+    </section>
+  </div>`;
+}
+
+function recordsTable(records, { includeStage = false, includeStatus = false } = {}) {
+  if (!records.length) {
+    return '<div class="empty-records"><strong>No runs recorded yet.</strong><span>Enter conditions, inspect the live preview, and click Run and record.</span></div>';
+  }
+  const rows = records.map(record => {
+    const result = record.result;
+    const status = result.surfaceC <= SAFETY_LIMIT_C + 1e-9 ? "PASS" : "FAIL";
     return `<tr>
-      <td>Trial ${number}</td>
+      ${includeStage ? `<td>Experiment ${record.stage}</td>` : ""}
+      <td>Run ${record.run}</td>
       <td>${format(record.processC, 0)}</td>
       <td>${format(record.insulationM, 3)}</td>
       <td>${format(record.conductivity, 3)}</td>
       <td>${format(record.emissivity, 2)}</td>
       <td>${format(record.h, 1)}</td>
-      <td>${format(r.surfaceC, 2)}</td>
-      <td>${format(kw(r.qCondW), 3)}</td>
-      <td>${format(kw(r.qConvW), 3)}</td>
-      <td>${format(kw(r.qRadW), 3)}</td>
-      <td>${format(kw(r.qTotalW), 3)}</td>
+      <td>${format(result.surfaceC, 2)}</td>
+      <td>${format(kw(result.qCondW), 3)}</td>
+      <td>${format(kw(result.qConvW), 3)}</td>
+      <td>${format(kw(result.qRadW), 3)}</td>
+      <td>${format(kw(result.qTotalW), 3)}</td>
       ${includeStatus ? `<td class="status-cell ${status === "PASS" ? "pass" : "fail"}">${status}</td>` : ""}
     </tr>`;
   }).join("");
   return `<div class="data-table-wrap"><table class="data-table">
-    <thead><tr><th>Run</th><th>T<sub>in</sub> (°C)</th><th>t (m)</th><th>k (W/m·K)</th><th>ε</th><th>h (W/m²·K)</th><th>T<sub>s</sub> (°C)</th><th>Q̇<sub>cond</sub> (kW)</th><th>Q̇<sub>conv</sub> (kW)</th><th>Q̇<sub>rad</sub> (kW)</th><th>Q̇<sub>total</sub> (kW)</th>${includeStatus ? "<th>Safety</th>" : ""}</tr></thead>
+    <thead><tr>${includeStage ? "<th>Experiment</th>" : ""}<th>Run</th><th>T<sub>in</sub> (°C)</th><th>t (m)</th><th>k (W/m·K)</th><th>ε</th><th>h (W/m²·K)</th><th>T<sub>s</sub> (°C)</th><th>Q̇<sub>cond</sub> (kW)</th><th>Q̇<sub>conv</sub> (kW)</th><th>Q̇<sub>rad</sub> (kW)</th><th>Q̇<sub>total</sub> (kW)</th>${includeStatus ? "<th>Safety</th>" : ""}</tr></thead>
     <tbody>${rows}</tbody>
   </table></div>`;
 }
 
-function trialCards(numbers, instructions) {
-  return `<div class="settings-card">
-    <div class="settings-title"><div><div class="section-label">TRIAL SETTINGS</div><h4>${instructions}</h4></div></div>
-    ${numbers.map(number => {
-      const inputs = TRIALS[number];
-      const saved = Boolean(state.trials[number]);
-      return `<div class="trial-row" data-trial="${number}">
-        <div class="settings-title"><h4>Trial ${number}</h4><span class="trial-badge ${saved ? "saved" : ""}">${saved ? "Recorded" : "Ready"}</span></div>
-        ${fixedSettings(inputs)}
-        <div class="trial-actions"><button class="button ${saved ? "button-secondary" : ""} run-trial" data-trial="${number}" type="button">${saved ? `Run Trial ${number} again` : `Run and record Trial ${number}`}</button></div>
-      </div>`;
-    }).join("")}
+function evidenceSection(stage) {
+  const config = STAGES[stage];
+  const records = state.records[stage];
+  const chartId = stage === 1 ? "parallelChart" : stage === 2 ? "seriesChart" : "safetyChart";
+  const chartLabel = stage === 1
+    ? "Convection, radiation, and total heat transfer for recorded student runs"
+    : stage === 2
+      ? "Surface temperature and total heat transfer versus insulation thickness"
+      : "Surface temperature versus insulation thickness with the 60 degree Celsius safety limit";
+  const legend = stage === 1
+    ? `<span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.blue}"></i>Convection</span><span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.orange}"></i>Radiation</span><span class="legend-item"><i class="legend-swatch point" style="--swatch:${COLORS.navy}"></i>Total</span>`
+    : stage === 2
+      ? `<span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.teal}"></i>Surface temperature</span><span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.orange}"></i>Total heat transfer</span>`
+      : `<span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.teal}"></i>Model curve</span><span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.red}"></i>60 °C limit</span><span class="legend-item"><i class="legend-swatch point" style="--swatch:${COLORS.yellow}"></i>Current setting</span>`;
+  return `<div class="evidence-grid">
+    <section class="panel chart-panel">
+      <div class="panel-title"><div><h3>${config.chartTitle}</h3><p>${config.chartText}</p></div></div>
+      <div class="chart-frame interactive-chart"><canvas id="${chartId}" aria-label="${chartLabel}"></canvas>${stage !== 3 && !records.length ? '<div class="chart-placeholder">Record a run to start this comparison.</div>' : ""}</div>
+      <div class="legend">${legend}</div>
+    </section>
+    <section class="panel panel-pad records-panel">
+      <div class="panel-title"><div><h3>Recorded student runs</h3><p>Enter as many conditions as needed. Copy the worksheet runs into the matching table, then continue exploring.</p></div><span class="record-count">${records.length} recorded</span></div>
+      ${recordsTable(records, { includeStatus: stage === 3 })}
+    </section>
   </div>`;
 }
 
-function parallelNetwork() {
-  return `<div class="network" aria-label="Heat transfer resistance network">
-    <svg viewBox="0 0 620 120" role="img">
-      <title>Conduction in series with parallel convection and radiation</title>
-      <circle class="node" cx="35" cy="60" r="7"/><circle class="node" cx="288" cy="60" r="7"/><circle class="node" cx="580" cy="60" r="7"/>
-      <path class="path" d="M42 60 H281"/><rect x="117" y="41" width="90" height="38" rx="9" fill="#fff" stroke="#9bb2b7"/>
-      <text x="162" y="64" text-anchor="middle">R<tspan baseline-shift="sub" font-size="8">steel+ins</tspan></text>
-      <path class="path conv" d="M295 60 C355 60 352 24 413 24 H573"/><path class="path rad" d="M295 60 C355 60 352 96 413 96 H573"/>
-      <rect x="411" y="7" width="100" height="34" rx="9" fill="#fff" stroke="#7db1d1"/><text x="461" y="28" text-anchor="middle">Convection</text>
-      <rect x="411" y="79" width="100" height="34" rx="9" fill="#fff" stroke="#e7a879"/><text x="461" y="100" text-anchor="middle">Radiation</text>
-      <text x="35" y="91" text-anchor="middle">T<tspan baseline-shift="sub" font-size="8">in</tspan></text><text x="288" y="91" text-anchor="middle">T<tspan baseline-shift="sub" font-size="8">s</tspan></text><text x="580" y="91" text-anchor="middle">T<tspan baseline-shift="sub" font-size="8">∞</tspan></text>
-    </svg>
-  </div>`;
-}
-
-function renderStage1() {
-  const numbers = [1, 2, 3];
-  const latest = [...numbers].reverse().find(number => state.trials[number]);
-  const inputs = latest ? TRIALS[latest] : TRIALS[1];
-  const result = latest ? state.trials[latest].result : null;
+function renderStage(stage) {
   const area = document.getElementById("stageArea");
   area.innerHTML = `<div class="stage-shell">
-    ${stageHeader(1, "Convection and radiation act in parallel", "Run the three worksheet conditions. Keep the vessel, process temperature, insulation, and ambient conditions fixed while the external heat-transfer paths change.", "Case A · Trials 1–3")}
-    <div class="stage-grid">
-      <div>
-        ${apparatusPanel(inputs, result, latest ? `Trial ${latest} apparatus` : "Case A apparatus")}
-        <section class="panel panel-pad" style="margin-top:20px">
-          <div class="panel-title"><div><h3>Results to record</h3><p>Copy these calculated values into Table 1 of the worksheet.</p></div></div>
-          ${trialsTable(numbers)}
-        </section>
-      </div>
-      <div class="panel panel-pad">
-        <div class="panel-title"><div><h3>Run the three heat-loss trials</h3><p>The blue and orange paths show convection and radiation leaving the same outer-surface node.</p></div></div>
-        ${parallelNetwork()}
-        ${trialCards(numbers, "Change only ε and h as specified.")}
-        ${resultMetrics(result)}
-        <div class="chart-frame compact"><canvas id="parallelChart" aria-label="Convection, radiation, and total heat loss for Trials 1 through 3"></canvas>${latest ? "" : '<div class="chart-placeholder">Run a trial to begin the heat-path comparison.</div>'}</div>
-        <div class="legend"><span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.blue}"></i>Convection</span><span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.orange}"></i>Radiation</span><span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.navy}"></i>Total</span></div>
-        <div class="continue-row"><button class="button" id="continueStage" ${stageComplete(1) ? "" : "disabled"} type="button">Continue to series conduction</button></div>
-      </div>
+    ${stageHeader(stage)}
+    <div class="interactive-stage-grid">
+      ${controlsPanel(stage)}
+      ${liveOutput(stage)}
+    </div>
+    ${evidenceSection(stage)}
+    <div class="continue-row">
+      ${stage > 1 ? `<button class="button button-secondary" id="previousStage" type="button">← Previous experiment</button>` : "<span></span>"}
+      ${stage < 3 ? `<button class="button" id="continueStage" type="button">Continue to experiment ${stage + 1} →</button>` : '<a class="button" href="../../">Return to Virtual Lab home →</a>'}
     </div>
   </div>`;
-  bindCommonStage(1);
-  bindTrialButtons(numbers);
-  document.getElementById("continueStage").addEventListener("click", () => navigate(2));
-  drawParallelChart();
+  bindStage(stage);
+  drawStageChart(stage);
+  updateNavigation();
 }
 
-function renderStage2() {
-  const numbers = [4, 5, 6];
-  const latest = [...numbers].reverse().find(number => state.trials[number]);
-  const inputs = latest ? TRIALS[latest] : TRIALS[4];
-  const result = latest ? state.trials[latest].result : null;
-  const area = document.getElementById("stageArea");
-  area.innerHTML = `<div class="stage-shell">
-    ${stageHeader(2, "Steel and insulation resist heat flow in series", "Run the bare vessel and the two insulated conditions. The external environment is unchanged; only insulation thickness changes.", "Case A · Trials 4–6")}
-    <div class="stage-grid analysis-grid">
-      <div>
-        ${apparatusPanel(inputs, result, latest ? `Trial ${latest} apparatus` : "Series-resistance apparatus")}
-        <div class="panel panel-pad" style="margin-top:20px">
-          <div class="panel-title"><div><h3>Run the thickness trials</h3><p>Use the exact three thicknesses specified in Table 2.</p></div></div>
-          ${trialCards(numbers, "Change only insulation thickness.")}
-          ${resultMetrics(result)}
-        </div>
-      </div>
-      <div>
-        <section class="panel chart-panel">
-          <div class="panel-title"><div><h3>Effect of insulation thickness</h3><p>Recorded trial points share the same axes for direct comparison.</p></div></div>
-          <div class="chart-frame"><canvas id="seriesChart" aria-label="Surface temperature and total heat loss versus insulation thickness"></canvas>${latest ? "" : '<div class="chart-placeholder">Run Trials 4–6 to build the thickness comparison.</div>'}</div>
-          <div class="legend"><span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.teal}"></i>Surface temperature</span><span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.orange}"></i>Total heat loss</span></div>
-        </section>
-        <section class="panel panel-pad" style="margin-top:20px">
-          <div class="panel-title"><div><h3>Results to record</h3><p>Copy these values into Table 2 of the worksheet.</p></div></div>
-          ${trialsTable(numbers)}
-          <div class="continue-row"><button class="button" id="continueStage" ${stageComplete(2) ? "" : "disabled"} type="button">Continue to the safety limit</button></div>
-        </section>
-      </div>
-    </div>
-  </div>`;
-  bindCommonStage(2);
-  bindTrialButtons(numbers);
-  document.getElementById("continueStage").addEventListener("click", () => navigate(3));
-  drawSeriesChart();
+function snapInput(definition, value) {
+  const clamped = Math.min(definition.max, Math.max(definition.min, Number(value)));
+  const steps = Math.round((clamped - definition.min) / definition.step);
+  return Number((definition.min + steps * definition.step).toFixed(definition.digits));
 }
 
-function safetyInputsForStep(step) {
-  return { ...SAFETY_INPUTS, insulationM: step * STEP_M };
+function controlsAreValid() {
+  return [...document.querySelectorAll(".variable-number")].every(input => input.checkValidity() && input.value !== "");
 }
 
-function isFirstSafeStep(step) {
-  const current = solveInsulatedVessel(safetyInputsForStep(step));
-  if (current.surfaceC > SAFETY_LIMIT_C + 1e-9) return false;
-  if (step === 0) return true;
-  const lower = solveInsulatedVessel(safetyInputsForStep(step - 1));
-  return lower.surfaceC > SAFETY_LIMIT_C + 1e-9;
+function updateRunButton() {
+  const button = document.getElementById("runCurrent");
+  if (button) button.disabled = !controlsAreValid();
 }
 
-function recordSafetyTrial(number) {
-  const inputs = safetyInputsForStep(state.safetyStep);
-  const result = solveInsulatedVessel(inputs);
-  if (number === 7 && !isFirstSafeStep(state.safetyStep)) {
-    toast(result.surfaceC <= SAFETY_LIMIT_C ? "This setting is safe, but it is not the first selectable safe thickness." : "Increase the thickness until the surface first reaches 60 °C or below.");
+function refreshLiveOutputs(stage) {
+  if (state.stage !== stage || !controlsAreValid()) {
+    updateRunButton();
     return;
   }
-  if (number === 8) {
-    const trial7 = state.trials[7];
-    const requiredStep = trial7 ? Math.round(trial7.insulationM / STEP_M) - 1 : null;
-    if (!trial7 || state.safetyStep !== requiredStep || result.surfaceC <= SAFETY_LIMIT_C) {
-      toast("Trial 8 must be exactly 0.005 m below Trial 7 and must fail the 60 °C limit.");
-      return;
-    }
-  }
-  if (number === 7) delete state.trials[8];
-  state.trials[number] = trialRecord(number, inputs);
-  saveState();
-  renderStage3();
-  toast(`Trial ${number} recorded.`);
-}
-
-function renderStage3() {
-  const inputs = safetyInputsForStep(state.safetyStep);
+  const inputs = state.inputs[stage];
   const result = solveInsulatedVessel(inputs);
-  const safe = result.surfaceC <= SAFETY_LIMIT_C + 1e-9;
-  const firstSafe = isFirstSafeStep(state.safetyStep);
-  const trial7 = state.trials[7];
-  const trial7Step = trial7 ? Math.round(trial7.insulationM / STEP_M) : null;
-  const expectedTrial8Step = trial7Step === null ? null : trial7Step - 1;
-  const validTrial8 = trial7 && state.safetyStep === expectedTrial8Step && !safe;
-  const pointer = Math.min(100, Math.max(0, result.surfaceC / 100 * 100));
-  const area = document.getElementById("stageArea");
-  area.innerHTML = `<div class="stage-shell">
-    ${stageHeader(3, "Find the minimum selectable safe thickness", "Use 0.005 m increments to find the first insulation setting with an outer-surface temperature at or below 60 °C. Then test exactly one increment lower.", "Case B · Trials 7–8")}
-    <div class="safety-layout">
-      <div>
-        ${apparatusPanel(inputs, result, "Case B safety apparatus")}
-        <section class="panel panel-pad" style="margin-top:20px">
-          <div class="panel-title"><div><h3>Select insulation thickness</h3><p>The selector moves only in exact 0.005 m increments.</p></div></div>
-          <div class="control-card">
-            <div class="value-heading"><span>Current selectable thickness</span><strong>${format(inputs.insulationM, 3)} m</strong></div>
-            <input class="range" id="thicknessRange" type="range" min="0" max="100" step="1" value="${state.safetyStep}" aria-label="Insulation thickness in 0.005 metre increments">
-            <div class="range-scale"><span>0.000 m</span><span>0.250 m</span><span>0.500 m</span></div>
-            <div class="nudge-row">
-              <button class="nudge" id="minusStep" type="button" aria-label="Decrease insulation by 0.005 metres" ${state.safetyStep === 0 ? "disabled" : ""}>−</button>
-              <div class="increment-readout"><strong>${state.safetyStep} × 0.005 m</strong><span>exact selectable increment</span></div>
-              <button class="nudge" id="plusStep" type="button" aria-label="Increase insulation by 0.005 metres" ${state.safetyStep === 100 ? "disabled" : ""}>+</button>
-            </div>
-            <div class="safety-banner ${safe ? "pass" : ""}"><strong>${safe ? "PASS · surface at or below limit" : "FAIL · surface above limit"}</strong><span>${format(result.surfaceC, 2)} °C</span></div>
-            <div class="safety-meter"><div class="safety-track"></div><div class="safety-pointer" style="--pointer:${pointer}%"></div><div class="safety-labels"><span>cooler</span><span>60 °C limit</span><span>hotter</span></div></div>
-            <div class="record-grid">
-              <button class="button" id="recordTrial7" type="button" ${firstSafe ? "" : "disabled"}>${trial7 ? "Update Trial 7" : "Record first passing setting"}</button>
-              <button class="button button-secondary" id="oneStepLower" type="button" ${trial7 ? "" : "disabled"}>Set 0.005 m lower</button>
-              <button class="button" id="recordTrial8" type="button" ${validTrial8 ? "" : "disabled"}>${state.trials[8] ? "Update Trial 8" : "Record lower setting"}</button>
-            </div>
-          </div>
-          <div class="note ${safe ? "" : "warm"}">${trial7 ? `Trial 7 is recorded at ${format(trial7.insulationM, 3)} m. Now verify the immediately lower selectable setting.` : "Search upward or downward until this is the first selectable setting that passes. The record button activates only at that boundary."}</div>
-        </section>
-      </div>
-      <div>
-        <section class="panel chart-panel">
-          <div class="panel-title"><div><h3>Surface temperature versus insulation thickness</h3><p>Each setting you test is saved on the graph. The complete model curve appears after both boundary trials are recorded.</p></div></div>
-          <div class="chart-frame tall"><canvas id="safetyChart" aria-label="Surface temperature versus insulation thickness with the 60 degree Celsius safety limit"></canvas></div>
-          <div class="legend"><span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.teal}"></i>${stageComplete(3) ? "Model curve" : "Tested settings"}</span><span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.red}"></i>60 °C safety limit</span><span class="legend-item"><i class="legend-swatch point" style="--swatch:${COLORS.yellow}"></i>Current setting</span></div>
-        </section>
-        <section class="panel panel-pad" style="margin-top:20px">
-          <div class="panel-title"><div><h3>Results to record</h3><p>Copy the passing boundary and the one-step-lower result into Table 3.</p></div></div>
-          ${trialsTable([7, 8], true)}
-          ${stageComplete(3) ? '<div class="note"><strong>Boundary confirmed.</strong> Trial 7 is the minimum selectable safe thickness because Trial 8, exactly 0.005 m lower, exceeds the 60 °C surface limit.</div>' : ""}
-        </section>
-      </div>
-    </div>
-  </div>`;
-  bindCommonStage(3);
-  const range = document.getElementById("thicknessRange");
-  range.addEventListener("input", event => setSafetyStep(Number(event.target.value)));
-  document.getElementById("minusStep").addEventListener("click", () => setSafetyStep(state.safetyStep - 1));
-  document.getElementById("plusStep").addEventListener("click", () => setSafetyStep(state.safetyStep + 1));
-  document.getElementById("recordTrial7").addEventListener("click", () => recordSafetyTrial(7));
-  document.getElementById("recordTrial8").addEventListener("click", () => recordSafetyTrial(8));
-  document.getElementById("oneStepLower").addEventListener("click", () => {
-    if (!state.trials[7]) return;
-    setSafetyStep(Math.max(0, Math.round(state.trials[7].insulationM / STEP_M) - 1));
-  });
-  drawSafetyChart();
+  const visual = document.getElementById("liveVisual");
+  const metrics = document.getElementById("liveMetrics");
+  const safety = document.getElementById("liveSafety");
+  if (visual) visual.innerHTML = visualPanel(inputs, result);
+  if (metrics) metrics.innerHTML = resultMetrics(result);
+  if (safety) safety.innerHTML = safetySummary(inputs, result);
+  updateRunButton();
+  drawStageChart(stage);
 }
 
-function setSafetyStep(step) {
-  state.safetyStep = Math.min(100, Math.max(0, Math.round(step)));
-  if (!state.exploredSteps.includes(state.safetyStep)) state.exploredSteps.push(state.safetyStep);
-  saveState();
-  renderStage3();
-}
-
-function bindTrialButtons(numbers) {
-  document.querySelectorAll(".run-trial").forEach(button => {
-    button.addEventListener("click", () => {
-      const number = Number(button.dataset.trial);
-      if (!numbers.includes(number)) return;
-      button.disabled = true;
-      button.textContent = "Solving steady state…";
-      const apparatus = document.querySelector(".thermal-apparatus");
-      if (apparatus) apparatus.classList.add("running");
-      setTimeout(() => {
-        state.trials[number] = trialRecord(number, TRIALS[number]);
-        saveState();
-        if (state.stage === 1) renderStage1();
-        else renderStage2();
-        toast(`Trial ${number} solved and recorded.`);
-      }, 550);
+function bindStage(stage) {
+  document.querySelectorAll("[data-range-input]").forEach(range => {
+    range.addEventListener("input", event => {
+      const key = event.currentTarget.dataset.rangeInput;
+      const definition = INPUT_BY_KEY[key];
+      const value = snapInput(definition, event.currentTarget.value);
+      state.inputs[stage][key] = value;
+      const number = document.querySelector(`[data-number-input="${key}"]`);
+      number.value = format(value, definition.digits);
+      number.setCustomValidity("");
+      number.classList.remove("invalid");
+      refreshLiveOutputs(stage);
     });
   });
+
+  document.querySelectorAll("[data-number-input]").forEach(number => {
+    const key = number.dataset.numberInput;
+    const definition = INPUT_BY_KEY[key];
+    number.addEventListener("input", event => {
+      const raw = event.currentTarget.value;
+      const value = Number(raw);
+      const valid = raw !== "" && Number.isFinite(value) && value >= definition.min && value <= definition.max;
+      event.currentTarget.setCustomValidity(valid ? "" : `Enter a value from ${definition.min} to ${definition.max}.`);
+      event.currentTarget.classList.toggle("invalid", !valid);
+      if (valid) {
+        state.inputs[stage][key] = value;
+        document.querySelector(`[data-range-input="${key}"]`).value = value;
+        refreshLiveOutputs(stage);
+      } else {
+        updateRunButton();
+      }
+    });
+    number.addEventListener("change", event => {
+      if (!event.currentTarget.checkValidity() || event.currentTarget.value === "") return;
+      const value = snapInput(definition, event.currentTarget.value);
+      state.inputs[stage][key] = value;
+      event.currentTarget.value = format(value, definition.digits);
+      document.querySelector(`[data-range-input="${key}"]`).value = value;
+      refreshLiveOutputs(stage);
+    });
+  });
+
+  document.getElementById("runCurrent").addEventListener("click", () => recordCurrentRun(stage));
+  document.getElementById("resetStage").addEventListener("click", () => resetStage(stage));
+  const previous = document.getElementById("previousStage");
+  const next = document.getElementById("continueStage");
+  if (previous) previous.addEventListener("click", () => navigate(stage - 1));
+  if (next) next.addEventListener("click", () => navigate(stage + 1));
+  updateRunButton();
 }
 
-function bindCommonStage(stage) {
-  const reset = document.getElementById("resetStage");
-  reset.addEventListener("click", () => {
-    if (stage === 1) [1, 2, 3].forEach(number => delete state.trials[number]);
-    if (stage === 2) [4, 5, 6].forEach(number => delete state.trials[number]);
-    if (stage === 3) {
-      [7, 8].forEach(number => delete state.trials[number]);
-      state.safetyStep = 20;
-      state.exploredSteps = [20];
-    }
-    saveState();
-    navigate(stage);
-    toast(`Experiment ${stage} reset.`);
-  });
+function recordCurrentRun(stage) {
+  if (!controlsAreValid()) {
+    toast("Enter a valid value for every variable before recording the run.");
+    return;
+  }
+  const button = document.getElementById("runCurrent");
+  button.disabled = true;
+  button.textContent = "Solving steady state…";
+  const apparatus = document.querySelector(".thermal-apparatus");
+  if (apparatus) apparatus.classList.add("running");
+  setTimeout(() => {
+    const inputs = cloneInputs(state.inputs[stage]);
+    const records = state.records[stage];
+    records.push({
+      stage,
+      run: records.length + 1,
+      ...inputs,
+      result: solveInsulatedVessel(inputs),
+      recordedAt: new Date().toISOString()
+    });
+    renderStage(stage);
+    toast(`Experiment ${stage}, Run ${records.length} recorded.`);
+  }, 420);
+}
+
+function resetStage(stage) {
+  const records = state.records[stage];
+  if (records.length && !window.confirm(`Clear all ${records.length} recorded run${records.length === 1 ? "" : "s"} from Experiment ${stage}?`)) return;
+  state.inputs[stage] = cloneInputs(STAGES[stage].defaultInputs);
+  state.records[stage] = [];
+  renderStage(stage);
+  toast(`Experiment ${stage} reset.`);
 }
 
 function navigate(stage) {
   state.stage = Number(stage);
-  saveState();
-  if (state.stage === 1) renderStage1();
-  if (state.stage === 2) renderStage2();
-  if (state.stage === 3) renderStage3();
+  renderStage(state.stage);
   document.getElementById("stageArea").focus({ preventScroll: true });
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
@@ -650,7 +681,7 @@ function prepareCanvas(id) {
   if (!canvas) return null;
   const bounds = canvas.parentElement.getBoundingClientRect();
   const width = Math.max(300, Math.floor(bounds.width));
-  const height = Math.max(220, Math.floor(bounds.height));
+  const height = Math.max(250, Math.floor(bounds.height));
   const ratio = window.devicePixelRatio || 1;
   canvas.width = width * ratio;
   canvas.height = height * ratio;
@@ -662,28 +693,42 @@ function prepareCanvas(id) {
   return { canvas, context, width, height };
 }
 
+function tickValues(minimum, maximum, count = 5) {
+  return Array.from({ length: count }, (_, index) => minimum + (maximum - minimum) * index / (count - 1));
+}
+
+function axisLabel(value) {
+  const magnitude = Math.abs(value);
+  if (magnitude >= 100) return format(value, 0);
+  if (magnitude >= 10) return format(value, 1);
+  return format(value, 2);
+}
+
 function chartAxes(prepared, { xMin, xMax, yMin, yMax, xTicks, yTicks, xLabel, yLabel, rightLabel = null }) {
   const { context: ctx, width, height } = prepared;
-  const margin = { left: 64, right: rightLabel ? 62 : 20, top: 20, bottom: 52 };
+  const margin = { left: 67, right: rightLabel ? 67 : 22, top: 18, bottom: 54 };
   const plot = { x: margin.left, y: margin.top, width: width - margin.left - margin.right, height: height - margin.top - margin.bottom };
   const x = value => plot.x + (value - xMin) / (xMax - xMin || 1) * plot.width;
   const y = value => plot.y + plot.height - (value - yMin) / (yMax - yMin || 1) * plot.height;
   ctx.font = "12px Inter, Segoe UI, sans-serif";
-  ctx.lineWidth = 1;
   ctx.textBaseline = "middle";
   yTicks.forEach(value => {
     ctx.strokeStyle = COLORS.grid;
+    ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(plot.x, y(value)); ctx.lineTo(plot.x + plot.width, y(value)); ctx.stroke();
     ctx.fillStyle = COLORS.muted;
     ctx.textAlign = "right";
-    ctx.fillText(String(value), plot.x - 9, y(value));
+    ctx.fillText(axisLabel(value), plot.x - 9, y(value));
   });
-  xTicks.forEach(value => {
+  xTicks.forEach(tick => {
+    const value = typeof tick === "object" ? tick.value : tick;
+    const label = typeof tick === "object" ? tick.label : axisLabel(tick);
     ctx.strokeStyle = "#edf1f2";
+    ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(x(value), plot.y); ctx.lineTo(x(value), plot.y + plot.height); ctx.stroke();
     ctx.fillStyle = COLORS.muted;
     ctx.textAlign = "center";
-    ctx.fillText(String(value), x(value), plot.y + plot.height + 18);
+    ctx.fillText(label, x(value), plot.y + plot.height + 19);
   });
   ctx.strokeStyle = "#718a94";
   ctx.lineWidth = 1.4;
@@ -699,105 +744,189 @@ function chartAxes(prepared, { xMin, xMax, yMin, yMax, xTicks, yTicks, xLabel, y
   return { ctx, plot, x, y };
 }
 
+function paddedBounds(values, minimumSpan = 1) {
+  const finite = values.filter(Number.isFinite);
+  let minimum = Math.min(0, ...finite);
+  let maximum = Math.max(0, ...finite);
+  if (maximum - minimum < minimumSpan) {
+    maximum += minimumSpan / 2;
+    minimum -= minimumSpan / 2;
+  }
+  const padding = (maximum - minimum) * 0.12;
+  return { minimum: minimum - padding, maximum: maximum + padding };
+}
+
 function drawParallelChart() {
   const prepared = prepareCanvas("parallelChart");
   if (!prepared) return;
-  const records = [1, 2, 3].map(number => state.trials[number] || null);
-  const max = Math.max(8, ...records.filter(Boolean).map(record => kw(record.result.qTotalW) * 1.18));
-  const top = Math.ceil(max / 2) * 2;
-  const axes = chartAxes(prepared, { xMin: 0.5, xMax: 3.5, yMin: 0, yMax: top, xTicks: [1, 2, 3], yTicks: [0, top / 4, top / 2, 3 * top / 4, top].map(v => format(v, 1)), xLabel: "Trial", yLabel: "Heat rate (kW)" });
-  const { ctx, plot, x } = axes;
-  const yValue = value => plot.y + plot.height - value / top * plot.height;
-  records.forEach((record, index) => {
-    if (!record) return;
-    const center = x(index + 1);
-    const barWidth = Math.min(42, plot.width / 12);
-    const conv = kw(record.result.qConvW);
-    const rad = kw(record.result.qRadW);
-    const total = kw(record.result.qTotalW);
-    [[conv, COLORS.blue, -barWidth], [rad, COLORS.orange, 0]].forEach(([value, color, offset]) => {
-      ctx.fillStyle = color;
-      ctx.fillRect(center + offset, yValue(value), barWidth - 3, plot.y + plot.height - yValue(value));
+  const records = state.records[1];
+  if (!records.length) return;
+  const values = records.flatMap(record => [kw(record.result.qConvW), kw(record.result.qRadW), kw(record.result.qTotalW)]);
+  const bounds = paddedBounds(values, 1);
+  const xMax = Math.max(3.5, records.length + 0.5);
+  const every = Math.max(1, Math.ceil(records.length / 10));
+  const xTicks = records.filter((_, index) => index % every === 0 || index === records.length - 1).map(record => ({ value: record.run, label: String(record.run) }));
+  const axes = chartAxes(prepared, {
+    xMin: 0.5,
+    xMax,
+    yMin: bounds.minimum,
+    yMax: bounds.maximum,
+    xTicks,
+    yTicks: tickValues(bounds.minimum, bounds.maximum),
+    xLabel: "Recorded run",
+    yLabel: "Heat transfer (kW)"
+  });
+  const { ctx, plot, x, y } = axes;
+  const zeroY = y(0);
+  const barWidth = Math.min(20, plot.width / Math.max(records.length * 4.5, 12));
+  records.forEach(record => {
+    const center = x(record.run);
+    const bars = [
+      { value: kw(record.result.qConvW), color: COLORS.blue, offset: -barWidth - 1 },
+      { value: kw(record.result.qRadW), color: COLORS.orange, offset: 1 }
+    ];
+    bars.forEach(bar => {
+      const valueY = y(bar.value);
+      ctx.fillStyle = bar.color;
+      ctx.fillRect(center + bar.offset, Math.min(zeroY, valueY), barWidth, Math.max(1, Math.abs(zeroY - valueY)));
     });
-    ctx.strokeStyle = COLORS.navy; ctx.fillStyle = COLORS.navy; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(center - barWidth, yValue(total)); ctx.lineTo(center + barWidth, yValue(total)); ctx.stroke();
-    ctx.beginPath(); ctx.arc(center, yValue(total), 4.5, 0, Math.PI * 2); ctx.fill();
+    const totalY = y(kw(record.result.qTotalW));
+    ctx.fillStyle = COLORS.navy;
+    ctx.strokeStyle = "white";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(center, totalY, 5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
   });
 }
 
 function drawSeriesChart() {
   const prepared = prepareCanvas("seriesChart");
   if (!prepared) return;
-  const records = [4, 5, 6].map(number => state.trials[number]).filter(Boolean).sort((a, b) => a.insulationM - b.insulationM);
-  const maxTemp = Math.max(650, ...records.map(record => record.result.surfaceC * 1.08));
-  const maxQ = Math.max(650, ...records.map(record => kw(record.result.qTotalW) * 1.08));
-  const axes = chartAxes(prepared, { xMin: 0, xMax: 0.15, yMin: 0, yMax: maxTemp, xTicks: [0, 0.05, 0.10, 0.15].map(v => v.toFixed(2)), yTicks: [0, 150, 300, 450, 600], xLabel: "Insulation thickness (m)", yLabel: "Surface temperature (°C)", rightLabel: "Total heat loss (kW)" });
-  const { ctx, plot } = axes;
-  const x = value => plot.x + value / 0.15 * plot.width;
-  const yTemp = value => plot.y + plot.height - value / maxTemp * plot.height;
-  const yQ = value => plot.y + plot.height - value / maxQ * plot.height;
-  const drawSeries = (accessor, y, color) => {
-    if (!records.length) return;
-    ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 3;
-    ctx.beginPath(); records.forEach((record, i) => { const px = x(record.insulationM); const py = y(accessor(record)); if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py); }); ctx.stroke();
-    records.forEach(record => { ctx.beginPath(); ctx.arc(x(record.insulationM), y(accessor(record)), 5, 0, Math.PI * 2); ctx.fill(); });
+  const records = [...state.records[2]].sort((a, b) => a.insulationM - b.insulationM || a.run - b.run);
+  if (!records.length) return;
+  const qBounds = paddedBounds(records.map(record => kw(record.result.qTotalW)), 1);
+  const axes = chartAxes(prepared, {
+    xMin: 0,
+    xMax: MAX_INSULATION_M,
+    yMin: 0,
+    yMax: MAX_PROCESS_C,
+    xTicks: [0, .1, .2, .3, .4, .5],
+    yTicks: [0, 200, 400, 600, 800],
+    xLabel: "Insulation thickness (m)",
+    yLabel: "Surface temperature (°C)",
+    rightLabel: "Total heat transfer (kW)"
+  });
+  const { ctx, plot, x, y } = axes;
+  const yQ = value => plot.y + plot.height - (value - qBounds.minimum) / (qBounds.maximum - qBounds.minimum) * plot.height;
+  tickValues(qBounds.minimum, qBounds.maximum).forEach(value => {
+    ctx.fillStyle = COLORS.muted;
+    ctx.font = "12px Inter, Segoe UI, sans-serif";
+    ctx.textAlign = "left";
+    ctx.fillText(axisLabel(value), plot.x + plot.width + 8, yQ(value));
+  });
+  const drawLine = (valueForRecord, yForValue, color) => {
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    records.forEach((record, index) => {
+      const px = x(record.insulationM);
+      const py = yForValue(valueForRecord(record));
+      if (index === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    });
+    if (records.length > 1) ctx.stroke();
+    records.forEach(record => {
+      ctx.beginPath(); ctx.arc(x(record.insulationM), yForValue(valueForRecord(record)), 5, 0, Math.PI * 2); ctx.fill();
+    });
   };
-  drawSeries(record => record.result.surfaceC, yTemp, COLORS.teal);
-  drawSeries(record => kw(record.result.qTotalW), yQ, COLORS.orange);
-  ctx.fillStyle = COLORS.muted; ctx.font = "11px Inter, Segoe UI, sans-serif"; ctx.textAlign = "left";
-  [0, 150, 300, 450, 600].forEach(value => ctx.fillText(String(value), plot.x + plot.width + 8, yQ(value)));
+  drawLine(record => record.result.surfaceC, y, COLORS.teal);
+  drawLine(record => kw(record.result.qTotalW), yQ, COLORS.orange);
 }
 
 function drawSafetyChart() {
   const prepared = prepareCanvas("safetyChart");
   if (!prepared) return;
-  const complete = stageComplete(3);
-  const steps = complete ? Array.from({ length: 101 }, (_, i) => i) : [...new Set(state.exploredSteps)].sort((a, b) => a - b);
-  const points = steps.map(step => ({ step, thickness: step * STEP_M, result: solveInsulatedVessel(safetyInputsForStep(step)) }));
-  const axes = chartAxes(prepared, { xMin: 0, xMax: 0.5, yMin: 20, yMax: 800, xTicks: [0, 0.1, 0.2, 0.3, 0.4, 0.5].map(v => v.toFixed(1)), yTicks: [20, 60, 200, 400, 600, 800], xLabel: "Insulation thickness (m)", yLabel: "Outer-surface temperature (°C)" });
-  const { ctx, plot } = axes;
-  const x = value => plot.x + value / 0.5 * plot.width;
-  const y = value => plot.y + plot.height - (value - 20) / 780 * plot.height;
-  ctx.strokeStyle = COLORS.red; ctx.lineWidth = 2; ctx.setLineDash([7, 6]); ctx.beginPath(); ctx.moveTo(plot.x, y(60)); ctx.lineTo(plot.x + plot.width, y(60)); ctx.stroke(); ctx.setLineDash([]);
-  if (complete && points.length) {
-    ctx.strokeStyle = COLORS.teal; ctx.lineWidth = 3; ctx.beginPath();
-    points.forEach((point, i) => { if (i === 0) ctx.moveTo(x(point.thickness), y(point.result.surfaceC)); else ctx.lineTo(x(point.thickness), y(point.result.surfaceC)); }); ctx.stroke();
-  } else {
-    ctx.fillStyle = COLORS.teal;
-    points.forEach(point => { ctx.beginPath(); ctx.arc(x(point.thickness), y(point.result.surfaceC), 4.2, 0, Math.PI * 2); ctx.fill(); });
-  }
-  const current = solveInsulatedVessel(safetyInputsForStep(state.safetyStep));
-  ctx.fillStyle = COLORS.yellow; ctx.strokeStyle = COLORS.navy; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x(state.safetyStep * STEP_M), y(current.surfaceC), 7, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-  [7, 8].forEach(number => {
-    const record = state.trials[number];
-    if (!record) return;
-    ctx.fillStyle = number === 7 ? COLORS.green : COLORS.red; ctx.beginPath(); ctx.arc(x(record.insulationM), y(record.result.surfaceC), 6, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = COLORS.navy; ctx.font = "700 11px Inter, Segoe UI, sans-serif"; ctx.textAlign = number === 7 ? "left" : "right"; ctx.fillText(`Trial ${number}`, x(record.insulationM) + (number === 7 ? 9 : -9), y(record.result.surfaceC) - 11);
+  const inputs = state.inputs[3];
+  const analysis = safetyAnalysis(inputs);
+  const axes = chartAxes(prepared, {
+    xMin: 0,
+    xMax: MAX_INSULATION_M,
+    yMin: 0,
+    yMax: MAX_PROCESS_C,
+    xTicks: [0, .1, .2, .3, .4, .5],
+    yTicks: [0, 200, 400, 600, 800],
+    xLabel: "Insulation thickness (m)",
+    yLabel: "Outer-surface temperature (°C)"
+  });
+  const { ctx, plot, x, y } = axes;
+  ctx.fillStyle = "rgba(56,135,90,.08)";
+  ctx.fillRect(plot.x, y(SAFETY_LIMIT_C), plot.width, y(0) - y(SAFETY_LIMIT_C));
+  ctx.strokeStyle = COLORS.red;
+  ctx.lineWidth = 2;
+  ctx.setLineDash([7, 6]);
+  ctx.beginPath(); ctx.moveTo(plot.x, y(SAFETY_LIMIT_C)); ctx.lineTo(plot.x + plot.width, y(SAFETY_LIMIT_C)); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = COLORS.red;
+  ctx.font = "700 11px Inter, Segoe UI, sans-serif";
+  ctx.textAlign = "right";
+  ctx.fillText("60 °C limit", plot.x + plot.width - 5, y(SAFETY_LIMIT_C) - 10);
+
+  ctx.strokeStyle = COLORS.teal;
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  analysis.points.forEach((point, index) => {
+    const px = x(point.thickness);
+    const py = y(point.result.surfaceC);
+    if (index === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+  });
+  ctx.stroke();
+
+  const current = solveInsulatedVessel(inputs);
+  ctx.fillStyle = COLORS.yellow;
+  ctx.strokeStyle = COLORS.navy;
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(x(inputs.insulationM), y(current.surfaceC), 7, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+
+  state.records[3].forEach(record => {
+    const passed = record.result.surfaceC <= SAFETY_LIMIT_C + 1e-9;
+    ctx.fillStyle = passed ? COLORS.green : COLORS.red;
+    ctx.strokeStyle = "white";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(x(record.insulationM), y(record.result.surfaceC), 5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
   });
 }
 
+function drawStageChart(stage) {
+  if (stage === 1) drawParallelChart();
+  if (stage === 2) drawSeriesChart();
+  if (stage === 3) drawSafetyChart();
+}
+
+function allRecords() {
+  return [1, 2, 3].flatMap(stage => state.records[stage]);
+}
+
 function dataDialogHtml() {
-  const numbers = Object.keys(state.trials).map(Number).sort((a, b) => a - b);
-  if (!numbers.length) return '<div class="empty-state"><strong>No trials recorded yet.</strong><br>Run an experiment and its result will remain available here.</div>';
-  return `<p class="note" style="margin-top:0">All results in this table were generated from this browser session and remain available while you move between experiments.</p>${trialsTable(numbers, true)}`;
+  const records = allRecords();
+  if (!records.length) return '<div class="empty-state"><strong>No runs recorded yet.</strong><br>Each experiment accepts student-entered conditions. Recorded snapshots will appear here.</div>';
+  return `<p class="note" style="margin-top:0">These model results exist only in this open tab. Refreshing or closing the page clears them.</p>${recordsTable(records, { includeStage: true, includeStatus: true })}`;
 }
 
 function downloadCsv() {
-  const records = Object.values(state.trials).filter(Boolean).sort((a, b) => a.trial - b.trial);
+  const records = allRecords();
   if (!records.length) {
-    toast("Record at least one trial before downloading data.");
+    toast("Record at least one run before downloading data.");
     return;
   }
-  const header = ["trial", "case", "process_C", "ambient_C", "insulation_m", "conductivity_W_mK", "emissivity", "h_W_m2K", "surface_C", "wall_outer_C", "q_cond_kW", "q_conv_kW", "q_rad_kW", "q_total_kW", "outer_area_m2", "safety_status"];
+  const header = ["experiment", "run", "process_C", "ambient_C", "insulation_m", "conductivity_W_mK", "emissivity", "h_W_m2K", "surface_C", "wall_outer_C", "q_cond_kW", "q_conv_kW", "q_rad_kW", "q_total_kW", "outer_area_m2", "safety_status"];
   const rows = records.map(record => {
-    const r = record.result;
-    return [record.trial, record.caseName, record.processC, AMBIENT_C, format(record.insulationM, 3), format(record.conductivity, 3), format(record.emissivity, 2), format(record.h, 1), format(r.surfaceC, 6), format(r.wallOuterC, 6), format(kw(r.qCondW), 6), format(kw(r.qConvW), 6), format(kw(r.qRadW), 6), format(kw(r.qTotalW), 6), format(r.areaOuterM2, 6), r.surfaceC <= SAFETY_LIMIT_C ? "PASS" : "FAIL"];
+    const result = record.result;
+    return [record.stage, record.run, record.processC, AMBIENT_C, format(record.insulationM, 3), format(record.conductivity, 3), format(record.emissivity, 2), format(record.h, 1), format(result.surfaceC, 6), format(result.wallOuterC, 6), format(kw(result.qCondW), 6), format(kw(result.qConvW), 6), format(kw(result.qRadW), 6), format(kw(result.qTotalW), 6), format(result.areaOuterM2, 6), result.surfaceC <= SAFETY_LIMIT_C + 1e-9 ? "PASS" : "FAIL"];
   });
   const csv = [header, ...rows].map(row => row.map(escapeCsv).join(",")).join("\n");
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
-  link.download = "parallel_heat_transfer_run_data.csv";
+  link.download = "parallel_heat_transfer_student_runs.csv";
   link.click();
   URL.revokeObjectURL(link.href);
 }
@@ -814,11 +943,11 @@ function bindDialogs() {
   document.getElementById("closeModel").addEventListener("click", () => modelDialog.close());
   document.getElementById("downloadCsv").addEventListener("click", downloadCsv);
   document.getElementById("clearData").addEventListener("click", () => {
-    if (!window.confirm("Clear all eight trial results and reset the current session?")) return;
+    const count = recordCount();
+    if (count && !window.confirm(`Clear all ${count} recorded run${count === 1 ? "" : "s"} and reset the current session?`)) return;
     state = defaultState();
-    saveState();
     dataDialog.close();
-    navigate(1);
+    renderStage(1);
     toast("Session data cleared.");
   });
   [dataDialog, modelDialog].forEach(dialog => dialog.addEventListener("click", event => {
@@ -828,28 +957,31 @@ function bindDialogs() {
   }));
 }
 
-function renderCurrentStage() {
-  if (state.stage === 1) renderStage1();
-  if (state.stage === 2) renderStage2();
-  if (state.stage === 3) renderStage3();
-}
-
 function init() {
   document.querySelectorAll(".step").forEach(button => button.addEventListener("click", () => navigate(Number(button.dataset.stage))));
   bindDialogs();
-  renderCurrentStage();
-  updateNavigation();
+  renderStage(state.stage);
   window.addEventListener("resize", () => {
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(() => {
-      if (state.stage === 1) drawParallelChart();
-      if (state.stage === 2) drawSeriesChart();
-      if (state.stage === 3) drawSafetyChart();
-    }, 120);
+    resizeTimer = setTimeout(() => drawStageChart(state.stage), 120);
   });
 }
 
-const MODEL_API = { SIGMA, GEOMETRY, TRIALS, SAFETY_INPUTS, STEP_M, solveInsulatedVessel, isFirstSafeStep };
+const MODEL_API = {
+  SIGMA,
+  AMBIENT_C,
+  MAX_PROCESS_C,
+  MAX_INSULATION_M,
+  MAX_CONVECTION,
+  SAFETY_LIMIT_C,
+  STEP_M,
+  GEOMETRY,
+  INPUTS,
+  STAGES,
+  solveInsulatedVessel,
+  safetyAnalysis
+};
+
 if (typeof globalThis !== "undefined") globalThis.ParallelHeatTransferModel = MODEL_API;
 if (typeof module !== "undefined" && module.exports) module.exports = MODEL_API;
 if (typeof document !== "undefined") document.addEventListener("DOMContentLoaded", init);
