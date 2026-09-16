@@ -7,7 +7,7 @@
   <meta name="author" content="Faraz Rahimi">
   <title>Parallel Heat Transfer | Virtual Lab</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b3046'/%3E%3Cpath d='M21 10v26a13 13 0 1 0 22 9 13 13 0 0 0-7-11V10a7 7 0 0 0-15 0Z' fill='none' stroke='%23fff' stroke-width='5'/%3E%3Cpath d='M28.5 18v23' stroke='%23f2c14e' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="styles.css?v=20260916-explore3">
+  <link rel="stylesheet" href="styles.css?v=20260916-approved">
 </head>
 <body>
   <div class="portal-ribbon">
@@ -30,19 +30,192 @@
     </div>
   </header>
 
-  <nav class="stepper" aria-label="Virtual laboratory experiments">
-    <button class="step active" data-stage="1" type="button">
+  <nav class="stepper" role="tablist" aria-label="Virtual laboratory experiments">
+    <button class="step active" id="pht-tab-1" data-stage="1" type="button" role="tab" aria-selected="true" aria-controls="pht-stage-1">
       <span>1</span><strong>Parallel paths</strong><small>Student-entered runs</small>
     </button>
-    <button class="step" data-stage="2" type="button">
+    <button class="step" id="pht-tab-2" data-stage="2" type="button" role="tab" aria-selected="false" aria-controls="pht-stage-2">
       <span>2</span><strong>Series conduction</strong><small>Live layer response</small>
     </button>
-    <button class="step" data-stage="3" type="button">
+    <button class="step" id="pht-tab-3" data-stage="3" type="button" role="tab" aria-selected="false" aria-controls="pht-stage-3">
       <span>3</span><strong>Safety limit</strong><small>0.005 m search</small>
     </button>
   </nav>
 
-  <main id="stageArea" tabindex="-1"></main>
+  <main id="stageArea" tabindex="-1">
+    <div id="pht-review-preview">
+      <div class="pht-main">
+      <section id="pht-stage-1" role="tabpanel" aria-labelledby="pht-tab-1">
+        <div class="pht-stage-head">
+          <div><h2>Convection and radiation act in parallel</h2><p>Fixed vessel conditions remain visible. Students enter only ε and h, then run the trial.</p></div>
+          <span class="pht-stage-chip">Case A · Student trials</span>
+        </div>
+        <div class="pht-grid">
+          <div class="pht-panel" data-apparatus="1">
+            <div class="pht-apparatus">
+              <div class="pht-path-labels"><span class="pht-conv-label">CONVECTION ↑</span><span class="pht-rad-label">RADIATION ↗</span></div>
+              <div class="pht-vessel-zone">
+                <div class="pht-vessel-box"><div class="pht-vessel"><span class="pht-process">PROCESS FLUID · 400 °C</span></div><div class="pht-insulation-label">Insulation: 0.100 m · k = 0.080 W/(m·K)</div></div>
+                <div class="pht-detail-column">
+                  <div class="pht-wall-card">
+                    <span class="pht-wall-title">Fluid · steel · insulation</span>
+                    <div class="pht-wall-sample" role="img" aria-label="Flat local wall detail showing the process side, steel wall, insulation thickness, ambient side, and outward heat flow"><span class="pht-wall-process"></span><span class="pht-wall-steel"></span><span class="pht-wall-insulation"></span><span class="pht-wall-air"></span><span class="pht-wall-arrow" aria-hidden="true"></span></div>
+                    <div class="pht-wall-values"><span>T<sub>wall</sub> <strong class="pht-wall-interface-temp">—</strong></span><span>T<sub>s</sub> <strong class="pht-wall-surface-temp">—</strong></span></div>
+                  </div>
+                  <div class="pht-sensor"><span>SURFACE TEMPERATURE</span><strong>—</strong><small>Run a trial</small></div>
+                </div>
+              </div>
+            </div>
+            <div class="pht-apparatus-foot"><span><strong>Case A apparatus</strong><br>Conduction through steel and insulation</span><span class="pht-apparatus-q">Total heat loss: —</span></div>
+          </div>
+
+          <div class="pht-panel pht-panel-pad">
+            <div class="pht-panel-head"><div><h3>Enter one trial</h3><p>The calculation runs only after the button is clicked.</p></div></div>
+            <div class="pht-fixed">
+              <div><span>Process temperature</span><strong>400 °C</strong></div>
+              <div><span>Insulation thickness</span><strong>0.100 m</strong></div>
+              <div><span>Insulation k</span><strong>0.080 W/(m·K)</strong></div>
+              <div><span>Ambient temperature</span><strong>25 °C</strong></div>
+            </div>
+            <div class="pht-guide">
+              <div class="pht-guide-head"><strong>Worksheet trial settings</strong><span>Enter these first; other values may also be tested.</span></div>
+              <table><thead><tr><th>Trial</th><th>ε</th><th>h (W/m²·K)</th></tr></thead><tbody><tr><td>1</td><td>0.00</td><td>8</td></tr><tr><td>2</td><td>0.85</td><td>0</td></tr><tr><td>3</td><td>0.85</td><td>8</td></tr></tbody></table>
+            </div>
+            <div class="pht-form">
+              <label class="pht-field"><span>Emissivity, ε</span><input id="pht-epsilon" type="number" min="0" max="1" step="0.01" inputmode="decimal"><small>Allowed range: 0.00–1.00</small></label>
+              <label class="pht-field"><span>Convection coefficient, h</span><input id="pht-h" type="number" min="0" max="50" step="0.5" inputmode="decimal"><small>Allowed range: 0–50 W/(m²·K)</small></label>
+            </div>
+            <div class="pht-run-row"><button class="pht-button" id="pht-run-1" type="button">Run and record trial</button><button class="pht-button pht-button-secondary" id="pht-reset-1" type="button">Reset stage</button></div>
+            <p class="pht-error" id="pht-error-1" role="alert"></p>
+            <div class="pht-metrics" aria-live="polite">
+              <div class="pht-metric"><span>Surface temperature</span><strong id="pht-m1-temp">—</strong></div>
+              <div class="pht-metric"><span>Convection heat loss</span><strong id="pht-m1-conv">—</strong></div>
+              <div class="pht-metric"><span>Radiation heat loss</span><strong id="pht-m1-rad">—</strong></div>
+            </div>
+          </div>
+        </div>
+        <div class="pht-panel pht-panel-pad pht-results-panel">
+          <div class="pht-panel-head"><div><h3>Table 1. Experimental data for parallel surface paths</h3><p>Every click adds the next numbered Trial row in the same column order as the worksheet.</p></div></div>
+          <div class="pht-table-wrap"><table><thead><tr><th>Trials</th><th>ε</th><th>h (W/m²·K)</th><th>T<sub>s</sub> (°C)</th><th>Q̇<sub>conv</sub> (kW)</th><th>Q̇<sub>rad</sub> (kW)</th><th>Q̇<sub>total</sub> (kW)</th></tr></thead><tbody id="pht-table-1" aria-live="polite"><tr class="pht-empty-row"><td colspan="7">No trials recorded yet.</td></tr></tbody></table></div>
+        </div>
+      </section>
+
+      <section id="pht-stage-2" role="tabpanel" aria-labelledby="pht-tab-2" hidden>
+        <div class="pht-stage-head">
+          <div><h2>Steel and insulation resist heat flow in series</h2><p>Students choose the insulation thickness, click Run, and build their own comparison.</p></div>
+          <span class="pht-stage-chip">Case A · Student trials</span>
+        </div>
+        <div class="pht-grid">
+          <div class="pht-panel" data-apparatus="2">
+            <div class="pht-apparatus">
+              <div class="pht-path-labels"><span class="pht-conv-label">CONVECTION ↑</span><span class="pht-rad-label">RADIATION ↗</span></div>
+              <div class="pht-vessel-zone">
+                <div class="pht-vessel-box"><div class="pht-vessel" style="--pht-insulation:0px"><span class="pht-process">PROCESS FLUID · 600 °C</span></div><div class="pht-insulation-label">Enter an insulation thickness</div></div>
+                <div class="pht-detail-column">
+                  <div class="pht-wall-card" style="--pht-wall-insulation:0px">
+                    <span class="pht-wall-title">Fluid · steel · insulation</span>
+                    <div class="pht-wall-sample" role="img" aria-label="Flat local wall detail showing the process side, steel wall, insulation thickness, ambient side, and outward heat flow"><span class="pht-wall-process"></span><span class="pht-wall-steel"></span><span class="pht-wall-insulation"></span><span class="pht-wall-air"></span><span class="pht-wall-arrow" aria-hidden="true"></span></div>
+                    <div class="pht-wall-values"><span>T<sub>wall</sub> <strong class="pht-wall-interface-temp">—</strong></span><span>T<sub>s</sub> <strong class="pht-wall-surface-temp">—</strong></span></div>
+                  </div>
+                  <div class="pht-sensor"><span>SURFACE TEMPERATURE</span><strong>—</strong><small>Run a trial</small></div>
+                </div>
+              </div>
+            </div>
+            <div class="pht-apparatus-foot"><span><strong>Series-resistance apparatus</strong><br>Steel wall + selected insulation</span><span class="pht-apparatus-q">Total heat loss: —</span></div>
+          </div>
+
+          <div class="pht-panel pht-panel-pad">
+            <div class="pht-panel-head"><div><h3>Enter one trial</h3><p>No calculation occurs while the value is being typed.</p></div></div>
+            <div class="pht-fixed">
+              <div><span>Process temperature</span><strong>600 °C</strong></div>
+              <div><span>Emissivity / h</span><strong>0.85 / 8.0</strong></div>
+              <div><span>Insulation k</span><strong>0.080 W/(m·K)</strong></div>
+              <div><span>Ambient temperature</span><strong>25 °C</strong></div>
+            </div>
+            <div class="pht-guide">
+              <div class="pht-guide-head"><strong>Worksheet trial settings</strong><span>Change only insulation thickness.</span></div>
+              <table><thead><tr><th>Trial</th><th>t<sub>ins</sub> (m)</th></tr></thead><tbody><tr><td>4</td><td>0.000</td></tr><tr><td>5</td><td>0.100</td></tr><tr><td>6</td><td>0.150</td></tr></tbody></table>
+            </div>
+            <div class="pht-form">
+              <label class="pht-field"><span>Insulation thickness, t (m)</span><input id="pht-thickness-2" type="number" min="0" max="0.5" step="0.005" inputmode="decimal"><small>Allowed range: 0.000–0.500 m</small></label>
+            </div>
+            <div class="pht-run-row"><button class="pht-button" id="pht-run-2" type="button">Run and record trial</button><button class="pht-button pht-button-secondary" id="pht-reset-2" type="button">Reset stage</button></div>
+            <p class="pht-error" id="pht-error-2" role="alert"></p>
+            <div class="pht-metrics" aria-live="polite">
+              <div class="pht-metric"><span>Surface temperature</span><strong id="pht-m2-temp">—</strong></div>
+              <div class="pht-metric"><span>Total heat loss</span><strong id="pht-m2-total">—</strong></div>
+              <div class="pht-metric"><span>Outer diameter</span><strong id="pht-m2-diameter">—</strong></div>
+            </div>
+            <div class="pht-chart-wrap"><canvas id="pht-chart-2" aria-label="Recorded surface temperature versus insulation thickness"></canvas></div>
+          </div>
+        </div>
+        <div class="pht-panel pht-panel-pad pht-results-panel">
+          <div class="pht-panel-head"><div><h3>Table 2. Experimental data for insulation thickness</h3><p>Every click adds the next numbered Trial row in the same column order as the worksheet.</p></div></div>
+          <div class="pht-table-wrap"><table><thead><tr><th>Trials</th><th>t<sub>ins</sub> (m)</th><th>T<sub>s</sub> (°C)</th><th>Q̇<sub>cond</sub> (kW)</th><th>Q̇<sub>conv</sub> (kW)</th><th>Q̇<sub>rad</sub> (kW)</th><th>Q̇<sub>total</sub> (kW)</th></tr></thead><tbody id="pht-table-2" aria-live="polite"><tr class="pht-empty-row"><td colspan="7">No trials recorded yet.</td></tr></tbody></table></div>
+        </div>
+      </section>
+
+      <section id="pht-stage-3" role="tabpanel" aria-labelledby="pht-tab-3" hidden>
+        <div class="pht-stage-head">
+          <div><h2>Find the minimum selectable safe thickness</h2><p>Original safety-stage interaction: move in exact 0.005 m increments and identify the PASS/FAIL boundary.</p></div>
+          <span class="pht-stage-chip">Case B · Trials 7–8</span>
+        </div>
+        <div class="pht-grid">
+          <div class="pht-panel" data-apparatus="3">
+            <div class="pht-apparatus">
+              <div class="pht-path-labels"><span class="pht-conv-label">CONVECTION ↑</span><span class="pht-rad-label">RADIATION ↗</span></div>
+              <div class="pht-vessel-zone">
+                <div class="pht-vessel-box"><div class="pht-vessel"><span class="pht-process">PROCESS FLUID · 800 °C</span></div><div class="pht-insulation-label">Insulation: 0.100 m · k = 0.080 W/(m·K)</div></div>
+                <div class="pht-detail-column pht-detail-column-single">
+                  <div class="pht-wall-card">
+                    <span class="pht-wall-title">Fluid · steel · insulation</span>
+                    <div class="pht-wall-sample" role="img" aria-label="Flat local wall detail showing the process side, steel wall, insulation thickness, ambient side, and outward heat flow"><span class="pht-wall-process"></span><span class="pht-wall-steel"></span><span class="pht-wall-insulation"></span><span class="pht-wall-air"></span><span class="pht-wall-arrow" aria-hidden="true"></span></div>
+                    <div class="pht-wall-values"><span>T<sub>wall</sub> <strong class="pht-wall-interface-temp">—</strong></span><span>T<sub>s</sub> <strong class="pht-wall-surface-temp">—</strong></span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="pht-apparatus-foot"><span><strong>Case B safety apparatus</strong><br>Live thickness search</span><span class="pht-apparatus-q">Total heat loss: 12.740 kW</span></div>
+          </div>
+
+          <div class="pht-panel pht-panel-pad">
+            <div class="pht-panel-head"><div><h3>Select insulation thickness</h3><p>The safety stage remains live, as in the original version.</p></div></div>
+            <div class="pht-fixed">
+              <div><span>Process temperature</span><strong>800 °C</strong></div>
+              <div><span>Emissivity / h</span><strong>0.85 / 8.0</strong></div>
+              <div><span>Safety limit</span><strong>60 °C</strong></div>
+              <div><span>Ambient temperature</span><strong>25 °C</strong></div>
+            </div>
+            <div class="pht-guide">
+              <div class="pht-guide-head"><strong>Worksheet trial settings</strong><span>Use exact 0.005 m increments.</span></div>
+              <table><thead><tr><th>Trial</th><th>Required setting</th></tr></thead><tbody><tr><td>7</td><td>First thickness with T<sub>s</sub> ≤ 60 °C</td></tr><tr><td>8</td><td>Exactly 0.005 m below Trial 7</td></tr></tbody></table>
+            </div>
+            <div class="pht-safety-control">
+              <div class="pht-value-head"><span>Current selectable thickness</span><strong id="pht-safety-thickness">0.100 m</strong></div>
+              <input id="pht-safety-range" type="range" min="0" max="100" step="1" value="20" aria-label="Insulation thickness in 0.005 metre increments">
+              <div class="pht-range-scale"><span>0.000 m</span><span>0.250 m</span><span>0.500 m</span></div>
+              <div class="pht-nudge-row">
+                <button class="pht-nudge" id="pht-minus" type="button" aria-label="Decrease by 0.005 metres">−</button>
+                <div class="pht-increment"><strong id="pht-increment">20 × 0.005 m</strong><span>exact selectable increment</span></div>
+                <button class="pht-nudge" id="pht-plus" type="button" aria-label="Increase by 0.005 metres">+</button>
+              </div>
+              <div class="pht-safety-banner" id="pht-safety-banner" aria-live="polite"><strong>FAIL · surface temperature exceeds the 60 °C limit</strong><span>Current: 63.14 °C</span></div>
+              <div class="pht-safety-actions">
+                <button class="pht-button pht-wide-action" id="pht-record-safety" type="button">Record current trial</button>
+              </div>
+              <p class="pht-note" id="pht-safety-note">Move continuously through the selectable thicknesses and record any setting you want to keep.</p>
+            </div>
+            <div class="pht-chart-wrap"><canvas id="pht-chart-3" aria-label="Surface temperature versus insulation thickness with 60 degree Celsius safety limit"></canvas></div>
+          </div>
+        </div>
+        <div class="pht-panel pht-panel-pad pht-results-panel">
+          <div class="pht-panel-head"><div><h3>Table 3. Experimental data for the surface-safety search</h3><p>Every recorded setting receives the next Trial number; PASS/FAIL is calculated without blocking the run.</p></div></div>
+          <div class="pht-table-wrap"><table><thead><tr><th>Trials</th><th>t<sub>ins</sub> (m)</th><th>T<sub>s</sub> (°C)</th><th>Q̇<sub>conv</sub> (kW)</th><th>Q̇<sub>rad</sub> (kW)</th><th>Q̇<sub>total</sub> (kW)</th><th>Pass / Fail</th></tr></thead><tbody id="pht-table-3" aria-live="polite"><tr class="pht-empty-row"><td colspan="7">No trials recorded yet.</td></tr></tbody></table></div>
+        </div>
+      </section>
+      </div>
+    </div>
+  </main>
 
   <footer class="app-footer">
     <p><strong>Model boundary:</strong> steady radial heat transfer through the straight cylindrical shell; heads, nozzles, saddles, and thermal bridges are excluded.</p>
@@ -93,6 +266,6 @@
   </dialog>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=20260916-explore3"></script>
+  <script src="app.js?v=20260916-approved"></script>
 </body>
 </html>
