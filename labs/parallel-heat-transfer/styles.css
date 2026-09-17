@@ -667,6 +667,7 @@ h1, h2, h3, h4, p { margin-top: 0; }
     #pht-review-preview .pht-rad-label { color: var(--pht-orange); }
     #pht-review-preview .pht-vessel-zone {
       display: block;
+      padding-top: 24px;
     }
     #pht-review-preview .pht-vessel-box { min-width: 0; text-align: center; }
     #pht-review-preview .pht-vessel {
@@ -675,7 +676,7 @@ h1, h2, h3, h4, p { margin-top: 0; }
       max-width: 390px;
       min-width: 170px;
       height: 94px;
-      margin: 16px auto calc(var(--pht-insulation, 6px) + 36px);
+      margin: 0 auto calc(var(--pht-insulation, 6px) + 36px);
       border: 8px solid #96a8af;
       border-radius: 70px;
       background: #d93d32;
