@@ -362,6 +362,10 @@ h1, h2, h3, h4, p { margin-top: 0; }
 #dataDialogBody { padding: 18px 22px; max-height: 62vh; overflow: auto; }
 .dialog-actions { padding: 14px 22px 20px; display: flex; justify-content: flex-end; gap: 9px; border-top: 1px solid var(--line); }
 .empty-state { padding: 45px 20px; text-align: center; color: var(--muted); }
+.about-dialog { width: min(780px, calc(100vw - 30px)); }
+.about-body { padding: 20px 22px 24px; }
+.about-body p { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.7; }
+.about-body p + p { margin-top: 14px; }
 
 .toast { position: fixed; left: 50%; bottom: 24px; z-index: 20; transform: translate(-50%, 20px); padding: 11px 15px; border-radius: 9px; background: var(--navy); color: #fff; font-size: 13px; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; box-shadow: var(--shadow); }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }

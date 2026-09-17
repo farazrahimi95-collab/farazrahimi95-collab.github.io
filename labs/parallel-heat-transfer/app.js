@@ -128,7 +128,7 @@
           return;
         }
         error.textContent = '';
-        const inputs = { processC: 400, insulationM: .100, conductivity: .080, emissivity: epsilon, h };
+        const inputs = { processC: 800, insulationM: .100, conductivity: .080, emissivity: epsilon, h };
         const result = solve(inputs);
         state.stage1.push({ label: `Trial ${state.stage1.length + 1}`, inputs, result });
         setText('pht-m1-temp', `${fmt(result.surfaceC,2)} °C`);
@@ -169,7 +169,7 @@
           return;
         }
         error.textContent = '';
-        const inputs = { processC: 600, insulationM: thickness, conductivity: .080, emissivity: .85, h: 8 };
+        const inputs = { processC: 800, insulationM: thickness, conductivity: .080, emissivity: .85, h: 8 };
         const result = solve(inputs);
         state.stage2.push({ label: `Trial ${state.stage2.length + 4}`, inputs, result });
         setText('pht-m2-temp', `${fmt(result.surfaceC,2)} °C`);
@@ -209,7 +209,6 @@
         const result = solve(inputs);
         const safe = result.surfaceC <= LIMIT_C + 1e-9;
         setText('pht-safety-thickness', `${fmt(inputs.insulationM,3)} m`);
-        setText('pht-increment', `${step} × 0.005 m`);
         root.querySelector('#pht-safety-range').value = String(step);
         root.querySelector('#pht-minus').disabled = step === 0;
         root.querySelector('#pht-plus').disabled = step === 100;
@@ -232,7 +231,7 @@
       function canvasSetup(canvas) {
         if (!canvas || canvas.clientWidth < 40) return null;
         const width = canvas.clientWidth;
-        const height = 220;
+        const height = 150;
         const ratio = window.devicePixelRatio || 1;
         canvas.width = Math.round(width * ratio);
         canvas.height = Math.round(height * ratio);
@@ -406,6 +405,9 @@
       function bindDialogs() {
         const dataDialog = document.getElementById('dataDialog');
         const modelDialog = document.getElementById('modelDialog');
+        const aboutDialog = document.getElementById('aboutDialog');
+        document.getElementById('openAbout').addEventListener('click', () => aboutDialog.showModal());
+        document.getElementById('closeAbout').addEventListener('click', () => aboutDialog.close());
         document.getElementById('openData').addEventListener('click', () => {
           document.getElementById('dataDialogBody').innerHTML = dataDialogHtml();
           dataDialog.showModal();
@@ -421,7 +423,7 @@
           dataDialog.close();
           showToast('This tab has been reset.');
         });
-        [dataDialog, modelDialog].forEach(dialog => dialog.addEventListener('click', event => {
+        [dataDialog, modelDialog, aboutDialog].forEach(dialog => dialog.addEventListener('click', event => {
           const bounds = dialog.getBoundingClientRect();
           const outside = event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom;
           if (outside) dialog.close();
@@ -452,4 +454,3 @@
       switchStage(1);
       requestAnimationFrame(drawAllCharts);
     })();
-

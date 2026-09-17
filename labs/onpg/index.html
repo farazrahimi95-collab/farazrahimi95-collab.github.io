@@ -7,7 +7,7 @@
   <meta name="author" content="Faraz Rahimi">
   <title>ONPG Bead Reactor | Virtual Lab</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b3046'/%3E%3Cpath d='M23 13h18M27 13v14L16 47c-2 4 1 7 6 7h20c5 0 8-3 6-7L37 27V13' fill='none' stroke='%23fff' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M21 44h22' stroke='%23f2c14e' stroke-width='7' stroke-linecap='round'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=20260917-about">
 </head>
 <body>
   <div class="portal-ribbon">
@@ -23,6 +23,7 @@
       </div>
     </div>
     <div class="header-actions">
+      <button class="button button-secondary" id="openAbout" type="button">About</button>
       <a class="button button-secondary" href="ONPG_Virtual_Lab_Worksheet.pdf" target="_blank" rel="noopener">Open worksheet</a>
       <button class="button button-dark" id="openData" type="button">Run data <span id="dataCount" class="button-count">0</span></button>
     </div>
@@ -44,6 +45,20 @@
     <p>Results remain only in this open page and reset when it is refreshed or closed · Virtual Lab by Faraz Rahimi</p>
   </footer>
 
+  <dialog id="aboutDialog" class="data-dialog about-dialog">
+    <div class="dialog-head">
+      <div>
+        <p class="eyebrow">ABOUT THE EXPERIMENT</p>
+        <h2>Why immobilize β-galactosidase?</h2>
+      </div>
+      <button class="icon-button" id="closeAbout" type="button" aria-label="Close experiment explanation">×</button>
+    </div>
+    <div class="about-body">
+      <p>β-Galactosidase is immobilized inside alginate beads so the enzyme remains in the reactor, can be separated easily from the product, and may be reused. The enzyme hydrolyzes ONPG into yellow ONP and galactose, allowing reaction conversion and kinetics to be measured using absorbance at 415 nm.</p>
+      <p>ONPG serves as a visible model for lactose hydrolysis, in which β-galactosidase converts lactose into glucose and galactose. Recirculation and fluidization improve contact between the liquid substrate and enzyme-containing beads, while bead size illustrates how internal diffusion can affect the reaction rate.</p>
+    </div>
+  </dialog>
+
   <dialog id="dataDialog" class="data-dialog">
     <div class="dialog-head">
       <div>
@@ -60,6 +75,6 @@
   </dialog>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=20260915-reset"></script>
+  <script src="app.js?v=20260917-about"></script>
 </body>
 </html>

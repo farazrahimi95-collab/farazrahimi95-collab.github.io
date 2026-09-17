@@ -946,17 +946,25 @@ function sessionCsv() {
 
 function initGlobal() {
   document.querySelectorAll(".step").forEach(button=>button.addEventListener("click",()=>navigate(Number(button.dataset.stage))));
-  const dialog=document.getElementById("dataDialog");
-  document.getElementById("openData").addEventListener("click",()=>{renderDataDialog();dialog.showModal();});
-  document.getElementById("closeData").addEventListener("click",()=>dialog.close());
+  const dataDialog=document.getElementById("dataDialog");
+  const aboutDialog=document.getElementById("aboutDialog");
+  document.getElementById("openAbout").addEventListener("click",()=>aboutDialog.showModal());
+  document.getElementById("closeAbout").addEventListener("click",()=>aboutDialog.close());
+  document.getElementById("openData").addEventListener("click",()=>{renderDataDialog();dataDialog.showModal();});
+  document.getElementById("closeData").addEventListener("click",()=>dataDialog.close());
   document.getElementById("downloadCsv").addEventListener("click",()=>{
     const blob=new Blob([sessionCsv()],{type:"text/csv"});
     const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="ONPG_virtual_lab_session.csv";a.click();URL.revokeObjectURL(url);
   });
   document.getElementById("clearData").addEventListener("click",()=>{
     if(!confirm("Clear every sample, kinetic result, and bead-design trial from this session?"))return;
-    state=defaultState();saveState();dialog.close();navigate(1);toast("Session cleared.");
+    state=defaultState();saveState();dataDialog.close();navigate(1);toast("Session cleared.");
   });
+  [dataDialog,aboutDialog].forEach(dialog=>dialog.addEventListener("click",event=>{
+    const bounds=dialog.getBoundingClientRect();
+    const outside=event.clientX<bounds.left||event.clientX>bounds.right||event.clientY<bounds.top||event.clientY>bounds.bottom;
+    if(outside)dialog.close();
+  }));
   updateDataCount();updateStepper();navigate(state.stage || 1);
 }
 
