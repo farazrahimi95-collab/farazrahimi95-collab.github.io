@@ -7,7 +7,7 @@
   <meta name="author" content="Faraz Rahimi">
   <title>Parallel Heat Transfer | Virtual Lab</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b3046'/%3E%3Cpath d='M21 10v26a13 13 0 1 0 22 9 13 13 0 0 0-7-11V10a7 7 0 0 0-15 0Z' fill='none' stroke='%23fff' stroke-width='5'/%3E%3Cpath d='M28.5 18v23' stroke='%23f2c14e' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="styles.css?v=20260921-model-clarity">
+  <link rel="stylesheet" href="styles.css?v=20260921-wall-detail">
 </head>
 <body>
   <div class="portal-ribbon">
@@ -26,7 +26,7 @@
     <div class="header-actions">
       <button class="button button-secondary" id="openAbout" type="button">About</button>
       <button class="button button-secondary" id="openModel" type="button">Model basis</button>
-      <a class="button button-secondary" href="Parallel_Heat_Transfer_Worksheet.pdf?v=20260921-800" target="_blank" rel="noopener">Open worksheet</a>
+      <a class="button button-secondary" href="Parallel_Heat_Transfer_Worksheet.pdf?v=20260921-aligned" target="_blank" rel="noopener">Open worksheet</a>
       <button class="button button-dark" id="openData" type="button">Run data <span id="dataCount" class="button-count">0</span></button>
     </div>
   </header>
@@ -59,16 +59,16 @@
                 <div class="pht-vessel-box"><div class="pht-vessel"><span class="pht-process">INNER WALL · 800 °C</span></div><div class="pht-insulation-label">Insulation: t<sub>ins</sub> = 0.100 m · k<sub>ins</sub> = 0.080 W/(m·K)</div></div>
                 <div class="pht-detail-column">
                   <div class="pht-wall-card">
-                    <span class="pht-wall-title">Fluid · steel · insulation</span>
+                    <div class="pht-layer-labels"><span>FLUID</span><span>STEEL</span><span class="pht-ins-heading">INSULATION</span><span>AMBIENT</span></div>
                     <div class="pht-wall-sample" role="img" aria-label="Flat local wall detail showing the process side, steel wall, insulation thickness, ambient side, and outward heat flow"><span class="pht-wall-process"></span><span class="pht-wall-steel"></span><span class="pht-wall-insulation"></span><span class="pht-wall-air"></span><span class="pht-wall-arrow" aria-hidden="true"></span></div>
-                    <div class="pht-wall-values"><span>T<sub>wall</sub> <strong class="pht-wall-interface-temp">—</strong></span><span>T<sub>s</sub> <strong class="pht-wall-surface-temp">—</strong></span></div>
+                    <div class="pht-wall-caption">Heat flow → · Schematic, not to scale</div><div class="pht-wall-values"><span>T<sub>wall</sub> <strong class="pht-wall-interface-temp">—</strong></span><span>T<sub>s</sub> <strong class="pht-wall-surface-temp">—</strong></span></div>
                   </div>
                   <div class="pht-sensor"><span>SURFACE TEMPERATURE, T<sub>s</sub></span><strong>—</strong><small>Run a trial</small></div>
                 </div>
               </div>
             </div>
             <div class="pht-apparatus-foot"><span><strong>Case A apparatus</strong><br>Conduction through steel and insulation</span><span class="pht-apparatus-q">Total heat loss: —</span></div>
-            <div class="pht-coefficients" aria-live="polite"><span>Convection h: <strong class="pht-h-value">—</strong></span><span>Equivalent radiation h<sub>rad</sub>: <strong class="pht-hrad-value">—</strong></span><small>W/(m²·K) · At the current surface temperature</small></div>
+            <div class="pht-coefficients" aria-live="polite"><span>Convection h: <strong class="pht-h-value">—</strong></span><span>Equivalent radiation h<sub>rad</sub>: <strong class="pht-hrad-value">—</strong></span><small>W/(m²·K) · Same area and temperature difference: compare these values to compare the two heat-loss paths.</small></div>
             <div class="pht-results-panel">
               <div class="pht-results-head"><h3>Table 1. Report data</h3><p>Each run adds the next worksheet Trial row.</p></div>
               <div class="pht-table-wrap"><table><thead><tr><th>Trials</th><th>ε</th><th>h (W/m²·K)</th><th>T<sub>s</sub> (°C)</th><th>Q̇<sub>conv</sub> (kW)</th><th>Q̇<sub>rad</sub> (kW)</th><th>Q̇<sub>total</sub> (kW)</th></tr></thead><tbody id="pht-table-1" aria-live="polite"><tr class="pht-empty-row"><td colspan="7">No trials recorded yet.</td></tr></tbody></table></div>
@@ -116,17 +116,17 @@
               <div class="pht-vessel-zone">
                 <div class="pht-vessel-box"><div class="pht-vessel" style="--pht-insulation:0px"><span class="pht-process">INNER WALL · 800 °C</span></div><div class="pht-insulation-label">Enter an insulation thickness</div></div>
                 <div class="pht-detail-column">
-                  <div class="pht-wall-card" style="--pht-wall-insulation:0px">
-                    <span class="pht-wall-title">Fluid · steel · insulation</span>
+                  <div class="pht-wall-card" style="--pht-wall-insulation:0px" data-uninsulated="true">
+                    <div class="pht-layer-labels"><span>FLUID</span><span>STEEL</span><span class="pht-ins-heading">INSULATION</span><span>AMBIENT</span></div>
                     <div class="pht-wall-sample" role="img" aria-label="Flat local wall detail showing the process side, steel wall, insulation thickness, ambient side, and outward heat flow"><span class="pht-wall-process"></span><span class="pht-wall-steel"></span><span class="pht-wall-insulation"></span><span class="pht-wall-air"></span><span class="pht-wall-arrow" aria-hidden="true"></span></div>
-                    <div class="pht-wall-values"><span>T<sub>wall</sub> <strong class="pht-wall-interface-temp">—</strong></span><span>T<sub>s</sub> <strong class="pht-wall-surface-temp">—</strong></span></div>
+                    <div class="pht-wall-caption">Heat flow → · Schematic, not to scale</div><div class="pht-wall-values"><span>T<sub>wall</sub> <strong class="pht-wall-interface-temp">—</strong></span><span>T<sub>s</sub> <strong class="pht-wall-surface-temp">—</strong></span></div>
                   </div>
                   <div class="pht-sensor"><span>SURFACE TEMPERATURE, T<sub>s</sub></span><strong>—</strong><small>Run a trial</small></div>
                 </div>
               </div>
             </div>
             <div class="pht-apparatus-foot"><span><strong>Series-resistance apparatus</strong><br>Steel wall + selected insulation</span><span class="pht-apparatus-q">Total heat loss: —</span></div>
-            <div class="pht-coefficients" aria-live="polite"><span>Convection h: <strong class="pht-h-value">—</strong></span><span>Equivalent radiation h<sub>rad</sub>: <strong class="pht-hrad-value">—</strong></span><small>W/(m²·K) · At the current surface temperature</small></div>
+            
             <div class="pht-results-panel">
               <div class="pht-results-head"><h3>Table 2. Report data</h3><p>Each run adds the next worksheet Trial row.</p></div>
               <div class="pht-table-wrap"><table><thead><tr><th>Trials</th><th>t<sub>ins</sub> (m)</th><th>T<sub>s</sub> (°C)</th><th>Q̇<sub>cond</sub> (kW)</th><th>Q̇<sub>conv</sub> (kW)</th><th>Q̇<sub>rad</sub> (kW)</th><th>Q̇<sub>total</sub> (kW)</th></tr></thead><tbody id="pht-table-2" aria-live="polite"><tr class="pht-empty-row"><td colspan="7">No trials recorded yet.</td></tr></tbody></table></div>
@@ -174,15 +174,15 @@
                 <div class="pht-vessel-box"><div class="pht-vessel"><span class="pht-process">INNER WALL · 800 °C</span></div><div class="pht-insulation-label">Insulation: t<sub>ins</sub> = 0.100 m · k<sub>ins</sub> = 0.080 W/(m·K)</div></div>
                 <div class="pht-detail-column pht-detail-column-single">
                   <div class="pht-wall-card">
-                    <span class="pht-wall-title">Fluid · steel · insulation</span>
+                    <div class="pht-layer-labels"><span>FLUID</span><span>STEEL</span><span class="pht-ins-heading">INSULATION</span><span>AMBIENT</span></div>
                     <div class="pht-wall-sample" role="img" aria-label="Flat local wall detail showing the process side, steel wall, insulation thickness, ambient side, and outward heat flow"><span class="pht-wall-process"></span><span class="pht-wall-steel"></span><span class="pht-wall-insulation"></span><span class="pht-wall-air"></span><span class="pht-wall-arrow" aria-hidden="true"></span></div>
-                    <div class="pht-wall-values"><span>T<sub>wall</sub> <strong class="pht-wall-interface-temp">—</strong></span><span>T<sub>s</sub> <strong class="pht-wall-surface-temp">—</strong></span></div>
+                    <div class="pht-wall-caption">Heat flow → · Schematic, not to scale</div><div class="pht-wall-values"><span>T<sub>wall</sub> <strong class="pht-wall-interface-temp">—</strong></span><span>T<sub>s</sub> <strong class="pht-wall-surface-temp">—</strong></span></div>
                   </div>
                 </div>
               </div>
             </div>
             <div class="pht-apparatus-foot"><span><strong>Case B safety apparatus</strong><br>Live thickness search</span><span class="pht-apparatus-q">Total heat loss: 12.740 kW</span></div>
-            <div class="pht-coefficients" aria-live="polite"><span>Convection h: <strong class="pht-h-value">—</strong></span><span>Equivalent radiation h<sub>rad</sub>: <strong class="pht-hrad-value">—</strong></span><small>W/(m²·K) · At the current surface temperature</small></div>
+            
             <div class="pht-results-panel">
               <div class="pht-results-head"><h3>Table 3. Report data</h3><p>Each recording adds the next worksheet Trial row.</p></div>
               <div class="pht-table-wrap"><table><thead><tr><th>Trials</th><th>t<sub>ins</sub> (m)</th><th>T<sub>s</sub> (°C)</th><th>Q̇<sub>conv</sub> (kW)</th><th>Q̇<sub>rad</sub> (kW)</th><th>Q̇<sub>total</sub> (kW)</th><th>Pass / Fail</th></tr></thead><tbody id="pht-table-3" aria-live="polite"><tr class="pht-empty-row"><td colspan="7">No trials recorded yet.</td></tr></tbody></table></div>
@@ -291,6 +291,6 @@
   </dialog>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=20260921-model-clarity"></script>
+  <script src="app.js?v=20260921-wall-detail"></script>
 </body>
 </html>

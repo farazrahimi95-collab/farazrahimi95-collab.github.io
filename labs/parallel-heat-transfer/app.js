@@ -74,18 +74,21 @@
         const surfaceK = cToK(result.surfaceC);
         const ambientK = cToK(AMBIENT_C);
         const hRad = inputs.emissivity * SIGMA * (surfaceK + ambientK) * (surfaceK ** 2 + ambientK ** 2);
-        panel.querySelector('.pht-h-value').textContent = fmt(inputs.h, 2);
-        panel.querySelector('.pht-hrad-value').textContent = fmt(hRad, 2);
+        if (panel.querySelector('.pht-coefficients')) {
+          panel.querySelector('.pht-h-value').textContent = fmt(inputs.h, 2);
+          panel.querySelector('.pht-hrad-value').textContent = fmt(hRad, 2);
+        }
         const vessel = panel.querySelector('.pht-vessel');
         const wallCard = panel.querySelector('.pht-wall-card');
         const thickness = Math.max(0, Number(inputs.insulationM));
         const insulationPixels = thickness <= 0 ? 0 : Math.max(2, Math.round(Math.min(.5, thickness) / .5 * 28));
-        const wallPixels = thickness <= 0 ? 0 : Math.max(4, Math.round(Math.min(.5, thickness) / .5 * 50));
+        const wallPixels = thickness <= 0 ? 0 : Math.max(82, Math.round(82 + Math.min(.5, thickness) / .5 * 58));
         const interfaceColor = temperatureColor(result.wallOuterC);
         const surfaceColor = temperatureColor(result.surfaceC);
         vessel.style.setProperty('--pht-insulation', `${insulationPixels}px`);
         vessel.style.setProperty('--pht-ins-color', surfaceColor);
         wallCard.style.setProperty('--pht-wall-insulation', `${wallPixels}px`);
+        wallCard.dataset.uninsulated = String(thickness <= 0);
         wallCard.style.setProperty('--pht-ins-inner', interfaceColor);
         wallCard.style.setProperty('--pht-ins-outer', surfaceColor);
         panel.querySelector('.pht-insulation-label').innerHTML = `Insulation: t<sub>ins</sub> = ${fmt(thickness,3)} m · k<sub>ins</sub> = ${fmt(inputs.conductivity,3)} W/(m·K)`;
@@ -168,8 +171,10 @@
         panel.querySelector('.pht-sensor strong').textContent = '—';
         panel.querySelector('.pht-sensor small').textContent = 'Run a trial';
         panel.querySelector('.pht-apparatus-q').innerHTML = 'Total heat loss, Q̇<sub>total</sub>: —';
-        panel.querySelector('.pht-h-value').textContent = '—';
-        panel.querySelector('.pht-hrad-value').textContent = '—';
+        if (panel.querySelector('.pht-coefficients')) {
+          panel.querySelector('.pht-h-value').textContent = '—';
+          panel.querySelector('.pht-hrad-value').textContent = '—';
+        }
       }
 
       function runStage2() {
@@ -206,14 +211,17 @@
         const panel = root.querySelector('[data-apparatus="2"]');
         panel.querySelector('.pht-vessel').style.cssText = '--pht-insulation:0px';
         panel.querySelector('.pht-wall-card').style.cssText = '--pht-wall-insulation:0px';
+        panel.querySelector('.pht-wall-card').dataset.uninsulated = 'true';
         panel.querySelector('.pht-wall-interface-temp').textContent = '—';
         panel.querySelector('.pht-wall-surface-temp').textContent = '—';
         panel.querySelector('.pht-insulation-label').textContent = 'Enter an insulation thickness';
         panel.querySelector('.pht-sensor strong').textContent = '—';
         panel.querySelector('.pht-sensor small').textContent = 'Run a trial';
         panel.querySelector('.pht-apparatus-q').innerHTML = 'Total heat loss, Q̇<sub>total</sub>: —';
-        panel.querySelector('.pht-h-value').textContent = '—';
-        panel.querySelector('.pht-hrad-value').textContent = '—';
+        if (panel.querySelector('.pht-coefficients')) {
+          panel.querySelector('.pht-h-value').textContent = '—';
+          panel.querySelector('.pht-hrad-value').textContent = '—';
+        }
         drawStage2Chart();
       }
 
