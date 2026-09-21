@@ -7,7 +7,7 @@
   <meta name="author" content="Faraz Rahimi">
   <title>Parallel Heat Transfer | Virtual Lab</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b3046'/%3E%3Cpath d='M21 10v26a13 13 0 1 0 22 9 13 13 0 0 0-7-11V10a7 7 0 0 0-15 0Z' fill='none' stroke='%23fff' stroke-width='5'/%3E%3Cpath d='M28.5 18v23' stroke='%23f2c14e' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="styles.css?v=20260921-notation">
+  <link rel="stylesheet" href="styles.css?v=20260921-model-clarity">
 </head>
 <body>
   <div class="portal-ribbon">
@@ -56,7 +56,7 @@
             <div class="pht-apparatus">
               <div class="pht-path-labels"><span class="pht-conv-label">CONVECTION ↑</span><span class="pht-rad-label">RADIATION ↗</span></div>
               <div class="pht-vessel-zone">
-                <div class="pht-vessel-box"><div class="pht-vessel"><span class="pht-process">PROCESS FLUID · 800 °C</span></div><div class="pht-insulation-label">Insulation: t<sub>ins</sub> = 0.100 m · k<sub>ins</sub> = 0.080 W/(m·K)</div></div>
+                <div class="pht-vessel-box"><div class="pht-vessel"><span class="pht-process">INNER WALL · 800 °C</span></div><div class="pht-insulation-label">Insulation: t<sub>ins</sub> = 0.100 m · k<sub>ins</sub> = 0.080 W/(m·K)</div></div>
                 <div class="pht-detail-column">
                   <div class="pht-wall-card">
                     <span class="pht-wall-title">Fluid · steel · insulation</span>
@@ -68,6 +68,7 @@
               </div>
             </div>
             <div class="pht-apparatus-foot"><span><strong>Case A apparatus</strong><br>Conduction through steel and insulation</span><span class="pht-apparatus-q">Total heat loss: —</span></div>
+            <div class="pht-coefficients" aria-live="polite"><span>Convection h: <strong class="pht-h-value">—</strong></span><span>Equivalent radiation h<sub>rad</sub>: <strong class="pht-hrad-value">—</strong></span><small>W/(m²·K) · At the current surface temperature</small></div>
             <div class="pht-results-panel">
               <div class="pht-results-head"><h3>Table 1. Report data</h3><p>Each run adds the next worksheet Trial row.</p></div>
               <div class="pht-table-wrap"><table><thead><tr><th>Trials</th><th>ε</th><th>h (W/m²·K)</th><th>T<sub>s</sub> (°C)</th><th>Q̇<sub>conv</sub> (kW)</th><th>Q̇<sub>rad</sub> (kW)</th><th>Q̇<sub>total</sub> (kW)</th></tr></thead><tbody id="pht-table-1" aria-live="polite"><tr class="pht-empty-row"><td colspan="7">No trials recorded yet.</td></tr></tbody></table></div>
@@ -77,7 +78,7 @@
           <div class="pht-panel pht-panel-pad">
             <div class="pht-panel-head"><div><h3>Enter one trial</h3><p>The calculation runs only after the button is clicked.</p></div></div>
             <div class="pht-fixed">
-              <div><span>Process temperature, T<sub>in</sub></span><strong>800 °C</strong></div>
+              <div><span>Inner wall temperature, T<sub>in</sub></span><strong>800 °C</strong></div>
               <div><span>Insulation thickness, t<sub>ins</sub></span><strong>0.100 m</strong></div>
               <div><span>Insulation conductivity, k<sub>ins</sub></span><strong>0.080 W/(m·K)</strong></div>
               <div><span>Ambient temperature, T<sub>∞</sub></span><strong>25 °C</strong></div>
@@ -90,6 +91,7 @@
               <label class="pht-field"><span>Emissivity, ε</span><input id="pht-epsilon" type="number" min="0" max="1" step="0.01" inputmode="decimal"><small>Allowed range: 0.00–1.00</small></label>
               <label class="pht-field"><span>Convection coefficient, h</span><input id="pht-h" type="number" min="0" max="50" step="0.5" inputmode="decimal"><small>Allowed range: 0–50 W/(m²·K)</small></label>
             </div>
+            <p class="pht-limit-note">ε = 0 and h = 0 are idealized limiting cases for isolating radiation and convection.</p>
             <div class="pht-run-row"><button class="pht-button" id="pht-run-1" type="button">Run and record trial</button><button class="pht-button pht-button-secondary" id="pht-reset-1" type="button">Reset stage</button></div>
             <p class="pht-error" id="pht-error-1" role="alert"></p>
             <div class="pht-metrics" aria-live="polite">
@@ -112,7 +114,7 @@
             <div class="pht-apparatus">
               <div class="pht-path-labels"><span class="pht-conv-label">CONVECTION ↑</span><span class="pht-rad-label">RADIATION ↗</span></div>
               <div class="pht-vessel-zone">
-                <div class="pht-vessel-box"><div class="pht-vessel" style="--pht-insulation:0px"><span class="pht-process">PROCESS FLUID · 800 °C</span></div><div class="pht-insulation-label">Enter an insulation thickness</div></div>
+                <div class="pht-vessel-box"><div class="pht-vessel" style="--pht-insulation:0px"><span class="pht-process">INNER WALL · 800 °C</span></div><div class="pht-insulation-label">Enter an insulation thickness</div></div>
                 <div class="pht-detail-column">
                   <div class="pht-wall-card" style="--pht-wall-insulation:0px">
                     <span class="pht-wall-title">Fluid · steel · insulation</span>
@@ -124,6 +126,7 @@
               </div>
             </div>
             <div class="pht-apparatus-foot"><span><strong>Series-resistance apparatus</strong><br>Steel wall + selected insulation</span><span class="pht-apparatus-q">Total heat loss: —</span></div>
+            <div class="pht-coefficients" aria-live="polite"><span>Convection h: <strong class="pht-h-value">—</strong></span><span>Equivalent radiation h<sub>rad</sub>: <strong class="pht-hrad-value">—</strong></span><small>W/(m²·K) · At the current surface temperature</small></div>
             <div class="pht-results-panel">
               <div class="pht-results-head"><h3>Table 2. Report data</h3><p>Each run adds the next worksheet Trial row.</p></div>
               <div class="pht-table-wrap"><table><thead><tr><th>Trials</th><th>t<sub>ins</sub> (m)</th><th>T<sub>s</sub> (°C)</th><th>Q̇<sub>cond</sub> (kW)</th><th>Q̇<sub>conv</sub> (kW)</th><th>Q̇<sub>rad</sub> (kW)</th><th>Q̇<sub>total</sub> (kW)</th></tr></thead><tbody id="pht-table-2" aria-live="polite"><tr class="pht-empty-row"><td colspan="7">No trials recorded yet.</td></tr></tbody></table></div>
@@ -133,7 +136,7 @@
           <div class="pht-panel pht-panel-pad">
             <div class="pht-panel-head"><div><h3>Enter one trial</h3><p>No calculation occurs while the value is being typed.</p></div></div>
             <div class="pht-fixed">
-              <div><span>Process temperature, T<sub>in</sub></span><strong>800 °C</strong></div>
+              <div><span>Inner wall temperature, T<sub>in</sub></span><strong>800 °C</strong></div>
               <div><span>Emissivity ε / convection h</span><strong>0.85 / 8.0</strong></div>
               <div><span>Insulation conductivity, k<sub>ins</sub></span><strong>0.080 W/(m·K)</strong></div>
               <div><span>Ambient temperature, T<sub>∞</sub></span><strong>25 °C</strong></div>
@@ -168,7 +171,7 @@
             <div class="pht-apparatus">
               <div class="pht-path-labels"><span class="pht-conv-label">CONVECTION ↑</span><span class="pht-rad-label">RADIATION ↗</span></div>
               <div class="pht-vessel-zone">
-                <div class="pht-vessel-box"><div class="pht-vessel"><span class="pht-process">PROCESS FLUID · 800 °C</span></div><div class="pht-insulation-label">Insulation: t<sub>ins</sub> = 0.100 m · k<sub>ins</sub> = 0.080 W/(m·K)</div></div>
+                <div class="pht-vessel-box"><div class="pht-vessel"><span class="pht-process">INNER WALL · 800 °C</span></div><div class="pht-insulation-label">Insulation: t<sub>ins</sub> = 0.100 m · k<sub>ins</sub> = 0.080 W/(m·K)</div></div>
                 <div class="pht-detail-column pht-detail-column-single">
                   <div class="pht-wall-card">
                     <span class="pht-wall-title">Fluid · steel · insulation</span>
@@ -179,6 +182,7 @@
               </div>
             </div>
             <div class="pht-apparatus-foot"><span><strong>Case B safety apparatus</strong><br>Live thickness search</span><span class="pht-apparatus-q">Total heat loss: 12.740 kW</span></div>
+            <div class="pht-coefficients" aria-live="polite"><span>Convection h: <strong class="pht-h-value">—</strong></span><span>Equivalent radiation h<sub>rad</sub>: <strong class="pht-hrad-value">—</strong></span><small>W/(m²·K) · At the current surface temperature</small></div>
             <div class="pht-results-panel">
               <div class="pht-results-head"><h3>Table 3. Report data</h3><p>Each recording adds the next worksheet Trial row.</p></div>
               <div class="pht-table-wrap"><table><thead><tr><th>Trials</th><th>t<sub>ins</sub> (m)</th><th>T<sub>s</sub> (°C)</th><th>Q̇<sub>conv</sub> (kW)</th><th>Q̇<sub>rad</sub> (kW)</th><th>Q̇<sub>total</sub> (kW)</th><th>Pass / Fail</th></tr></thead><tbody id="pht-table-3" aria-live="polite"><tr class="pht-empty-row"><td colspan="7">No trials recorded yet.</td></tr></tbody></table></div>
@@ -188,7 +192,7 @@
           <div class="pht-panel pht-panel-pad">
             <div class="pht-panel-head"><div><h3>Select insulation thickness</h3><p>The safety stage remains live, as in the original version.</p></div></div>
             <div class="pht-fixed">
-              <div><span>Process temperature, T<sub>in</sub></span><strong>800 °C</strong></div>
+              <div><span>Inner wall temperature, T<sub>in</sub></span><strong>800 °C</strong></div>
               <div><span>Emissivity ε / convection h</span><strong>0.85 / 8.0</strong></div>
               <div><span>Safety limit, T<sub>s</sub></span><strong>60 °C</strong></div>
               <div><span>Ambient temperature, T<sub>∞</sub></span><strong>25 °C</strong></div>
@@ -220,7 +224,7 @@
   </main>
 
   <footer class="app-footer">
-    <p><strong>Model boundary:</strong> steady radial heat transfer through the straight cylindrical shell; heads, nozzles, saddles, and thermal bridges are excluded.</p>
+    <p><strong>Model boundary:</strong> Steady radial heat transfer through the straight cylindrical shell. The inner wall is fixed at 800 °C with no inside film resistance. Insulation conductivity is assumed constant at 0.080 W/(m·K), independent of temperature. Heads, nozzles, saddles, and thermal bridges are excluded.</p>
     <p>Results remain only in this open page and reset when it is refreshed or closed · Virtual Lab by Faraz Rahimi</p>
   </footer>
 
@@ -256,8 +260,8 @@
   <dialog id="modelDialog" class="data-dialog model-dialog">
     <div class="dialog-head">
       <div>
-        <p class="eyebrow">UNCHANGED NUMERICAL MODEL</p>
-        <h2>Geometry and governing equations</h2>
+        <p class="eyebrow">HEAT TRANSFER MODEL</p>
+        <h2>Model and governing equations</h2>
       </div>
       <button class="icon-button" id="closeModel" type="button" aria-label="Close model basis">×</button>
     </div>
@@ -275,13 +279,18 @@
         <div class="equation">R<sub>ins</sub> = ln(r<sub>o</sub>/r<sub>s</sub>) ÷ (2πLk<sub>ins</sub>)</div>
         <div class="equation">Q̇<sub>conv</sub> = hA<sub>o</sub>(T<sub>s</sub> − T<sub>∞</sub>)</div>
         <div class="equation">Q̇<sub>rad</sub> = εσA<sub>o</sub>(T<sub>s,K</sub><sup>4</sup> − T<sub>∞,K</sub><sup>4</sup>)</div>
+        <div class="equation">h<sub>rad</sub> = εσ(T<sub>s,K</sub> + T<sub>sur,K</sub>)(T<sub>s,K</sub><sup>2</sup> + T<sub>sur,K</sub><sup>2</sup>)</div>
+        <div class="equation">Q̇<sub>rad</sub> = h<sub>rad</sub>A<sub>o</sub>(T<sub>s</sub> − T<sub>sur</sub>)</div>
         <div class="equation">Q̇<sub>cond</sub> = Q̇<sub>conv</sub> + Q̇<sub>rad</sub></div>
       </div>
-      <p class="model-copy">The specified process temperature is applied at the inner steel surface. The model solves the outer-surface temperature by balancing conduction through the steel and insulation with convection and radiation from the same outer-surface node. Celsius inputs are converted to kelvin inside the radiation calculation.</p>
+      <p class="model-copy">T<sub>in</sub> = 800 °C is imposed directly at the inner steel surface; fluid-side film resistance is neglected. The model solves the outer-surface temperature by balancing conduction through the steel and insulation with convection and radiation from the same outer-surface node. Celsius inputs are converted to kelvin inside the radiation calculation.</p>
+      <p class="model-copy">Radiation is modeled to large isothermal surroundings at T<sub>sur</sub> = T<sub>∞</sub> = 25 °C. The equivalent h<sub>rad</sub> above is exact for this model and is recalculated at each surface temperature. Both paths share the same area and temperature difference, so their coefficients can be compared directly. For a small temperature difference, h<sub>rad</sub> ≈ 4εσT<sub>m</sub><sup>3</sup>, where T<sub>m</sub> is the mean absolute surface and surroundings temperature.</p>
+      <p class="model-copy">Material conductivities are held constant. Real insulation conductivity can vary with temperature; 0.080 W/(m·K) is an instructional assumption, not a material specification across this temperature range.</p>
+      <p class="model-copy">ε = 0 and h = 0 are idealized limiting cases used to isolate the two outer-surface heat-transfer paths.</p>
     </div>
   </dialog>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=20260921-notation"></script>
+  <script src="app.js?v=20260921-model-clarity"></script>
 </body>
 </html>

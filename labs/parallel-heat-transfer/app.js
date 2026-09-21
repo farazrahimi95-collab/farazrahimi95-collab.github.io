@@ -71,6 +71,11 @@
       }
       function updateApparatus(stage, inputs, result, statusText) {
         const panel = root.querySelector(`[data-apparatus="${stage}"]`);
+        const surfaceK = cToK(result.surfaceC);
+        const ambientK = cToK(AMBIENT_C);
+        const hRad = inputs.emissivity * SIGMA * (surfaceK + ambientK) * (surfaceK ** 2 + ambientK ** 2);
+        panel.querySelector('.pht-h-value').textContent = fmt(inputs.h, 2);
+        panel.querySelector('.pht-hrad-value').textContent = fmt(hRad, 2);
         const vessel = panel.querySelector('.pht-vessel');
         const wallCard = panel.querySelector('.pht-wall-card');
         const thickness = Math.max(0, Number(inputs.insulationM));
@@ -163,6 +168,8 @@
         panel.querySelector('.pht-sensor strong').textContent = '—';
         panel.querySelector('.pht-sensor small').textContent = 'Run a trial';
         panel.querySelector('.pht-apparatus-q').innerHTML = 'Total heat loss, Q̇<sub>total</sub>: —';
+        panel.querySelector('.pht-h-value').textContent = '—';
+        panel.querySelector('.pht-hrad-value').textContent = '—';
       }
 
       function runStage2() {
@@ -205,6 +212,8 @@
         panel.querySelector('.pht-sensor strong').textContent = '—';
         panel.querySelector('.pht-sensor small').textContent = 'Run a trial';
         panel.querySelector('.pht-apparatus-q').innerHTML = 'Total heat loss, Q̇<sub>total</sub>: —';
+        panel.querySelector('.pht-h-value').textContent = '—';
+        panel.querySelector('.pht-hrad-value').textContent = '—';
         drawStage2Chart();
       }
 
