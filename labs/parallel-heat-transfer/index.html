@@ -7,7 +7,7 @@
   <meta name="author" content="Faraz Rahimi">
   <title>Parallel Heat Transfer | Virtual Lab</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b3046'/%3E%3Cpath d='M21 10v26a13 13 0 1 0 22 9 13 13 0 0 0-7-11V10a7 7 0 0 0-15 0Z' fill='none' stroke='%23fff' stroke-width='5'/%3E%3Cpath d='M28.5 18v23' stroke='%23f2c14e' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="styles.css?v=20260917-clearance">
+  <link rel="stylesheet" href="styles.css?v=20260921-notation">
 </head>
 <body>
   <div class="portal-ribbon">
@@ -26,7 +26,7 @@
     <div class="header-actions">
       <button class="button button-secondary" id="openAbout" type="button">About</button>
       <button class="button button-secondary" id="openModel" type="button">Model basis</button>
-      <a class="button button-secondary" href="Parallel_Heat_Transfer_Worksheet.pdf" target="_blank" rel="noopener">Open worksheet</a>
+      <a class="button button-secondary" href="Parallel_Heat_Transfer_Worksheet.pdf?v=20260921-notation" target="_blank" rel="noopener">Open worksheet</a>
       <button class="button button-dark" id="openData" type="button">Run data <span id="dataCount" class="button-count">0</span></button>
     </div>
   </header>
@@ -56,14 +56,14 @@
             <div class="pht-apparatus">
               <div class="pht-path-labels"><span class="pht-conv-label">CONVECTION ↑</span><span class="pht-rad-label">RADIATION ↗</span></div>
               <div class="pht-vessel-zone">
-                <div class="pht-vessel-box"><div class="pht-vessel"><span class="pht-process">PROCESS FLUID · 800 °C</span></div><div class="pht-insulation-label">Insulation: 0.100 m · k = 0.080 W/(m·K)</div></div>
+                <div class="pht-vessel-box"><div class="pht-vessel"><span class="pht-process">PROCESS FLUID · 800 °C</span></div><div class="pht-insulation-label">Insulation: t<sub>ins</sub> = 0.100 m · k<sub>ins</sub> = 0.080 W/(m·K)</div></div>
                 <div class="pht-detail-column">
                   <div class="pht-wall-card">
                     <span class="pht-wall-title">Fluid · steel · insulation</span>
                     <div class="pht-wall-sample" role="img" aria-label="Flat local wall detail showing the process side, steel wall, insulation thickness, ambient side, and outward heat flow"><span class="pht-wall-process"></span><span class="pht-wall-steel"></span><span class="pht-wall-insulation"></span><span class="pht-wall-air"></span><span class="pht-wall-arrow" aria-hidden="true"></span></div>
                     <div class="pht-wall-values"><span>T<sub>wall</sub> <strong class="pht-wall-interface-temp">—</strong></span><span>T<sub>s</sub> <strong class="pht-wall-surface-temp">—</strong></span></div>
                   </div>
-                  <div class="pht-sensor"><span>SURFACE TEMPERATURE</span><strong>—</strong><small>Run a trial</small></div>
+                  <div class="pht-sensor"><span>SURFACE TEMPERATURE, T<sub>s</sub></span><strong>—</strong><small>Run a trial</small></div>
                 </div>
               </div>
             </div>
@@ -77,10 +77,10 @@
           <div class="pht-panel pht-panel-pad">
             <div class="pht-panel-head"><div><h3>Enter one trial</h3><p>The calculation runs only after the button is clicked.</p></div></div>
             <div class="pht-fixed">
-              <div><span>Process temperature</span><strong>800 °C</strong></div>
-              <div><span>Insulation thickness</span><strong>0.100 m</strong></div>
-              <div><span>Insulation k</span><strong>0.080 W/(m·K)</strong></div>
-              <div><span>Ambient temperature</span><strong>25 °C</strong></div>
+              <div><span>Process temperature, T<sub>in</sub></span><strong>800 °C</strong></div>
+              <div><span>Insulation thickness, t<sub>ins</sub></span><strong>0.100 m</strong></div>
+              <div><span>Insulation conductivity, k<sub>ins</sub></span><strong>0.080 W/(m·K)</strong></div>
+              <div><span>Ambient temperature, T<sub>∞</sub></span><strong>25 °C</strong></div>
             </div>
             <div class="pht-guide">
               <div class="pht-guide-head"><strong>Worksheet trial settings</strong><span>Enter these first; other values may also be tested.</span></div>
@@ -93,12 +93,13 @@
             <div class="pht-run-row"><button class="pht-button" id="pht-run-1" type="button">Run and record trial</button><button class="pht-button pht-button-secondary" id="pht-reset-1" type="button">Reset stage</button></div>
             <p class="pht-error" id="pht-error-1" role="alert"></p>
             <div class="pht-metrics" aria-live="polite">
-              <div class="pht-metric"><span>Surface temperature</span><strong id="pht-m1-temp">—</strong></div>
-              <div class="pht-metric"><span>Convection heat loss</span><strong id="pht-m1-conv">—</strong></div>
-              <div class="pht-metric"><span>Radiation heat loss</span><strong id="pht-m1-rad">—</strong></div>
+              <div class="pht-metric"><span>Surface temperature, T<sub>s</sub></span><strong id="pht-m1-temp">—</strong></div>
+              <div class="pht-metric"><span>Convection heat loss, Q̇<sub>conv</sub></span><strong id="pht-m1-conv">—</strong></div>
+              <div class="pht-metric"><span>Radiation heat loss, Q̇<sub>rad</sub></span><strong id="pht-m1-rad">—</strong></div>
             </div>
           </div>
         </div>
+        <div class="pht-next-row"><button class="pht-button" type="button" data-next-stage="2">Continue to series conduction <span aria-hidden="true">→</span></button></div>
       </section>
 
       <section id="pht-stage-2" role="tabpanel" aria-labelledby="pht-tab-2" hidden>
@@ -118,7 +119,7 @@
                     <div class="pht-wall-sample" role="img" aria-label="Flat local wall detail showing the process side, steel wall, insulation thickness, ambient side, and outward heat flow"><span class="pht-wall-process"></span><span class="pht-wall-steel"></span><span class="pht-wall-insulation"></span><span class="pht-wall-air"></span><span class="pht-wall-arrow" aria-hidden="true"></span></div>
                     <div class="pht-wall-values"><span>T<sub>wall</sub> <strong class="pht-wall-interface-temp">—</strong></span><span>T<sub>s</sub> <strong class="pht-wall-surface-temp">—</strong></span></div>
                   </div>
-                  <div class="pht-sensor"><span>SURFACE TEMPERATURE</span><strong>—</strong><small>Run a trial</small></div>
+                  <div class="pht-sensor"><span>SURFACE TEMPERATURE, T<sub>s</sub></span><strong>—</strong><small>Run a trial</small></div>
                 </div>
               </div>
             </div>
@@ -132,28 +133,29 @@
           <div class="pht-panel pht-panel-pad">
             <div class="pht-panel-head"><div><h3>Enter one trial</h3><p>No calculation occurs while the value is being typed.</p></div></div>
             <div class="pht-fixed">
-              <div><span>Process temperature</span><strong>800 °C</strong></div>
-              <div><span>Emissivity / h</span><strong>0.85 / 8.0</strong></div>
-              <div><span>Insulation k</span><strong>0.080 W/(m·K)</strong></div>
-              <div><span>Ambient temperature</span><strong>25 °C</strong></div>
+              <div><span>Process temperature, T<sub>in</sub></span><strong>800 °C</strong></div>
+              <div><span>Emissivity ε / convection h</span><strong>0.85 / 8.0</strong></div>
+              <div><span>Insulation conductivity, k<sub>ins</sub></span><strong>0.080 W/(m·K)</strong></div>
+              <div><span>Ambient temperature, T<sub>∞</sub></span><strong>25 °C</strong></div>
             </div>
             <div class="pht-guide">
               <div class="pht-guide-head"><strong>Worksheet trial settings</strong><span>Change only insulation thickness.</span></div>
               <table><thead><tr><th>Trial</th><th>t<sub>ins</sub> (m)</th></tr></thead><tbody><tr><td>4</td><td>0.000</td></tr><tr><td>5</td><td>0.100</td></tr><tr><td>6</td><td>0.150</td></tr></tbody></table>
             </div>
             <div class="pht-form">
-              <label class="pht-field"><span>Insulation thickness, t (m)</span><input id="pht-thickness-2" type="number" min="0" max="0.5" step="0.005" inputmode="decimal"><small>Allowed range: 0.000–0.500 m</small></label>
+              <label class="pht-field"><span>Insulation thickness, t<sub>ins</sub> (m)</span><input id="pht-thickness-2" type="number" min="0" max="0.5" step="0.005" inputmode="decimal"><small>Allowed range: 0.000–0.500 m</small></label>
             </div>
             <div class="pht-run-row"><button class="pht-button" id="pht-run-2" type="button">Run and record trial</button><button class="pht-button pht-button-secondary" id="pht-reset-2" type="button">Reset stage</button></div>
             <p class="pht-error" id="pht-error-2" role="alert"></p>
             <div class="pht-metrics" aria-live="polite">
-              <div class="pht-metric"><span>Surface temperature</span><strong id="pht-m2-temp">—</strong></div>
-              <div class="pht-metric"><span>Total heat loss</span><strong id="pht-m2-total">—</strong></div>
+              <div class="pht-metric"><span>Surface temperature, T<sub>s</sub></span><strong id="pht-m2-temp">—</strong></div>
+              <div class="pht-metric"><span>Total heat loss, Q̇<sub>total</sub></span><strong id="pht-m2-total">—</strong></div>
               <div class="pht-metric"><span>Outer diameter</span><strong id="pht-m2-diameter">—</strong></div>
             </div>
             <div class="pht-chart-wrap"><canvas id="pht-chart-2" aria-label="Recorded surface temperature versus insulation thickness"></canvas></div>
           </div>
         </div>
+        <div class="pht-next-row"><button class="pht-button" type="button" data-next-stage="3">Continue to safety limit <span aria-hidden="true">→</span></button></div>
       </section>
 
       <section id="pht-stage-3" role="tabpanel" aria-labelledby="pht-tab-3" hidden>
@@ -166,7 +168,7 @@
             <div class="pht-apparatus">
               <div class="pht-path-labels"><span class="pht-conv-label">CONVECTION ↑</span><span class="pht-rad-label">RADIATION ↗</span></div>
               <div class="pht-vessel-zone">
-                <div class="pht-vessel-box"><div class="pht-vessel"><span class="pht-process">PROCESS FLUID · 800 °C</span></div><div class="pht-insulation-label">Insulation: 0.100 m · k = 0.080 W/(m·K)</div></div>
+                <div class="pht-vessel-box"><div class="pht-vessel"><span class="pht-process">PROCESS FLUID · 800 °C</span></div><div class="pht-insulation-label">Insulation: t<sub>ins</sub> = 0.100 m · k<sub>ins</sub> = 0.080 W/(m·K)</div></div>
                 <div class="pht-detail-column pht-detail-column-single">
                   <div class="pht-wall-card">
                     <span class="pht-wall-title">Fluid · steel · insulation</span>
@@ -186,10 +188,10 @@
           <div class="pht-panel pht-panel-pad">
             <div class="pht-panel-head"><div><h3>Select insulation thickness</h3><p>The safety stage remains live, as in the original version.</p></div></div>
             <div class="pht-fixed">
-              <div><span>Process temperature</span><strong>800 °C</strong></div>
-              <div><span>Emissivity / h</span><strong>0.85 / 8.0</strong></div>
-              <div><span>Safety limit</span><strong>60 °C</strong></div>
-              <div><span>Ambient temperature</span><strong>25 °C</strong></div>
+              <div><span>Process temperature, T<sub>in</sub></span><strong>800 °C</strong></div>
+              <div><span>Emissivity ε / convection h</span><strong>0.85 / 8.0</strong></div>
+              <div><span>Safety limit, T<sub>s</sub></span><strong>60 °C</strong></div>
+              <div><span>Ambient temperature, T<sub>∞</sub></span><strong>25 °C</strong></div>
             </div>
             <div class="pht-guide">
               <div class="pht-guide-head"><strong>Worksheet trial settings</strong><span>Use exact 0.005 m increments.</span></div>
@@ -265,8 +267,8 @@
         <div><span>Straight length</span><strong>6.00 m</strong></div>
         <div><span>Steel thickness</span><strong>0.025 m</strong></div>
         <div><span>Steel conductivity</span><strong>45 W/(m·K)</strong></div>
-        <div><span>Ambient temperature</span><strong>25 °C</strong></div>
-        <div><span>Safety limit</span><strong>60 °C</strong></div>
+        <div><span>Ambient temperature, T<sub>∞</sub></span><strong>25 °C</strong></div>
+        <div><span>Safety limit, T<sub>s</sub></span><strong>60 °C</strong></div>
       </div>
       <div class="equation-list" aria-label="Governing equations">
         <div class="equation">R<sub>steel</sub> = ln(r<sub>s</sub>/r<sub>i</sub>) ÷ (2πLk<sub>steel</sub>)</div>
@@ -280,6 +282,6 @@
   </dialog>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=20260917-about"></script>
+  <script src="app.js?v=20260921-notation"></script>
 </body>
 </html>

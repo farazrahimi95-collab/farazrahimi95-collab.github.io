@@ -991,3 +991,10 @@ h1, h2, h3, h4, p { margin-top: 0; }
   margin: 0 auto;
   padding: 0;
 }
+
+/* Keep scientific scripts readable without disturbing line spacing. */
+sub, sup { font-size: .78em; line-height: 0; position: relative; vertical-align: baseline; }
+sub { bottom: -.25em; }
+sup { top: -.45em; }
+.pht-next-row { display: flex; justify-content: flex-end; margin-top: 20px; padding-bottom: 8px; }
+.pht-next-row .pht-button { min-height: 44px; padding: 12px 20px; font-size: 14px; }
