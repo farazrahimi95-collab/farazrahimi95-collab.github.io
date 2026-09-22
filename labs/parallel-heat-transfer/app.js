@@ -94,11 +94,6 @@
         panel.querySelector('.pht-insulation-label').innerHTML = `Insulation: t<sub>ins</sub> = ${fmt(thickness,3)} m · k<sub>ins</sub> = ${fmt(inputs.conductivity,3)} W/(m·K)`;
         panel.querySelector('.pht-wall-interface-temp').textContent = `${fmt(result.wallOuterC,1)} °C`;
         panel.querySelector('.pht-wall-surface-temp').textContent = `${fmt(result.surfaceC,1)} °C`;
-        const sensor = panel.querySelector('.pht-sensor');
-        if (sensor) {
-          sensor.querySelector('strong').textContent = `${fmt(result.surfaceC,2)} °C`;
-          sensor.querySelector('small').textContent = statusText || 'Calculated';
-        }
         panel.querySelector('.pht-apparatus-q').innerHTML = `Total heat loss, Q̇<sub>total</sub>: ${fmt(kw(result.qTotalW),3)} kW`;
       }
 
@@ -168,8 +163,6 @@
         panel.querySelector('.pht-wall-card').style.cssText = '';
         panel.querySelector('.pht-wall-interface-temp').textContent = '—';
         panel.querySelector('.pht-wall-surface-temp').textContent = '—';
-        panel.querySelector('.pht-sensor strong').textContent = '—';
-        panel.querySelector('.pht-sensor small').textContent = 'Run a trial';
         panel.querySelector('.pht-apparatus-q').innerHTML = 'Total heat loss, Q̇<sub>total</sub>: —';
         if (panel.querySelector('.pht-coefficients')) {
           panel.querySelector('.pht-h-value').textContent = '—';
@@ -215,8 +208,6 @@
         panel.querySelector('.pht-wall-interface-temp').textContent = '—';
         panel.querySelector('.pht-wall-surface-temp').textContent = '—';
         panel.querySelector('.pht-insulation-label').textContent = 'Enter an insulation thickness';
-        panel.querySelector('.pht-sensor strong').textContent = '—';
-        panel.querySelector('.pht-sensor small').textContent = 'Run a trial';
         panel.querySelector('.pht-apparatus-q').innerHTML = 'Total heat loss, Q̇<sub>total</sub>: —';
         if (panel.querySelector('.pht-coefficients')) {
           panel.querySelector('.pht-h-value').textContent = '—';

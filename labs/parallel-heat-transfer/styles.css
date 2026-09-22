@@ -1022,3 +1022,6 @@ sup { top: -.45em; }
  #pht-review-preview .pht-wall-card { --fluid-width:42px; --steel-width:38px; }
  #pht-review-preview .pht-layer-labels { font-size:8px; }
 }
+
+/* Let each panel end at its content instead of leaving a stretched blank area. */
+#pht-review-preview .pht-grid { align-items: start; }
