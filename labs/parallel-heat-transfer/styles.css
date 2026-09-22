@@ -1027,3 +1027,12 @@ sup { top: -.45em; }
 
 /* Let each panel end at its content instead of leaving a stretched blank area. */
 #pht-review-preview .pht-grid { align-items: start; }
+
+/* Compact labels and recorded rows without moving the experiment panels. */
+.step { grid-template-rows: auto; }
+.step span { grid-row: 1; }
+.step strong { align-self: center; }
+#pht-review-preview .pht-results-panel { padding: 8px 13px; }
+#pht-review-preview .pht-table-wrap { margin-top: 4px; }
+#pht-review-preview .pht-results-panel th,
+#pht-review-preview .pht-results-panel td { padding: 4px 3px; }
