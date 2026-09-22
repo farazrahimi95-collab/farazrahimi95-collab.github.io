@@ -299,7 +299,7 @@
         if (!prepared) return;
         const {ctx,colors} = prepared;
         const yMin=20,yMax=800;
-        const plot=chartFrame(prepared,'Insulation thickness [m]','Surface temperature [°C]',[20,60,200,400,600,800].map(v=>({p:(v-yMin)/(yMax-yMin),label:String(v)})));
+        const plot=chartFrame(prepared,'Insulation thickness [m]','Surface temperature [°C]',[60,200,400,600,800].map(v=>({p:(v-yMin)/(yMax-yMin),label:String(v)})));
         const x=value=>plot.x+value/.5*plot.w;
         const y=value=>plot.y+plot.h-(value-yMin)/(yMax-yMin)*plot.h;
         ctx.strokeStyle=colors.red;ctx.lineWidth=2;ctx.setLineDash([6,5]);ctx.beginPath();ctx.moveTo(plot.x,y(60));ctx.lineTo(plot.x+plot.w,y(60));ctx.stroke();ctx.setLineDash([]);
