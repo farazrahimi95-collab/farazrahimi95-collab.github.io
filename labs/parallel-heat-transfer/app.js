@@ -71,13 +71,6 @@
       }
       function updateApparatus(stage, inputs, result, statusText) {
         const panel = root.querySelector(`[data-apparatus="${stage}"]`);
-        const surfaceK = cToK(result.surfaceC);
-        const ambientK = cToK(AMBIENT_C);
-        const hRad = inputs.emissivity * SIGMA * (surfaceK + ambientK) * (surfaceK ** 2 + ambientK ** 2);
-        if (panel.querySelector('.pht-coefficients')) {
-          panel.querySelector('.pht-h-value').textContent = fmt(inputs.h, 2);
-          panel.querySelector('.pht-hrad-value').textContent = fmt(hRad, 2);
-        }
         const vessel = panel.querySelector('.pht-vessel');
         const wallCard = panel.querySelector('.pht-wall-card');
         const thickness = Math.max(0, Number(inputs.insulationM));
@@ -164,10 +157,6 @@
         panel.querySelector('.pht-wall-interface-temp').textContent = '—';
         panel.querySelector('.pht-wall-surface-temp').textContent = '—';
         panel.querySelector('.pht-apparatus-q').innerHTML = 'Total heat loss, Q̇<sub>total</sub>: —';
-        if (panel.querySelector('.pht-coefficients')) {
-          panel.querySelector('.pht-h-value').textContent = '—';
-          panel.querySelector('.pht-hrad-value').textContent = '—';
-        }
       }
 
       function runStage2() {
@@ -209,10 +198,6 @@
         panel.querySelector('.pht-wall-surface-temp').textContent = '—';
         panel.querySelector('.pht-insulation-label').textContent = 'Enter an insulation thickness';
         panel.querySelector('.pht-apparatus-q').innerHTML = 'Total heat loss, Q̇<sub>total</sub>: —';
-        if (panel.querySelector('.pht-coefficients')) {
-          panel.querySelector('.pht-h-value').textContent = '—';
-          panel.querySelector('.pht-hrad-value').textContent = '—';
-        }
         drawStage2Chart();
       }
 
@@ -244,7 +229,7 @@
       function canvasSetup(canvas) {
         if (!canvas || canvas.clientWidth < 40) return null;
         const width = canvas.clientWidth;
-        const height = 150;
+        const height = 180;
         const ratio = window.devicePixelRatio || 1;
         canvas.width = Math.round(width * ratio);
         canvas.height = Math.round(height * ratio);
@@ -277,7 +262,7 @@
       }
       function chartFrame(prepared, xLabel, yLabel, yTicks) {
         const {ctx,width,height,colors} = prepared;
-        const m = {left: 52,right: 14,top: 14,bottom: 38};
+        const m = {left: 60,right: 16,top: 16,bottom: 40};
         const plot = {x:m.left,y:m.top,w:width-m.left-m.right,h:height-m.top-m.bottom};
         ctx.font = '11px Inter, system-ui, sans-serif';
         ctx.textBaseline = 'middle';
@@ -288,8 +273,9 @@
           ctx.fillStyle = colors.muted; ctx.textAlign = 'right'; ctx.fillText(tick.label,plot.x-7,py);
         });
         ctx.strokeStyle = colors.muted; ctx.beginPath(); ctx.moveTo(plot.x,plot.y); ctx.lineTo(plot.x,plot.y+plot.h); ctx.lineTo(plot.x+plot.w,plot.y+plot.h); ctx.stroke();
+        ctx.font = '10px Inter, system-ui, sans-serif';
         ctx.fillStyle = colors.text; ctx.textAlign = 'center'; ctx.fillText(xLabel,plot.x+plot.w/2,height-11);
-        ctx.save(); ctx.translate(12,plot.y+plot.h/2); ctx.rotate(-Math.PI/2); ctx.fillText(yLabel,0,0); ctx.restore();
+        ctx.save(); ctx.translate(14,height/2); ctx.rotate(-Math.PI/2); ctx.fillText(yLabel,0,0); ctx.restore();
         return plot;
       }
       function drawEmpty(ctx, width, text, colors) { ctx.fillStyle = colors.muted; ctx.font = '12px Inter, system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.fillText(text,width/2,105); }
@@ -300,7 +286,7 @@
         if (!state.stage2.length) { drawEmpty(ctx,width,'Run thickness trials to build the comparison.',colors); return; }
         const records = [...state.stage2].sort((a,b)=>a.inputs.insulationM-b.inputs.insulationM);
         const maxY = Math.max(...records.map(r=>r.result.surfaceC),60)*1.08;
-        const plot = chartFrame(prepared,'Insulation thickness (m)','Surface temperature (°C)',[0,.25,.5,.75,1].map(p=>({p,label:fmt(maxY*p,0)})));
+        const plot = chartFrame(prepared,'Insulation thickness [m]','Surface temperature [°C]',[0,.25,.5,.75,1].map(p=>({p,label:fmt(maxY*p,0)})));
         const x = value => plot.x + value/.5*plot.w;
         const y = value => plot.y+plot.h-value/maxY*plot.h;
         ctx.strokeStyle=colors.teal; ctx.fillStyle=colors.teal; ctx.lineWidth=2.5; ctx.beginPath();
@@ -313,7 +299,7 @@
         if (!prepared) return;
         const {ctx,colors} = prepared;
         const yMin=20,yMax=800;
-        const plot=chartFrame(prepared,'Insulation thickness (m)','Surface temperature (°C)',[20,60,200,400,600,800].map(v=>({p:(v-yMin)/(yMax-yMin),label:String(v)})));
+        const plot=chartFrame(prepared,'Insulation thickness [m]','Surface temperature [°C]',[20,60,200,400,600,800].map(v=>({p:(v-yMin)/(yMax-yMin),label:String(v)})));
         const x=value=>plot.x+value/.5*plot.w;
         const y=value=>plot.y+plot.h-(value-yMin)/(yMax-yMin)*plot.h;
         ctx.strokeStyle=colors.red;ctx.lineWidth=2;ctx.setLineDash([6,5]);ctx.beginPath();ctx.moveTo(plot.x,y(60));ctx.lineTo(plot.x+plot.w,y(60));ctx.stroke();ctx.setLineDash([]);
@@ -347,7 +333,7 @@
           const safety = record.experiment === 'Safety limit' ? (record.result.surfaceC <= LIMIT_C + 1e-9 ? 'PASS' : 'FAIL') : '—';
           return `<tr><td>${record.experiment}</td><td>${record.label}</td><td>${fmt(record.inputs.insulationM,3)}</td><td>${fmt(record.inputs.emissivity,2)}</td><td>${fmt(record.inputs.h,1)}</td><td>${fmt(record.result.surfaceC,2)}</td><td>${fmt(kw(record.result.qTotalW),3)}</td><td>${safety}</td></tr>`;
         }).join('');
-        return `<p class="note" style="margin-top:0">These results exist only in this open tab. Refreshing or closing the page clears them.</p><div class="data-table-wrap"><table class="data-table"><thead><tr><th>Experiment</th><th>Trial</th><th>t<sub>ins</sub> (m)</th><th>ε</th><th>h (W/m²·K)</th><th>T<sub>s</sub> (°C)</th><th>Q̇<sub>total</sub> (kW)</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+        return `<p class="note" style="margin-top:0">These results exist only in this open tab. Refreshing or closing the page clears them.</p><div class="data-table-wrap"><table class="data-table"><thead><tr><th>Experiment</th><th>Trial</th><th>t<sub>ins</sub> [m]</th><th>ε</th><th>h [W/m²·K]</th><th>T<sub>s</sub> [°C]</th><th>Q̇<sub>total</sub> [kW]</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div>`;
       }
 
       function escapeCsv(value) {

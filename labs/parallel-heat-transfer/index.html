@@ -7,7 +7,7 @@
   <meta name="author" content="Faraz Rahimi">
   <title>Parallel Heat Transfer | Virtual Lab</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b3046'/%3E%3Cpath d='M21 10v26a13 13 0 1 0 22 9 13 13 0 0 0-7-11V10a7 7 0 0 0-15 0Z' fill='none' stroke='%23fff' stroke-width='5'/%3E%3Cpath d='M28.5 18v23' stroke='%23f2c14e' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="styles.css?v=20260921-compact">
+  <link rel="stylesheet" href="styles.css?v=20260922-labels">
 </head>
 <body>
   <div class="portal-ribbon">
@@ -26,7 +26,7 @@
     <div class="header-actions">
       <button class="button button-secondary" id="openAbout" type="button">About</button>
       <button class="button button-secondary" id="openModel" type="button">Model basis</button>
-      <a class="button button-secondary" href="Parallel_Heat_Transfer_Worksheet.pdf?v=20260921-aligned" target="_blank" rel="noopener">Open worksheet</a>
+      <a class="button button-secondary" href="Parallel_Heat_Transfer_Worksheet.pdf?v=20260922-aligned" target="_blank" rel="noopener">Open worksheet</a>
       <button class="button button-dark" id="openData" type="button">Run data <span id="dataCount" class="button-count">0</span></button>
     </div>
   </header>
@@ -67,10 +67,9 @@
               </div>
             </div>
             <div class="pht-apparatus-foot"><span><strong>Case A apparatus</strong><br>Conduction through steel and insulation</span><span class="pht-apparatus-q">Total heat loss: —</span></div>
-            <div class="pht-coefficients" aria-live="polite"><span>Convection h: <strong class="pht-h-value">—</strong></span><span>Equivalent radiation h<sub>rad</sub>: <strong class="pht-hrad-value">—</strong></span><small>W/(m²·K) · Same area and temperature difference: compare these values to compare the two heat-loss paths.</small></div>
             <div class="pht-results-panel">
               <div class="pht-results-head"><h3>Table 1. Report data</h3><p>Each run adds the next worksheet Trial row.</p></div>
-              <div class="pht-table-wrap"><table><thead><tr><th>Trials</th><th>ε</th><th>h (W/m²·K)</th><th>T<sub>s</sub> (°C)</th><th>Q̇<sub>conv</sub> (kW)</th><th>Q̇<sub>rad</sub> (kW)</th><th>Q̇<sub>total</sub> (kW)</th></tr></thead><tbody id="pht-table-1" aria-live="polite"><tr class="pht-empty-row"><td colspan="7">No trials recorded yet.</td></tr></tbody></table></div>
+              <div class="pht-table-wrap"><table><thead><tr><th>Trials</th><th>ε</th><th>h [W/m²·K]</th><th>T<sub>s</sub> [°C]</th><th>Q̇<sub>conv</sub> [kW]</th><th>Q̇<sub>rad</sub> [kW]</th><th>Q̇<sub>total</sub> [kW]</th></tr></thead><tbody id="pht-table-1" aria-live="polite"><tr class="pht-empty-row"><td colspan="7">No trials recorded yet.</td></tr></tbody></table></div>
             </div>
           </div>
 
@@ -84,7 +83,7 @@
             </div>
             <div class="pht-guide">
               <div class="pht-guide-head"><strong>Worksheet trial settings</strong><span>Enter these first; other values may also be tested.</span></div>
-              <table><thead><tr><th>Trial</th><th>ε</th><th>h (W/m²·K)</th></tr></thead><tbody><tr><td>1</td><td>0.00</td><td>8</td></tr><tr><td>2</td><td>0.85</td><td>0</td></tr><tr><td>3</td><td>0.85</td><td>8</td></tr></tbody></table>
+              <table><thead><tr><th>Trial</th><th>ε</th><th>h [W/m²·K]</th></tr></thead><tbody><tr><td>1</td><td>0.00</td><td>8</td></tr><tr><td>2</td><td>0.85</td><td>0</td></tr><tr><td>3</td><td>0.85</td><td>8</td></tr></tbody></table>
             </div>
             <div class="pht-form">
               <label class="pht-field"><span>Emissivity, ε</span><input id="pht-epsilon" type="number" min="0" max="1" step="0.01" inputmode="decimal"><small>Allowed range: 0.00–1.00</small></label>
@@ -127,7 +126,7 @@
             
             <div class="pht-results-panel">
               <div class="pht-results-head"><h3>Table 2. Report data</h3><p>Each run adds the next worksheet Trial row.</p></div>
-              <div class="pht-table-wrap"><table><thead><tr><th>Trials</th><th>t<sub>ins</sub> (m)</th><th>T<sub>s</sub> (°C)</th><th>Q̇<sub>cond</sub> (kW)</th><th>Q̇<sub>conv</sub> (kW)</th><th>Q̇<sub>rad</sub> (kW)</th><th>Q̇<sub>total</sub> (kW)</th></tr></thead><tbody id="pht-table-2" aria-live="polite"><tr class="pht-empty-row"><td colspan="7">No trials recorded yet.</td></tr></tbody></table></div>
+              <div class="pht-table-wrap"><table><thead><tr><th>Trials</th><th>t<sub>ins</sub> [m]</th><th>T<sub>s</sub> [°C]</th><th>Q̇<sub>cond</sub> [kW]</th><th>Q̇<sub>conv</sub> [kW]</th><th>Q̇<sub>rad</sub> [kW]</th><th>Q̇<sub>total</sub> [kW]</th></tr></thead><tbody id="pht-table-2" aria-live="polite"><tr class="pht-empty-row"><td colspan="7">No trials recorded yet.</td></tr></tbody></table></div>
             </div>
           </div>
 
@@ -141,7 +140,7 @@
             </div>
             <div class="pht-guide">
               <div class="pht-guide-head"><strong>Worksheet trial settings</strong><span>Change only insulation thickness.</span></div>
-              <table><thead><tr><th>Trial</th><th>t<sub>ins</sub> (m)</th></tr></thead><tbody><tr><td>4</td><td>0.000</td></tr><tr><td>5</td><td>0.100</td></tr><tr><td>6</td><td>0.150</td></tr></tbody></table>
+              <table><thead><tr><th>Trial</th><th>t<sub>ins</sub> [m]</th></tr></thead><tbody><tr><td>4</td><td>0.000</td></tr><tr><td>5</td><td>0.100</td></tr><tr><td>6</td><td>0.150</td></tr></tbody></table>
             </div>
             <div class="pht-form">
               <label class="pht-field"><span>Insulation thickness, t<sub>ins</sub> (m)</span><input id="pht-thickness-2" type="number" min="0" max="0.5" step="0.005" inputmode="decimal"><small>Allowed range: 0.000–0.500 m</small></label>
@@ -183,7 +182,7 @@
             
             <div class="pht-results-panel">
               <div class="pht-results-head"><h3>Table 3. Report data</h3><p>Each recording adds the next worksheet Trial row.</p></div>
-              <div class="pht-table-wrap"><table><thead><tr><th>Trials</th><th>t<sub>ins</sub> (m)</th><th>T<sub>s</sub> (°C)</th><th>Q̇<sub>conv</sub> (kW)</th><th>Q̇<sub>rad</sub> (kW)</th><th>Q̇<sub>total</sub> (kW)</th><th>Pass / Fail</th></tr></thead><tbody id="pht-table-3" aria-live="polite"><tr class="pht-empty-row"><td colspan="7">No trials recorded yet.</td></tr></tbody></table></div>
+              <div class="pht-table-wrap"><table><thead><tr><th>Trials</th><th>t<sub>ins</sub> [m]</th><th>T<sub>s</sub> [°C]</th><th>Q̇<sub>conv</sub> [kW]</th><th>Q̇<sub>rad</sub> [kW]</th><th>Q̇<sub>total</sub> [kW]</th><th>Pass / Fail</th></tr></thead><tbody id="pht-table-3" aria-live="polite"><tr class="pht-empty-row"><td colspan="7">No trials recorded yet.</td></tr></tbody></table></div>
             </div>
           </div>
 
@@ -289,6 +288,6 @@
   </dialog>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=20260921-compact"></script>
+  <script src="app.js?v=20260922-labels"></script>
 </body>
 </html>

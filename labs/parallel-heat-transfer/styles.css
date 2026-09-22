@@ -909,7 +909,7 @@ h1, h2, h3, h4, p { margin-top: 0; }
     #pht-review-preview .pht-metric span { color: var(--pht-muted); font-size: 10px; }
     #pht-review-preview .pht-metric strong { margin-top: 3px; font-size: 13px; font-weight: 500; }
     #pht-review-preview .pht-chart-wrap { margin-top: 10px; }
-    #pht-review-preview .pht-chart-wrap canvas { display: block; width: 100%; height: 150px; }
+    #pht-review-preview .pht-chart-wrap canvas { display: block; width: 100%; height: 180px; }
     #pht-review-preview .pht-results-panel { padding: 11px 13px 12px; border-top: 1px solid var(--pht-line); background: var(--pht-surface); }
     #pht-review-preview .pht-results-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
     #pht-review-preview .pht-results-head h3 { margin: 0; font-size: 13px; }
@@ -999,8 +999,6 @@ sup { top: -.45em; }
 .pht-next-row { display: flex; justify-content: flex-end; margin-top: 20px; padding-bottom: 8px; }
 .pht-next-row .pht-button { min-height: 44px; padding: 12px 20px; font-size: 14px; }
 
-.pht-coefficients { display:flex; flex-wrap:wrap; gap:8px 22px; padding:12px 16px; border-bottom:1px solid #d6e2e5; color:#365664; font-size:12px; }
-.pht-coefficients small { flex-basis:100%; color:#5e747e; }
 .pht-limit-note { color:#536b77; font-size:12px; line-height:1.5; margin:12px 0; }
 
 /* Material labels share the exact column widths of the layer drawing. */
@@ -1014,7 +1012,11 @@ sup { top: -.45em; }
 #pht-review-preview .pht-wall-steel { flex-basis:var(--steel-width); background:#a6b5bb; }
 #pht-review-preview .pht-wall-insulation { max-width:none; background:linear-gradient(180deg,#b7dfe3,#5d9fa9); }
 #pht-review-preview .pht-wall-air { background:#edf5f6; }
-#pht-review-preview .pht-wall-arrow { left:22px; right:22px; top:16px; height:3px; }
+#pht-review-preview .pht-wall-arrow {
+ left:22px; right:22px; top:10px; height:14px;
+ clip-path:polygon(0 39%, calc(100% - 12px) 39%, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, calc(100% - 12px) 61%, 0 61%);
+}
+#pht-review-preview .pht-wall-arrow::after { display:none; }
 #pht-review-preview .pht-wall-caption { text-align:center; color:#637984; font-size:10px; padding-top:6px; }
 #pht-review-preview [data-uninsulated="true"] .pht-ins-heading { visibility:hidden; }
 #pht-review-preview [data-uninsulated="true"] .pht-wall-caption::before { content:"No insulation · "; }
