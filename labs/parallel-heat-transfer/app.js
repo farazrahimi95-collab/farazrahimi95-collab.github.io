@@ -56,7 +56,15 @@
         };
       }
 
-      function fmt(value, digits) { return Number(value).toFixed(digits); }
+      function fmt(value, digits) {
+        const n = Number(value);
+        if (!Number.isFinite(n)) return '—';
+        if (n === 0) return '0';
+        // Display only: retain full precision in the model and pass/fail logic.
+        const rounded = Number(n.toPrecision(3));
+        const decimals = Math.max(0, 2 - Math.floor(Math.log10(Math.abs(rounded))));
+        return rounded.toFixed(decimals);
+      }
       function kw(value) { return Number(value) / 1000; }
       function safetyInputs(step) { return { processC: 800, insulationM: step * 0.005, conductivity: 0.080, emissivity: 0.85, h: 8 }; }
       function temperatureColor(surfaceC) {
