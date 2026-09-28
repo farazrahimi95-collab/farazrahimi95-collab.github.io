@@ -413,3 +413,26 @@ h1, h2, h3, h4, p { margin-top: 0; }
 .comparison-table th,.kinetics-table th{white-space:normal}
 .result-card dl{gap:6px 10px}
 .legend-item{line-height:1.35}
+
+
+/* 2026-09-28 targeted ONPG table spacing fix */
+.comparison-table{
+  width:100%;
+  table-layout:fixed;
+}
+.comparison-table col.comparison-time{width:16%}
+.comparison-table col.comparison-abs{width:20%}
+.comparison-table col.comparison-conc{width:22%}
+.comparison-table th,
+.comparison-table td{
+  text-align:center;
+  vertical-align:middle;
+  padding-left:8px;
+  padding-right:8px;
+  overflow-wrap:normal;
+  word-break:normal;
+}
+.comparison-table th:first-child,
+.comparison-table td:first-child{
+  text-align:center;
+}
