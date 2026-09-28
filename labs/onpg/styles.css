@@ -402,3 +402,14 @@ h1, h2, h3, h4, p { margin-top: 0; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
 }
+
+
+/* 2026-09-28 worksheet-aligned compact report tables */
+.data-table-wrap{border-radius:8px}
+.data-table{font-size:11px}
+.data-table th{padding:6px 6px;font-size:10px;line-height:1.18;white-space:normal}
+.data-table td{padding:6px 6px}
+.sample-table-wrap{max-height:440px}
+.comparison-table th,.kinetics-table th{white-space:normal}
+.result-card dl{gap:6px 10px}
+.legend-item{line-height:1.35}
