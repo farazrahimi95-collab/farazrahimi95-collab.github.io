@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ONPG Virtual Lab Worksheet</title>
+<style>
+:root{--navy:#0f3047;--ink:#153242;--muted:#607680;--line:#bfc9cc;--wash:#f3f7f6}
+*{box-sizing:border-box}body{margin:0;background:var(--wash);color:var(--ink);font-family:Arial,sans-serif;font-size:10.5pt;line-height:1.28}
+.toolbar{position:sticky;top:0;z-index:3;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 18px;background:var(--navy);color:#fff}
+.toolbar a,.toolbar button{border:1px solid #adc1c7;border-radius:7px;background:#fff;color:var(--navy);padding:7px 11px;text-decoration:none;font:inherit;font-weight:700;cursor:pointer}
+.sheet{width:8.5in;min-height:11in;margin:18px auto;padding:.52in .62in .55in;background:#fff;box-shadow:0 7px 28px rgba(15,48,71,.12);page-break-after:always}
+.sheet:last-child{page-break-after:auto}.dochead{font-size:8.5pt;font-weight:700;margin-bottom:12px}.title{text-align:center;font-weight:700;font-size:13pt;margin:0 0 3px}.by{text-align:center;margin:0 0 2px}.author{text-align:center;margin:0 0 12px;font-size:11pt}.name{margin:0 0 11px}
+h2{font-size:13pt;margin:9px 0 5px}h3{font-size:11pt;margin:8px 0 4px}p{margin:0 0 6px}ul,ol{margin:3px 0 8px 22px;padding:0}li{margin:0 0 4px}
+.system{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);margin:5px 0 9px}.system>div{padding:9px}.system>div+div{border-left:1px solid var(--line)}
+.flow{display:grid;grid-template-columns:repeat(7,auto);align-items:center;justify-content:center;gap:5px;margin-top:17px;font-size:8.5pt}.unitbox{border:1px solid #72858d;border-radius:7px;padding:8px 7px;text-align:center;min-width:70px}.arrow{font-size:16px}.small{font-size:8.5pt;color:var(--muted)}
+.q{margin:7px 0 2px}.answer{height:18px;border-bottom:1px solid #aeb9bc}.answer.tall{height:28px}
+table{width:100%;border-collapse:collapse;margin:5px 0 8px;table-layout:fixed;font-size:9pt}th,td{border:1px solid #69777d;padding:5px 6px;text-align:center;vertical-align:middle}th{background:#ededed;font-size:8.4pt;font-weight:700}
+.eq{text-align:center;font-family:Cambria,Georgia,serif;font-style:italic;font-size:11pt;margin:6px 0}.note{font-size:9pt;color:#354e59}
+.footer{text-align:center;font-size:8pt;margin-top:10px}.sub{vertical-align:sub;font-size:.75em}.sup{vertical-align:super;font-size:.75em}
+@media print{body{background:#fff}.toolbar{display:none}.sheet{margin:0;box-shadow:none;width:auto;min-height:auto;page-break-after:always}.sheet:last-child{page-break-after:auto}}
+@media(max-width:900px){.sheet{width:calc(100% - 18px);min-height:0;padding:22px 18px}.system{grid-template-columns:1fr}.system>div+div{border-left:0;border-top:1px solid var(--line)}}
+</style>
+</head><body>
+<div class="toolbar"><strong>ONPG Virtual Lab Worksheet</strong><span><button onclick="print()">Print / Save PDF</button> <a href="./">Back to simulation</a></span></div>
+
+<section class="sheet">
+<div class="dochead">Worksheet: ONPG Bead Reactor, Enzyme Kinetics, and Internal Diffusion</div>
+<p class="title">Worksheet: ONPG Bead Reactor, Enzyme Kinetics, and Internal Diffusion</p><p class="by"><b>Developed by</b></p><p class="author">Faraz Rahimi</p>
+<p class="name">Name(s): ____________________________________________ &nbsp;&nbsp; Date: __________________</p>
+<h2>Educational Purpose</h2>
+<p>This virtual experiment examines ONPG hydrolysis by β-galactosidase, compares two immobilized-enzyme bead sizes, and uses free-enzyme data to build and interpret a Michaelis–Menten rate curve.</p>
+<h2>Student Learning Objectives</h2>
+<ul><li>Use absorbance at 415 nm and the calibration relationship to determine ONP concentration.</li><li>Compare ONP production for 2.8 mm and 4.6 mm beads prepared with the same enzyme charge.</li><li>Determine an initial reaction rate from the slope of an ONP-concentration-versus-time line.</li><li>Use six initial rates to interpret V<sub>max</sub> and K<sub>m</sub> from a Michaelis–Menten response.</li><li>Relate bead diameter and the internal effectiveness factor to substrate concentration inside a bead.</li></ul>
+<h2>System and Measurement</h2>
+<div class="system"><div><b>Reaction and optical measurement</b>
+<ul><li>ONPG is the substrate. β-galactosidase converts ONPG to yellow ONP and galactose.</li><li>The spectrophotometer measures how much light the sample absorbs at 415 nm. This reading is written as ABS<sub>415</sub>.</li><li>Blanking sets the spectrophotometer baseline to zero so background absorbance from the cuvette and solution is not counted as ONP.</li><li>Calibration: ABS<sub>415</sub> = 3.5804 × C<sub>ONP</sub>, with C<sub>ONP</sub> in mM. Therefore C<sub>ONP</sub> = ABS<sub>415</sub> / 3.5804.</li></ul></div>
+<div><div class="flow"><span class="unitbox">Reservoir<br><span class="small">ONPG / ONP</span></span><span class="arrow">→</span><span class="unitbox">Pump</span><span class="arrow">→</span><span class="unitbox">Fluidized<br>bead reactor</span><span class="arrow">→</span><span class="unitbox">Inline<br>spectrophotometer<br>ABS<sub>415</sub></span></div><p class="small" style="text-align:center;margin-top:14px">Liquid recirculates through the enzyme-containing beads and returns to the reservoir.</p></div></div>
+<h2>Before Operating the Simulation</h2>
+<p>Click the <b>About</b> button at the top of the ONPG simulation and read the short system description. The pump recirculates liquid from the reservoir through the fluidized enzyme beads, past the inline spectrophotometer, and back to the reservoir. Stages 1 and 2 use the same enzyme charge and initial ONPG concentration; only bead diameter changes.</p>
+<p class="q"><b>1.</b> Before running the simulation, which bead size do you expect to produce ONP faster: 2.8 mm or 4.6 mm? Give one reason for your prediction.</p><div class="answer"></div><div class="answer"></div>
+<div class="footer">1</div>
+</section>
+
+<section class="sheet">
+<div class="dochead">Worksheet: ONPG Bead Reactor, Enzyme Kinetics, and Internal Diffusion</div>
+<h2>Experiment 1: Compare the Two Bead Sizes (Stages 1–3)</h2><p><b>Purpose:</b> collect matched spectrophotometer readings for 2.8 mm and 4.6 mm beads and compare their ONP production.</p>
+<h3>Procedure</h3><ol><li>Open Stage 1 (2.8 mm beads). Click “Set automatic readings · every 10 s.”</li><li>Click “Start 2-minute simulation.” Allow the automatic sequence to record all 13 readings from 0 to 120 simulation s.</li><li>Continue to Stage 2 (4.6 mm beads), set the same automatic 10 s sequence, and run the 2-minute simulation.</li><li>Open Stage 3 to compare the two saved runs. No new reactor run is performed in Stage 3.</li></ol>
+<p>Record the paired results below. Each time entry shows simulation time / equivalent reaction time.</p>
+<table><thead><tr><th>Time<br>[simulation s / equivalent min]</th><th>2.8 mm<br>ABS<sub>415</sub> [-]</th><th>2.8 mm ONP concentration, C<sub>ONP</sub> [mM]</th><th>4.6 mm<br>ABS<sub>415</sub> [-]</th><th>4.6 mm ONP concentration, C<sub>ONP</sub> [mM]</th></tr></thead><tbody>
+<tr><td>0 / 0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><td>10 / 28</td><td></td><td></td><td></td><td></td></tr><tr><td>20 / 57</td><td></td><td></td><td></td><td></td></tr><tr><td>30 / 85</td><td></td><td></td><td></td><td></td></tr><tr><td>40 / 113</td><td></td><td></td><td></td><td></td></tr><tr><td>50 / 142</td><td></td><td></td><td></td><td></td></tr><tr><td>60 / 170</td><td></td><td></td><td></td><td></td></tr><tr><td>70 / 198</td><td></td><td></td><td></td><td></td></tr><tr><td>80 / 227</td><td></td><td></td><td></td><td></td></tr><tr><td>90 / 255</td><td></td><td></td><td></td><td></td></tr><tr><td>100 / 283</td><td></td><td></td><td></td><td></td></tr><tr><td>110 / 312</td><td></td><td></td><td></td><td></td></tr><tr><td>120 / 340</td><td></td><td></td><td></td><td></td></tr>
+</tbody></table>
+<p class="q"><b>2.</b> At the same time point, which bead size generally produced the higher ONP concentration? Cite one pair of values from the table.</p><div class="answer"></div><div class="answer"></div>
+<div class="footer">2</div>
+</section>
+
+<section class="sheet">
+<div class="dochead">Worksheet: ONPG Bead Reactor, Enzyme Kinetics, and Internal Diffusion</div>
+<h2>Experiment 1: Bead-Size Comparison and Internal Mass Transfer</h2><p>Use the Stage 3 comparison screen and record the summary values.</p>
+<table><tr><th>Bead diameter [mm]</th><th>Initial rate [mM/min]</th><th>Time to 50% conversion [min]</th><th>Time to 80% conversion [min]</th><th>Final conversion [%]</th><th>Internal effectiveness factor, η<sub>i</sub> [-]</th></tr><tr><td>2.8</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>4.6</td><td></td><td></td><td></td><td></td><td></td></tr></table>
+<p class="q"><b>3.</b> Which bead preparation reacted faster? Support your answer with the initial rate and one time-to-conversion value.</p><div class="answer"></div><div class="answer"></div>
+<h3>External area per total bead volume</h3><div class="eq">A<sub>total</sub> / V<sub>total</sub> = 6 / d</div>
+<table><tr><th>Bead diameter, d [mm]</th><th>Calculation</th><th>A<sub>total</sub> / V<sub>total</sub> [mm<sup>−1</sup>]</th></tr><tr><td>2.8</td><td>6 / 2.8</td><td></td></tr><tr><td>4.6</td><td>6 / 4.6</td><td></td></tr></table>
+<p class="q"><b>4.</b> How does the area-to-volume comparison relate to the measured ONP response? Use one performance value from Stage 3.</p><div class="answer"></div><div class="answer"></div>
+<h3>Internal concentration and effectiveness</h3><p>The internal effectiveness factor, η<sub>i</sub>, is the actual whole-bead reaction rate divided by the rate that would occur if the entire bead were at the bead-surface substrate concentration. A lower η<sub>i</sub> indicates a stronger internal-diffusion limitation.</p>
+<p class="q"><b>5.</b> Which bead has the larger decrease in ONPG concentration from the bead surface to the bead center? How is that difference reflected in η<sub>i</sub>?</p><div class="answer"></div><div class="answer"></div>
+<p class="q"><b>6.</b> Return to your prediction in Question 1. What would you keep or revise after comparing the two runs?</p><div class="answer"></div><div class="answer"></div>
+<div class="footer">3</div>
+</section>
+
+<section class="sheet">
+<div class="dochead">Worksheet: ONPG Bead Reactor, Enzyme Kinetics, and Internal Diffusion</div>
+<h2>Experiment 2: Free-Enzyme Kinetics (Stage 4)</h2><p><b>Purpose:</b> determine the initial rate at six initial ONPG concentrations while holding enzyme amount, solution volume, pH, and temperature constant.</p>
+<h3>Why the slope is used</h3><p>Each trace plots ONP concentration against time. During the first few seconds, the response is treated as approximately linear. The slope of each line is the initial reaction rate.</p><div class="eq">v<sub>0</sub> = ΔC<sub>ONP</sub> / Δt</div><p>The six slopes become six points on the Michaelis–Menten graph in Stage 5, where v<sub>0</sub> is plotted against initial ONPG concentration.</p>
+<h3>Procedure</h3><ol><li>Open Stage 4 and click “Load six cuvettes.”</li><li>Click “Blank spectrophotometer.” The background reading is subtracted and the baseline becomes zero.</li><li>Click “Start 4.5-s scan.” All six ONP-concentration-versus-time lines are generated on the same graph.</li><li>Click “Show initial rates” and record the six slopes below.</li></ol>
+<table><tr><th>Initial ONPG concentration, C<sub>ONPG,0</sub> [mM]</th><th>Initial rate, v<sub>0</sub> [mM/s]</th></tr><tr><td>0.622</td><td></td></tr><tr><td>1.24</td><td></td></tr><tr><td>2.49</td><td></td></tr><tr><td>4.98</td><td></td></tr><tr><td>9.95</td><td></td></tr><tr><td>19.9</td><td></td></tr></table>
+<p class="q"><b>7.</b> Which ONP-concentration-versus-time line has the largest slope? Report its initial ONPG concentration and its initial rate.</p><div class="answer"></div><div class="answer"></div>
+<p class="q"><b>8.</b> Compare the slope at 0.622 mM ONPG with the slope at 19.9 mM ONPG. What does this tell you about how initial rate changes as substrate concentration increases?</p><div class="answer"></div><div class="answer"></div>
+<div class="footer">4</div>
+</section>
+
+<section class="sheet">
+<div class="dochead">Worksheet: ONPG Bead Reactor, Enzyme Kinetics, and Internal Diffusion</div>
+<h2>Experiment 2: Michaelis–Menten Analysis (Stage 5)</h2><p>Build the Stage 5 kinetics plot using the six initial rates from Stage 4.</p>
+<div class="eq">v<sub>0</sub> = V<sub>max</sub>C<sub>ONPG,0</sub> / (K<sub>m</sub> + C<sub>ONPG,0</sub>)</div><p>For this fitted curve: V<sub>max</sub> = 0.00226 mM/s and K<sub>m</sub> = 2.00 mM.</p>
+<p class="q"><b>9.</b> Describe the overall shape of v<sub>0</sub> versus initial ONPG concentration. Is the response linear over the full concentration range?</p><div class="answer"></div><div class="answer"></div>
+<p class="q"><b>10.</b> Use the equation to answer both parts: (a) when C<sub>ONPG,0</sub> is much greater than K<sub>m</sub>, what value does v<sub>0</sub> approach? (b) when C<sub>ONPG,0</sub> is not much greater than K<sub>m</sub>, why does changing substrate concentration still change v<sub>0</sub> noticeably?</p><div class="answer"></div><div class="answer"></div><div class="answer"></div>
+<p class="q"><b>11.</b> Calculate V<sub>max</sub> / 2. On the Stage 5 graph, locate this rate and estimate the corresponding initial ONPG concentration. How does that concentration compare with K<sub>m</sub>?</p><div class="answer"></div><div class="answer"></div>
+<p class="q"><b>12.</b> What does K<sub>m</sub> represent for this enzyme–substrate system, and what does V<sub>max</sub> represent?</p><div class="answer"></div><div class="answer"></div>
+<h3>Rate increase at low and high substrate concentration</h3><table><tr><th>ONPG change [mM]</th><th>Rate at lower concentration [mM/s]</th><th>Rate at higher concentration [mM/s]</th><th>Rate factor = higher / lower</th></tr><tr><td>1.24 → 2.49</td><td></td><td></td><td></td></tr><tr><td>9.95 → 19.9</td><td></td><td></td><td></td></tr></table>
+<p class="q"><b>13.</b> Did doubling ONPG produce the same rate increase in the low- and high-concentration ranges? Use the two rate factors in your answer.</p><div class="answer"></div><div class="answer"></div>
+<div class="footer">5</div>
+</section>
+
+<section class="sheet">
+<div class="dochead">Worksheet: ONPG Bead Reactor, Enzyme Kinetics, and Internal Diffusion</div>
+<h2>Experiment 3: Bead-Diameter Design (Stage 6)</h2><p><b>Purpose:</b> vary bead diameter and use the internal effectiveness factor to identify the largest tested bead diameter that meets η<sub>i</sub> ≥ 0.95.</p>
+<h3>Procedure</h3><ol><li>Open Stage 6. Change bead diameter using the slider or the − / + controls.</li><li>Near the η<sub>i</sub> = 0.95 boundary, change diameter in 0.1 mm increments and click “Save this result.”</li><li>Save one result immediately below η<sub>i</sub> = 0.95 and the largest tested diameter at or above η<sub>i</sub> = 0.95.</li><li>Compare the two saved surface-to-center ONPG concentration profiles.</li></ol>
+<table><tr><th>Result</th><th>Bead diameter [mm]</th><th>Internal effectiveness factor, η<sub>i</sub> [-]</th><th>Surface ONPG concentration [mM]</th><th>Center ONPG concentration [mM]</th></tr><tr><td>Large laboratory bead</td><td>4.6</td><td>0.290</td><td></td><td></td></tr><tr><td>Small laboratory bead</td><td>2.8</td><td>0.450</td><td></td><td></td></tr><tr><td>Closest saved result below 0.950</td><td></td><td></td><td></td><td></td></tr><tr><td>Largest saved diameter at or above 0.950</td><td></td><td></td><td></td><td></td></tr></table>
+<p class="q"><b>14.</b> What is the largest tested bead diameter that meets η<sub>i</sub> ≥ 0.95? Report the η<sub>i</sub> value for that bead and for the nearest saved bead immediately below the target.</p><div class="answer"></div><div class="answer"></div>
+<p class="q"><b>15.</b> Which bead diameter would you select from your tested values? Use the two ONPG concentration profiles and the internal effectiveness factors to support your answer.</p><div class="answer"></div><div class="answer"></div><div class="answer"></div>
+<p class="note">Report numerical answers with units where applicable. Use values from the simulation tables and graphs when the question asks for evidence.</p>
+<div class="footer">6</div>
+</section>
+</body></html>
