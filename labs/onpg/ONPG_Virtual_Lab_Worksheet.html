@@ -12,15 +12,17 @@ html,body{margin:0;padding:0;background:var(--wash);color:var(--ink);font-family
 .sheet{width:8.5in;min-height:11in;margin:18px auto;padding:.50in .62in .50in;background:#fff;box-shadow:0 7px 28px rgba(15,48,71,.12);break-after:page;position:relative}
 .sheet:last-child{break-after:auto}
 .dochead{padding-bottom:5px;border-bottom:1px solid #d6e0e2;color:var(--muted);font-size:8.2pt;font-weight:700;margin-bottom:8px}
-.title{text-align:center;color:var(--navy);font-weight:700;font-size:16.5pt;line-height:1.15;margin:2px 0 2px}.by{text-align:center;color:var(--muted);margin:0 0 1px}.author{text-align:center;color:var(--muted);font-size:10.4pt;margin:0 0 10px}.name{margin:0 0 10px;font-size:10pt}
+.title{text-align:center;color:var(--navy);font-weight:700;font-size:16.5pt;line-height:1.15;margin:2px 0 2px}.author{text-align:center;color:var(--muted);font-size:10.4pt;margin:0 0 10px}.name{display:flex;justify-content:space-between;gap:20px;margin:0 0 10px;font-size:10pt}
 h2{color:var(--navy);font-size:13.5pt;margin:8px 0 5px;padding-bottom:3px;border-bottom:1px solid #d9e2e4;line-height:1.15}h3{color:var(--navy);font-size:11.2pt;margin:7px 0 4px;line-height:1.15}
 p{margin:0 0 4px}ul,ol{margin:2px 0 6px 21px;padding:0}li{margin:0 0 2px}
-.system-clean{margin:4px 0 3px}.system-clean>strong{display:block;color:var(--teal);margin-bottom:3px}.system-clean ul{margin-bottom:3px}
-.flow-panel{margin:5px 0 7px;padding:7px 0 4px;border-top:1px solid #d5e1e2;border-bottom:1px solid #d5e1e2}
-.flow{display:grid;grid-template-columns:1.10fr .18fr .78fr .18fr 1.55fr .18fr 1.55fr;align-items:center;gap:4px;margin:0 auto;max-width:7.0in}
-.unitbox{padding:7px 4px;text-align:center;color:var(--navy);font-weight:700;font-size:8.7pt;line-height:1.15}.unitbox .small{display:block;color:var(--teal);font-weight:400;margin-top:3px;font-size:7.7pt}.arrow{text-align:center;color:var(--teal);font-size:15pt;font-weight:700}.small{font-size:8.5pt;color:var(--muted)}
-.q{margin-top:5px}.q b{color:var(--navy)}.answer{height:18px;border-bottom:1px solid #b8c4c7}.answer.tall{height:28px}
-.eq{text-align:center;font-family:Cambria,Georgia,serif;font-size:11pt;margin:5px 0}.note{color:var(--muted);font-size:8.7pt;font-style:italic;margin-top:6px}
+.measurement-title{display:block;color:var(--teal);font-weight:700;margin-bottom:3px}.system-clean{margin:4px 0 3px}.system-clean ul{margin-bottom:3px}
+.figure{margin:6px 0 8px}.figure img{display:block;width:100%;height:auto;border:1px solid #d7e0e2}.figcap{margin-top:3px;text-align:center;color:var(--muted);font-size:8.2pt}
+.prediction-header{display:grid;grid-template-columns:1fr 1.25in;gap:16px;align-items:start;margin:4px 0 10px}
+.bead-mini{margin:0;text-align:center}.bead-mini img{display:block;width:1.15in;max-width:100%;margin:0 auto;border:1px solid #d7e0e2}.bead-mini .figcap{font-size:7.5pt;line-height:1.15;margin-top:2px;text-align:center}
+.prediction-grid{margin:3px 0 2px;background:#fff}.prediction-title{color:var(--navy);font-weight:700;font-size:9.2pt;margin:0 0 2px}.prediction-graph{display:block;width:100%;height:auto;background:#fff}.reason-label{font-weight:700;color:var(--navy);margin-top:4px}.page-break-avoid{break-inside:avoid-page}
+.q{margin-top:5px}.q b{color:var(--navy)}.answer{height:34px;border:none;background:transparent}.answer.tall{height:46px}.answer.large{height:58px}.q1-space{height:62px;border:none;background:transparent}
+.eq{text-align:center;font-family:Cambria,Georgia,serif;font-size:11pt;margin:5px 0}
+.note{color:var(--muted);font-size:8.7pt;font-style:italic;margin-top:6px}
 table{width:100%;border-collapse:collapse;table-layout:fixed;margin:5px 0 7px;font-size:8.3pt}th,td{border:1px solid var(--line);padding:5px 5px;text-align:center;vertical-align:middle}th{background:var(--navy);color:#fff;font-size:7.7pt;line-height:1.15;font-weight:700}tbody tr:nth-child(even) td{background:var(--alt)}
 .comparison col:nth-child(1){width:20%}.comparison col:nth-child(2){width:20%}.comparison col:nth-child(3){width:20%}.comparison col:nth-child(4){width:20%}.comparison col:nth-child(5){width:20%}
 .summary6 col:nth-child(1){width:16%}.summary6 col:nth-child(2){width:17%}.summary6 col:nth-child(3){width:18%}.summary6 col:nth-child(4){width:18%}.summary6 col:nth-child(5){width:14%}.summary6 col:nth-child(6){width:17%}
@@ -28,40 +30,36 @@ table{width:100%;border-collapse:collapse;table-layout:fixed;margin:5px 0 7px;fo
 .footer{text-align:center;color:var(--muted);font-size:8pt;position:absolute;left:.62in;right:.62in;bottom:.28in}
 @page{size:Letter;margin:.50in .62in .48in;@top-left{content:"Worksheet: ONPG Bead Reactor, Enzyme Kinetics, and Internal Diffusion";font-family:Arial,sans-serif;font-size:8.2pt;font-weight:700;color:#607680;border-bottom:1px solid #d6e0e2;padding-bottom:5px;width:100%}@bottom-center{content:"Page " counter(page);font-family:Arial,sans-serif;font-size:8pt;color:#607680}}
 @media print{html,body{background:#fff;font-size:10pt}.toolbar,.dochead,.footer{display:none!important}.sheet{width:auto;min-height:auto;margin:0;padding:0;box-shadow:none;break-after:page}.sheet:last-child{break-after:auto}}
-@media(max-width:900px){.sheet{width:calc(100% - 18px);min-height:0;padding:22px 18px}.flow{grid-template-columns:1fr}.arrow{transform:rotate(90deg)}}
+@media(max-width:900px){.sheet{width:calc(100% - 18px);min-height:0;padding:22px 18px}.name{display:block}.prediction-header{grid-template-columns:1fr}}
 </style>
 </head><body>
 <div class="toolbar"><strong>ONPG Virtual Lab Worksheet</strong><span><button onclick="print()">Print / Save PDF</button> <a href="./">Back to simulation</a></span></div>
 
 <section class="sheet">
 <div class="dochead">Worksheet: ONPG Bead Reactor, Enzyme Kinetics, and Internal Diffusion</div>
-<p class="title">Worksheet: ONPG Bead Reactor, Enzyme Kinetics, and Internal Diffusion</p><p class="by"><b>Developed by</b></p><p class="author">Faraz Rahimi</p>
-<p class="name">Name(s): ____________________________________________ &nbsp;&nbsp; Date: __________________</p>
+<p class="title">ONPG Bead Reactor, Enzyme Kinetics, and Internal Diffusion</p><p class="author">Developed by Faraz Rahimi</p>
+<p class="name"><span>Name(s): ______________________________________________</span><span>Date: __________________</span></p>
 <h2>Educational Purpose</h2>
-<p>This virtual experiment examines ONPG hydrolysis by β-galactosidase, compares two immobilized-enzyme bead sizes, and uses free-enzyme data to build and interpret a Michaelis–Menten rate curve.</p>
+<p>This virtual experiment examines ONPG hydrolysis by β-galactosidase, compares two immobilized-enzyme bead sizes, and uses free-enzyme data to build and interpret a Michaelis-Menten rate curve.</p>
 <h2>Student Learning Objectives</h2>
-<ul><li>Use absorbance at 415 nm and the calibration relationship to determine ONP concentration.</li><li>Compare ONP production for 2.8 mm and 4.6 mm beads prepared with the same enzyme charge.</li><li>Determine an initial reaction rate from the slope of an ONP-concentration-versus-time line.</li><li>Use six initial rates to interpret V<sub>max</sub> and K<sub>m</sub> from a Michaelis–Menten response.</li><li>Relate bead diameter and the internal effectiveness factor to substrate concentration inside a bead.</li></ul>
+<ul><li>Use absorbance at 415 nm and the calibration relationship to determine ONP concentration.</li><li>Compare ONP production for 2.8 mm and 4.6 mm beads prepared with the same enzyme charge.</li><li>Determine an initial reaction rate from the slope of an ONP-concentration-versus-time line.</li><li>Use six initial rates to interpret V<sub>max</sub> and K<sub>m</sub> from a Michaelis-Menten response.</li><li>Relate bead diameter and the internal effectiveness factor to substrate concentration inside a bead.</li></ul>
 <h2>System and Measurement</h2>
-<div class="system-clean"><strong>Reaction and optical measurement</strong>
-<ul><li>ONPG is the substrate. β-galactosidase converts ONPG to yellow ONP and galactose.</li><li>The spectrophotometer measures how much light the sample absorbs at 415 nm. This reading is written as ABS<sub>415</sub>.</li><li>Blanking sets the spectrophotometer baseline to zero so background absorbance from the cuvette and solution is not counted as ONP.</li><li>Calibration: ABS<sub>415</sub> = 3.5804 × C<sub>ONP</sub>, with C<sub>ONP</sub> in mM. Therefore C<sub>ONP</sub> = ABS<sub>415</sub> / 3.5804.</li></ul></div>
-<div class="flow-panel"><div class="flow"><span class="unitbox">Reservoir<br><span class="small">ONPG / ONP</span></span><span class="arrow">→</span><span class="unitbox">Pump</span><span class="arrow">→</span><span class="unitbox">Fluidized<br>bead reactor</span><span class="arrow">→</span><span class="unitbox">Inline<br>spectrophotometer<br>ABS<sub>415</sub></span></div><p class="small" style="text-align:center;margin-top:6px;font-style:italic">Liquid recirculates through the enzyme-containing beads and returns to the reservoir.</p></div>
-<h2>Before Operating the Simulation</h2>
+<div class="system-clean"><span class="measurement-title">Reaction and optical measurement</span><ul><li>ONPG is the substrate. β-galactosidase converts ONPG to yellow ONP and galactose.</li><li>The spectrophotometer measures how much light the sample absorbs at 415 nm. This reading is written as ABS<sub>415</sub>.</li><li>Blanking sets the spectrophotometer baseline to zero so background absorbance from the cuvette and solution is not counted as ONP.</li><li>Calibration: ABS<sub>415</sub> = 3.5804 × C<sub>ONP</sub>, with C<sub>ONP</sub> in mM. Therefore C<sub>ONP</sub> = ABS<sub>415</sub> / 3.5804.</li></ul></div>
+<div class="figure"><img alt="Photograph of the ONPG bead-reactor apparatus with the reactor, pump, laptop data screen, and spectrophotometer labeled" src="assets/onpg_apparatus.jpg"><div class="figcap">Photograph of the recirculating immobilized-enzyme apparatus used to motivate the Stage 1-3 simulation.</div></div>
+<div class="footer">1</div></section><section class="sheet"><div class="dochead">Worksheet: ONPG Bead Reactor, Enzyme Kinetics, and Internal Diffusion</div><h2>Before Operating the Simulation</h2>
 <p>Click the <b>About</b> button at the top of the ONPG simulation and read the short system description. The pump recirculates liquid from the reservoir through the fluidized enzyme beads, past the inline spectrophotometer, and back to the reservoir. Stages 1 and 2 use the same enzyme charge and initial ONPG concentration; only bead diameter changes.</p>
-<p class="q"><b>1.</b> Before running the simulation, which bead size do you expect to produce ONP faster: 2.8 mm or 4.6 mm? Give one reason for your prediction.</p><div class="answer"></div><div class="answer"></div>
-<div class="footer">1</div>
-</section>
-
-<section class="sheet">
+<div class="prediction-header page-break-avoid"><div><p class="q"><b>1.</b> Before running the simulation, which bead size do you expect to produce ONP faster: 2.8 mm or 4.6 mm? Give one reason for your prediction.</p></div><div class="figure bead-mini"><img alt="Photograph showing the approximate 4.6 mm and 2.8 mm bead sizes" src="assets/onpg_bead_sizes.jpg"><div class="figcap">Approximate bead sizes.</div></div></div>
+<div class="prediction-grid page-break-avoid"><div class="prediction-title">Prediction sketch</div><svg aria-label="Blank axes for plotting predicted ONP concentration versus time" class="prediction-graph" viewBox="0 0 720 300" xmlns="http://www.w3.org/2000/svg"><rect fill="#ffffff" height="300" width="720" x="0" y="0"></rect><line stroke="#153242" stroke-width="2.2" x1="92" x2="665" y1="242" y2="242"></line><line stroke="#153242" stroke-width="2.2" x1="92" x2="92" y1="242" y2="34"></line><text fill="#153242" font-family="Arial, Helvetica, sans-serif" font-size="18" text-anchor="middle" x="378" y="288">Time [s]</text><text fill="#153242" font-family="Arial, Helvetica, sans-serif" font-size="18" text-anchor="middle" transform="rotate(-90 30 138)" x="30" y="138">ONP concentration</text></svg></div>
+<div class="reason-label">Reason for your prediction:</div><div class="q1-space"></div>
+<h2>Experiment 1: Compare the Two Bead Sizes (Stages 1-3)</h2><p><b>Purpose:</b> collect matched spectrophotometer readings for 2.8 mm and 4.6 mm beads and compare their ONP production.</p><h3>Procedure</h3><ol><li>Open Stage 1 (2.8 mm beads). Click “Set automatic readings · every 10 s.”</li><li>Click “Start 2-minute simulation.” Allow the automatic sequence to record all 13 readings from 0 to 120 simulation s.</li><li>Continue to Stage 2 (4.6 mm beads), set the same automatic 10 s sequence, and run the 2-minute simulation.</li><li>Open Stage 3 to compare the two saved runs. No new reactor run is performed in Stage 3.</li></ol><div class="footer">2</div></section><section class="sheet">
 <div class="dochead">Worksheet: ONPG Bead Reactor, Enzyme Kinetics, and Internal Diffusion</div>
-<h2>Experiment 1: Compare the Two Bead Sizes (Stages 1–3)</h2><p><b>Purpose:</b> collect matched spectrophotometer readings for 2.8 mm and 4.6 mm beads and compare their ONP production.</p>
-<h3>Procedure</h3><ol><li>Open Stage 1 (2.8 mm beads). Click “Set automatic readings · every 10 s.”</li><li>Click “Start 2-minute simulation.” Allow the automatic sequence to record all 13 readings from 0 to 120 simulation s.</li><li>Continue to Stage 2 (4.6 mm beads), set the same automatic 10 s sequence, and run the 2-minute simulation.</li><li>Open Stage 3 to compare the two saved runs. No new reactor run is performed in Stage 3.</li></ol>
+<h2>Experiment 1: Compare the Two Bead Sizes (Stages 1-3)</h2>
 <p>Record the paired results below.</p>
-<table class="comparison"><colgroup><col><col><col><col><col></colgroup><thead><tr><th>Simulation time [s]</th><th>2.8 mm<br>ABS<sub>415</sub> [-]</th><th>2.8 mm ONP concentration, C<sub>ONP</sub> [mM]</th><th>4.6 mm<br>ABS<sub>415</sub> [-]</th><th>4.6 mm ONP concentration, C<sub>ONP</sub> [mM]</th></tr></thead><tbody>
+<table class="comparison"><colgroup><col><col><col><col><col></colgroup><thead><tr><th>Simulation time [s]</th><th>2.8 mm ABS<sub>415</sub> [-]</th><th>2.8 mm ONP concentration, C<sub>ONP</sub> [mM]</th><th>4.6 mm ABS<sub>415</sub> [-]</th><th>4.6 mm ONP concentration, C<sub>ONP</sub> [mM]</th></tr></thead><tbody>
 <tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><td>10</td><td></td><td></td><td></td><td></td></tr><tr><td>20</td><td></td><td></td><td></td><td></td></tr><tr><td>30</td><td></td><td></td><td></td><td></td></tr><tr><td>40</td><td></td><td></td><td></td><td></td></tr><tr><td>50</td><td></td><td></td><td></td><td></td></tr><tr><td>60</td><td></td><td></td><td></td><td></td></tr><tr><td>70</td><td></td><td></td><td></td><td></td></tr><tr><td>80</td><td></td><td></td><td></td><td></td></tr><tr><td>90</td><td></td><td></td><td></td><td></td></tr><tr><td>100</td><td></td><td></td><td></td><td></td></tr><tr><td>110</td><td></td><td></td><td></td><td></td></tr><tr><td>120</td><td></td><td></td><td></td><td></td></tr>
 </tbody></table>
-<p class="q"><b>2.</b> At the same time point, which bead size generally produced the higher ONP concentration? Cite one pair of values from the table.</p><div class="answer"></div><div class="answer"></div>
-<div class="footer">2</div>
-</section>
+<p class="q"><b>2.</b> At the same time point, which bead size generally produced the higher ONP concentration? Cite one pair of values from the table.</p><div class="answer large"></div><div class="answer"></div>
+<div class="footer">3</div></section>
 
 <section class="sheet">
 <div class="dochead">Worksheet: ONPG Bead Reactor, Enzyme Kinetics, and Internal Diffusion</div>
@@ -74,7 +72,7 @@ table{width:100%;border-collapse:collapse;table-layout:fixed;margin:5px 0 7px;fo
 <h3>Internal concentration and effectiveness</h3><p>The internal effectiveness factor, η<sub>i</sub>, is the actual whole-bead reaction rate divided by the rate that would occur if the entire bead were at the bead-surface substrate concentration. A lower η<sub>i</sub> indicates a stronger internal-diffusion limitation.</p>
 <p class="q"><b>5.</b> Which bead has the larger decrease in ONPG concentration from the bead surface to the bead center? How is that difference reflected in η<sub>i</sub>?</p><div class="answer"></div><div class="answer"></div>
 <p class="q"><b>6.</b> Return to your prediction in Question 1. What would you keep or revise after comparing the two runs?</p><div class="answer"></div><div class="answer"></div>
-<div class="footer">3</div>
+<div class="footer">7</div>
 </section>
 
 <section class="sheet">
