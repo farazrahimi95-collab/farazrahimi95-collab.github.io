@@ -110,7 +110,8 @@ replace_para(
 safety_intro = find_para("use", "safety decision", "touchable outer-surface")
 q9 = find_para("why is the outer-surface temperature", "touch-safety")
 paras = doc.paragraphs
-i0, i1 = paras.index(safety_intro), paras.index(q9)
+i0 = next(i for i,p in enumerate(paras) if "safety decision" in norm(p.text))
+i1 = next(i for i,p in enumerate(paras) if "why is the outer-surface temperature" in norm(p.text))
 between = paras[i0+1:i1]
 mathish = [p for p in between if "oMath" in p._p.xml or not p.text.strip()]
 if mathish:
@@ -132,7 +133,8 @@ replace_para(
     "For Trials 7 and 8, report the insulation thickness and outer-surface temperature and classify each trial as Pass or Fail. Confirm that 0.105 m fails and 0.110 m passes under the fixed model conditions. Explain briefly why these adjacent 0.005 m settings show that 0.110 m is the minimum selectable safe thickness."
 )
 paras = doc.paragraphs
-i0, i1 = paras.index(hw3), paras.index(trial_report)
+i0 = next(i for i,p in enumerate(paras) if "question 3" in norm(p.text) and "minimum selectable safe thickness" in norm(p.text))
+i1 = next(i for i,p in enumerate(paras) if "for trials 7 and 8" in norm(p.text) and "report the insulation thickness" in norm(p.text))
 between = paras[i0+1:i1]
 mathish = [p for p in between if "oMath" in p._p.xml or not p.text.strip()]
 if mathish:
