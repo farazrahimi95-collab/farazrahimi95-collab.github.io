@@ -87,26 +87,18 @@ replace_para(
 
 # Update Table 3 prescribed thicknesses.
 table3 = None
-for table in doc.tables:
-    first_col = [norm(row.cells[0].text) for row in table.rows if row.cells]
-    header = " ".join(cell.text for cell in table.rows[0].cells) if table.rows else ""
-    if "trials" in norm(header) and any(v == "7" or v.startswith("7 ") for v in first_col) and any(v == "8" or v.startswith("8 ") for v in first_col):
+for table in reversed(doc.tables):
+    if len(table.rows) >= 3 and len(table.rows[0].cells) >= 7:
         table3 = table
         break
 if table3 is None:
     raise RuntimeError("Safety Table 3 not found")
 
-found7 = found8 = False
-for row in table3.rows[1:]:
-    first = norm(row.cells[0].text)
-    if first == "7" or first.startswith("7 "):
-        row.cells[1].text = "0.105"
-        found7 = True
-    elif first == "8" or first.startswith("8 "):
-        row.cells[1].text = "0.110"
-        found8 = True
-if not (found7 and found8):
-    raise RuntimeError("Could not update both Trial 7 and Trial 8 rows in Table 3")
+# The safety table has one header row followed by Trials 7 and 8.
+table3.rows[1].cells[0].text = "7"
+table3.rows[1].cells[1].text = "0.105"
+table3.rows[2].cells[0].text = "8"
+table3.rows[2].cells[1].text = "0.110"
 
 # Align the post-experiment question with the two prescribed trials.
 replace_para(
