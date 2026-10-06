@@ -872,14 +872,28 @@ h1, h2, h3, h4, p { margin-top: 0; }
     #pht-review-preview .pht-field small { display: block; margin-top: 3px; color: var(--pht-muted); font-size: 10px; }
     #pht-review-preview input[type="number"] {
       width: 100%;
-      min-height: 36px;
+      min-height: 38px;
       padding: 6px 9px;
-      border: 1px solid var(--pht-line);
+      border: 2px solid #c7921c;
       border-radius: 8px;
-      background: var(--pht-surface);
+      background: #fff6cf;
       color: var(--pht-text);
+      box-shadow: inset 0 0 0 1px rgba(199,146,28,.08);
       font: inherit;
       font-size: 14px;
+      font-weight: 600;
+      transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+    }
+    #pht-review-preview input[type="number"]::placeholder {
+      color: #725a1a;
+      opacity: .78;
+      font-weight: 600;
+    }
+    #pht-review-preview input[type="number"]:focus {
+      outline: none;
+      border-color: var(--pht-teal);
+      background: #fffbe8;
+      box-shadow: 0 0 0 3px rgba(8,127,120,.16);
     }
     #pht-review-preview input[type="range"] { width: 100%; accent-color: var(--pht-teal); }
     #pht-review-preview .pht-run-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
