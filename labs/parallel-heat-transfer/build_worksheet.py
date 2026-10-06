@@ -88,9 +88,9 @@ replace_para(
 # Update Table 3 prescribed thicknesses.
 table3 = None
 for table in doc.tables:
-    text = " ".join(cell.text for row in table.rows for cell in row.cells)
-    nt = norm(text)
-    if "pass" in nt and "fail" in nt and "trials" in nt and "q" in nt:
+    first_col = [norm(row.cells[0].text) for row in table.rows if row.cells]
+    header = " ".join(cell.text for cell in table.rows[0].cells) if table.rows else ""
+    if "trials" in norm(header) and any(v == "7" or v.startswith("7 ") for v in first_col) and any(v == "8" or v.startswith("8 ") for v in first_col):
         table3 = table
         break
 if table3 is None:
