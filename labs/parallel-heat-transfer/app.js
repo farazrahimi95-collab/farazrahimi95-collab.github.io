@@ -6,7 +6,7 @@
       const AMBIENT_C = 25;
       const LIMIT_C = 60;
       const geometry = { diameter: 1, length: 6, wall: 0.025, steelK: 45 };
-      const state = { stage: 1, stage1: [], stage2: [], safetyStep: 20, safetyRuns: [] };
+      const state = { stage: 1, stage1: [], stage2: [], safetyStep: null, safetyRuns: [] };
 
       function cToK(c) { return Number(c) + 273.15; }
       function solve({ processC, insulationM, conductivity, emissivity, h }) {
@@ -100,13 +100,19 @@
 
       function updateSessionChrome() {
         const counts = { 1: state.stage1.length, 2: state.stage2.length, 3: state.safetyRuns.length };
+        const complete = {
+          1: state.stage1.length >= 3,
+          2: state.stage2.length >= 3,
+          3: state.safetyRuns.some(r => Math.abs(r.inputs.insulationM - 0.105) < 1e-9) &&
+             state.safetyRuns.some(r => Math.abs(r.inputs.insulationM - 0.110) < 1e-9)
+        };
         const total = counts[1] + counts[2] + counts[3];
         document.getElementById('dataCount').textContent = String(total);
         document.querySelectorAll('.step').forEach(tab => {
           const number = Number(tab.dataset.stage);
           const selected = number === state.stage;
           tab.classList.toggle('active', selected);
-          tab.classList.toggle('complete', counts[number] > 0 && !selected);
+          tab.classList.toggle('complete', complete[number] && !selected);
           tab.setAttribute('aria-selected', String(selected));
           tab.tabIndex = selected ? 0 : -1;
         });
@@ -209,22 +215,72 @@
         drawStage2Chart();
       }
 
-      function updateSafety() {
-        const step = state.safetyStep;
+      function showSafetyResult(thickness) {
+        const step = Math.round(thickness / 0.005);
+        state.safetyStep = step;
         const inputs = safetyInputs(step);
         const result = solve(inputs);
         const safe = result.surfaceC <= LIMIT_C + 1e-9;
-        setText('pht-safety-thickness', `${fmt(inputs.insulationM,3)} m`);
-        root.querySelector('#pht-safety-range').value = String(step);
-        root.querySelector('#pht-minus').disabled = step === 0;
-        root.querySelector('#pht-plus').disabled = step === 100;
         const banner = root.querySelector('#pht-safety-banner');
+        banner.classList.remove('pht-safety-neutral');
         banner.classList.toggle('pht-pass', safe);
         banner.innerHTML = `<strong>${safe ? 'PASS · surface temperature is at or below the 60 °C limit' : 'FAIL · surface temperature exceeds the 60 °C limit'}</strong><span>Current: ${fmt(result.surfaceC,2)} °C</span>`;
         updateApparatus(3, inputs, result, safe ? '≤ 60 °C' : '> 60 °C');
+        drawSafetyChart();
+        return { step, inputs, result };
+      }
+
+      function runSafetyTrial() {
+        const input = root.querySelector('#pht-thickness-3');
+        const error = root.querySelector('#pht-error-3');
+        const text = input.value.trim();
+        const thickness = Number(text);
+        if (text === '' || !Number.isFinite(thickness) || thickness < 0 || thickness > .5) {
+          error.textContent = 'Enter an insulation thickness from 0.000 to 0.500 m.';
+          return;
+        }
+        if (Math.abs(thickness / .005 - Math.round(thickness / .005)) > 1e-7) {
+          error.textContent = 'Use a thickness in exact 0.005 m increments.';
+          return;
+        }
+        const isTrial7 = Math.abs(thickness - .105) < 1e-7;
+        const isTrial8 = Math.abs(thickness - .110) < 1e-7;
+        if (!isTrial7 && !isTrial8) {
+          error.textContent = 'For Trials 7–8, enter 0.105 m or 0.110 m.';
+          return;
+        }
+        error.textContent = '';
+        const shown = showSafetyResult(thickness);
+        const label = isTrial7 ? 'Trial 7' : 'Trial 8';
+        state.safetyRuns = state.safetyRuns.filter(record => Math.abs(record.inputs.insulationM - thickness) > 1e-9);
+        state.safetyRuns.push({ label, step: shown.step, inputs: shown.inputs, result: shown.result });
+        state.safetyRuns.sort((a,b) => a.inputs.insulationM - b.inputs.insulationM);
+        renderSafetyTable();
+        showToast(`${label} recorded at ${fmt(thickness,3)} m.`);
+      }
+
+      function resetSafety() {
+        state.safetyRuns = [];
+        state.safetyStep = null;
+        const input = root.querySelector('#pht-thickness-3');
+        if (input) input.value = '';
+        root.querySelector('#pht-error-3').textContent = '';
+        const banner = root.querySelector('#pht-safety-banner');
+        banner.classList.remove('pht-pass');
+        banner.classList.add('pht-safety-neutral');
+        banner.innerHTML = '<strong>Run 0.105 m and 0.110 m</strong><span>Compare each result with the 60 °C limit.</span>';
+        const panel = root.querySelector('[data-apparatus="3"]');
+        panel.querySelector('.pht-vessel').style.cssText = '--pht-insulation:0px';
+        panel.querySelector('.pht-wall-card').style.cssText = '--pht-wall-insulation:0px';
+        panel.querySelector('.pht-wall-card').dataset.uninsulated = 'true';
+        panel.querySelector('.pht-wall-interface-temp').textContent = '—';
+        panel.querySelector('.pht-wall-surface-temp').textContent = '—';
+        panel.querySelector('.pht-insulation-label').textContent = 'Enter an insulation thickness';
+        panel.querySelector('.pht-apparatus-q').innerHTML = 'Total heat loss, Q̇<sub>total</sub>: —';
         renderSafetyTable();
         drawSafetyChart();
       }
+
       function renderSafetyTable() {
         const row = record => {
           const safe = record.result.surfaceC <= LIMIT_C;
@@ -318,8 +374,10 @@
           ctx.fillStyle=safe?colors.green:colors.red;
           ctx.beginPath();ctx.arc(x(record.inputs.insulationM),y(record.result.surfaceC),4.5,0,Math.PI*2);ctx.fill();
         });
-        const current=solve(safetyInputs(state.safetyStep));
-        ctx.fillStyle=colors.yellow;ctx.strokeStyle=colors.navy;ctx.lineWidth=2;ctx.beginPath();ctx.arc(x(state.safetyStep*.005),y(current.surfaceC),6,0,Math.PI*2);ctx.fill();ctx.stroke();
+        if (state.safetyStep !== null) {
+          const current=solve(safetyInputs(state.safetyStep));
+          ctx.fillStyle=colors.yellow;ctx.strokeStyle=colors.navy;ctx.lineWidth=2;ctx.beginPath();ctx.arc(x(state.safetyStep*.005),y(current.surfaceC),6,0,Math.PI*2);ctx.fill();ctx.stroke();
+        }
         ctx.fillStyle=colors.muted;ctx.textAlign='center';[0,.1,.2,.3,.4,.5].forEach(v=>ctx.fillText(v.toFixed(1),x(v),plot.y+plot.h+14));
       }
       function drawAllCharts(){drawStage2Chart();drawSafetyChart();}
@@ -402,10 +460,10 @@
         state.stage1 = [];
         state.stage2 = [];
         state.safetyRuns = [];
-        state.safetyStep = 20;
+        state.safetyStep = null;
         resetStage1();
         resetStage2();
-        updateSafety();
+        resetSafety();
         switchStage(1);
       }
 
@@ -441,14 +499,8 @@
       root.querySelector('#pht-reset-1').addEventListener('click',resetStage1);
       root.querySelector('#pht-run-2').addEventListener('click',runStage2);
       root.querySelector('#pht-reset-2').addEventListener('click',resetStage2);
-      root.querySelector('#pht-safety-range').addEventListener('input',event=>{state.safetyStep=Number(event.target.value);updateSafety();});
-      root.querySelector('#pht-minus').addEventListener('click',()=>{state.safetyStep=Math.max(0,state.safetyStep-1);updateSafety();});
-      root.querySelector('#pht-plus').addEventListener('click',()=>{state.safetyStep=Math.min(100,state.safetyStep+1);updateSafety();});
-      root.querySelector('#pht-record-safety').addEventListener('click',()=>{
-        const inputs=safetyInputs(state.safetyStep);
-        state.safetyRuns.push({label:`Trial ${state.safetyRuns.length+7}`,step:state.safetyStep,inputs,result:solve(inputs)});
-        updateSafety();
-      });
+      root.querySelector('#pht-run-safety').addEventListener('click',runSafetyTrial);
+      root.querySelector('#pht-reset-3').addEventListener('click',resetSafety);
 
       if ('ResizeObserver' in window) {
         const resizeObserver = new ResizeObserver(() => drawAllCharts());
@@ -457,7 +509,7 @@
         window.addEventListener('resize', drawAllCharts);
       }
       bindDialogs();
-      updateSafety();
+      resetSafety();
       switchStage(1);
       requestAnimationFrame(drawAllCharts);
     })();
