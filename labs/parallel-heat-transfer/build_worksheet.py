@@ -1,4 +1,5 @@
 from pathlib import Path
+from copy import deepcopy
 from docx import Document
 
 BASE = Path(__file__).resolve().parent
@@ -80,6 +81,35 @@ def patch_math_operator(p, old="-", new="+"):
         if node.text == old:
             node.text = new
             changed = True
+    return changed
+
+def split_math_t_in_subscripts():
+    """Work around PDF rendering that can drop the n when OMML stores 'in' in one math run."""
+    math = "http://schemas.openxmlformats.org/officeDocument/2006/math"
+    def node_text(node):
+        if node is None:
+            return ""
+        return "".join((t.text or "") for t in node.iter(f"{{{math}}}t"))
+    changed = 0
+    for p in doc.paragraphs:
+        for ssub in p._p.iter(f"{{{math}}}sSub"):
+            base = ssub.find(f"{{{math}}}e")
+            sub = ssub.find(f"{{{math}}}sub")
+            if node_text(base) != "T" or node_text(sub) != "in":
+                continue
+            runs = [node for node in list(sub) if node.tag == f"{{{math}}}r"]
+            if not runs:
+                continue
+            first = runs[0]
+            first_text = next(first.iter(f"{{{math}}}t"), None)
+            if first_text is None:
+                continue
+            first_text.text = "i"
+            second = deepcopy(first)
+            second_text = next(second.iter(f"{{{math}}}t"), None)
+            second_text.text = "n"
+            sub.insert(list(sub).index(first) + 1, second)
+            changed += 1
     return changed
 
 # Experiment 1: direct students to the visible fixed and adjustable groups.
@@ -178,6 +208,11 @@ i1 = next(i for i, p in enumerate(paras) if p._p is trial_report._p)
 math_paras = [p for p in paras[i0 + 1:i1] if "oMath" in p._p.xml]
 if not math_paras or not patch_math_operator(math_paras[0], "-", "+"):
     raise RuntimeError("Could not update the Homework 3 safety equation")
+
+# Ensure every displayed mathematical T_in renders with both subscript letters.
+patched_tin = split_math_t_in_subscripts()
+if patched_tin < 2:
+    raise RuntimeError(f"Expected to repair at least two T_in math expressions; repaired {patched_tin}")
 
 doc.save(DOCX)
 
