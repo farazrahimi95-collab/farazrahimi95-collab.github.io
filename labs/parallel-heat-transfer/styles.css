@@ -1036,3 +1036,26 @@ sup { top: -.45em; }
 #pht-review-preview .pht-table-wrap { margin-top: 4px; }
 #pht-review-preview .pht-results-panel th,
 #pht-review-preview .pht-results-panel td { padding: 4px 3px; }
+
+
+/* 2026-10-06: clearer parameter grouping and compact safety input */
+#pht-review-preview .pht-param-heading{
+  margin: 2px 0 6px;
+  color: var(--pht-navy);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .025em;
+}
+#pht-review-preview .pht-param-heading-adjustable{
+  margin-top: 12px;
+}
+#pht-review-preview .pht-form-single{
+  grid-template-columns: minmax(0,1fr);
+}
+#pht-review-preview .pht-safety-neutral{
+  background: var(--pht-soft-2);
+  color: var(--pht-text);
+}
+#pht-review-preview .pht-safety-neutral strong{
+  color: var(--pht-navy);
+}
