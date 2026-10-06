@@ -114,7 +114,8 @@ replace_para(
 safety_intro = find_para("use", "safety decision", "touchable outer-surface")
 q9 = find_para("why is the outer-surface temperature", "touch-safety")
 paras = doc.paragraphs
-i0, i1 = paras.index(safety_intro), paras.index(q9)
+i0 = next(i for i,p in enumerate(paras) if p._p is safety_intro._p)
+i1 = next(i for i,p in enumerate(paras) if p._p is q9._p)
 math_paras = [p for p in paras[i0+1:i1] if "oMath" in p._p.xml]
 if not math_paras or not patch_math_operator(math_paras[0], "-", "+"):
     raise RuntimeError("Could not update the Experiment 3 safety equation")
@@ -133,7 +134,8 @@ replace_para(
 
 paras = doc.paragraphs
 hw3 = find_para("question 3", "two adjacent thicknesses")
-i0, i1 = paras.index(hw3), paras.index(trial_report)
+i0 = next(i for i,p in enumerate(paras) if p._p is hw3._p)
+i1 = next(i for i,p in enumerate(paras) if p._p is trial_report._p)
 math_paras = [p for p in paras[i0+1:i1] if "oMath" in p._p.xml]
 if not math_paras or not patch_math_operator(math_paras[0], "-", "+"):
     raise RuntimeError("Could not update the Homework 3 safety equation")
