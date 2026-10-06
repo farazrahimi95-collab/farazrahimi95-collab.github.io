@@ -40,26 +40,26 @@ p = find_para("click", "parallel paths", "fixed settings")
 append_once(p, " The values listed under Fixed Parameters are already set in the simulation and do not need to be entered.", "Fixed Parameters")
 
 p = find_para("for trial 1", "0.00", "8 w")
-append_once(p, " Under Adjustable Parameters, click inside each input box and type the Trial 1 value. The allowed range is printed directly below each box. Then click “Run and record trial” and copy the displayed outputs into Table 1.", "Adjustable Parameters")
+append_once(p, " Enter these values in the two input boxes under Adjustable Parameters; the allowed range is printed directly below each box.", "Adjustable Parameters")
 
 p = find_para("for trial 2", "0.85", "0 w")
-append_once(p, " Change only the two adjustable input boxes to the Trial 2 values. Click “Run and record trial” and copy the displayed outputs into Table 1.", "adjustable input boxes")
+append_once(p, " Enter the new values in the same two Adjustable Parameters input boxes.", "Adjustable Parameters input boxes")
 
 p = find_para("for trial 3", "0.85", "8 w")
-append_once(p, " Change the two adjustable input boxes to the Trial 3 values. Click “Run and record trial” and copy the displayed outputs into Table 1.", "adjustable input boxes")
+append_once(p, " Enter the new values in the same two Adjustable Parameters input boxes.", "Adjustable Parameters input boxes")
 
 # Experiment 2: clarify where the student types the thickness.
 p = find_para("continue to series conduction", "fixed settings")
 append_once(p, " These values are shown under Fixed Parameters and remain unchanged for Trials 4-6.", "Fixed Parameters")
 
 p = find_para("run trial 4", "0.000")
-append_once(p, " Click the Insulation thickness box under Adjustable Parameter, type 0.000, then click “Run and record trial.” The allowed range is shown below the box.", "Adjustable Parameter")
+append_once(p, " Enter 0.000 in the Insulation thickness box under Adjustable Parameter; the allowed range is shown below the box.", "Adjustable Parameter")
 
 p = find_para("run trial 5", "0.100")
-append_once(p, " Replace the value in the same Insulation thickness box with 0.100, click “Run and record trial,” and copy the displayed outputs into Table 2.", "Replace the value")
+append_once(p, " Replace the value in the same Adjustable Parameter box with 0.100.", "Adjustable Parameter box")
 
 p = find_para("run trial 6", "0.150")
-append_once(p, " Replace the value with 0.150, click “Run and record trial,” and copy the displayed outputs into Table 2.", "Replace the value")
+append_once(p, " Replace the value in the same Adjustable Parameter box with 0.150.", "Adjustable Parameter box")
 
 # Experiment 3: two prescribed adjacent thicknesses rather than a trial-and-error search.
 replace_para(
