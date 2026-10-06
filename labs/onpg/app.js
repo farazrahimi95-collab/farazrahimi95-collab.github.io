@@ -1,6 +1,6 @@
 "use strict";
 
-const CALIBRATION = 3.5804; // ABS415 = 3.5804 × [ONP, mM]
+const CALIBRATION = 3.58; // ABS415 = 3.58 × [ONP, mM]
 const BACKGROUND_ABS415 = 0.056;
 const INITIAL_ONPG = 0.83;
 // Concentration scale that preserves the supplied MATLAB cBulk = 0.403 at 0.83 mM.
@@ -362,7 +362,7 @@ function renderBeadStage(key) {
         </div>
         <div class="panel-title"><div><h3>Automatic spectrophotometer readings</h3><p>The instrument records the zero baseline, then one reading every 10 simulation seconds through 120 s. No manual sampling is required.</p></div></div>
         <div class="data-table-wrap sample-table-wrap"><table class="data-table"><thead><tr><th>Simulation time [s]</th><th>ABS<sub>415</sub> [-]</th><th>ONP concentration, C<sub>ONP</sub> [mM]</th></tr></thead><tbody id="sampleBody">${sampleRows(run.samples)}</tbody></table></div>
-        <div class="note"><strong>Why ABS<sub>415</sub>?</strong> ONP is yellow and absorbs strongly at 415 nm. Absorbance is a dimensionless measure of how much light the sample removes at that wavelength. After blanking, the calibration <strong>C<sub>ONP</sub> = ABS<sub>415</sub> / 3.5804</strong> converts the reading to ONP concentration.</div>
+        <div class="note"><strong>Why ABS<sub>415</sub>?</strong> ONP is yellow and absorbs strongly at 415 nm. Absorbance is a dimensionless measure of how much light the sample removes at that wavelength. After blanking, the calibration <strong>C<sub>ONP</sub> = ABS<sub>415</sub> / 3.58</strong> converts the reading to ONP concentration.</div>
       </section>
     </div>
     <div class="continue-row"><button class="button button-dark" id="continueStage" type="button" ${run.complete && run.samples.length === SAMPLE_SCHEDULE.length ? "" : "disabled"}>Continue to Stage ${next}</button></div>
