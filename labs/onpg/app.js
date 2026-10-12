@@ -516,7 +516,7 @@ function drawBeadProgress(canvas, dataset, maxTime) {
   if (end > 0) points.push({ x: end, y: interpolateCurve(dataset, end) });
   drawPlot(canvas, {
     xMin: 0, xMax: 340, yMin: 0, yMax: .84,
-    xLabel: "Equivalent lab time [min]", yLabel: "C_ONP [mM]",
+    xLabel: "Equivalent lab time [min]", yLabel: "C<sub>ONP</sub> [mM]",
     series: [{ name: `${dataset.diameter} mm`, color: dataset.color, points, width: 3 }],
     xTicks: [0, 80, 160, 240, 320], yTicks: [0,.2,.4,.6,.8]
   });
@@ -543,9 +543,9 @@ function renderComparison() {
       <section class="panel chart-panel">
         <div class="panel-title"><div><h3>C<sub>ONPG</sub> vs. dimensionless radius</h3><p>Center (0) to surface (1).</p></div></div>
         <div class="chart-frame"><canvas id="profileChart" aria-label="Radial ONPG concentration profiles for both bead sizes"></canvas></div>
-        <div class="legend"><span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.small}"></i>d = 2.8 mm; internal effectiveness factor, η<sub>i</sub> = 0.450</span><span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.large}"></i>d = 4.6 mm; internal effectiveness factor, η<sub>i</sub> = 0.290</span></div>
+        <div class="legend"><span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.small}"></i>d = 2.8 mm; internal effectiveness factor, <span class='math-eta'>η<sub>i</sub></span> = 0.450</span><span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.large}"></i>d = 4.6 mm; internal effectiveness factor, <span class='math-eta'>η<sub>i</sub></span> = 0.290</span></div>
 
-        <div class="note">Engineers use an internal effectiveness factor for beads, η<sub>i</sub>, which is the ratio of the actual reaction rate to that expected if the entire bead were at its surface concentration. ONPG consumption in the outer region can leave little substrate available for reaction in the bead interior.</div>
+        <div class="note">Engineers use an internal effectiveness factor for beads, <span class='math-eta'>η<sub>i</sub></span>, which is the ratio of the actual reaction rate to that expected if the entire bead were at its surface concentration. ONPG consumption in the outer region can leave little substrate available for reaction in the bead interior.</div>
       </section>
     </div>
     <div class="continue-row"><button class="button button-dark" id="continueStage" type="button">Continue to Stage 4</button></div>
@@ -554,7 +554,7 @@ function renderComparison() {
   const largeProfile = solveBead(4.6, "large");
   const draw = () => {
     drawPlot(document.getElementById("compareChart"), {
-      xMin:0,xMax:340,yMin:0,yMax:.84,xLabel:"Equivalent lab time [min]",yLabel:"ONP concentration [mM]",
+      xMin:0,xMax:340,yMin:0,yMax:.84,xLabel:"Equivalent lab time [min]",yLabel:"C<sub>ONP</sub> [mM]",
       xTicks:[0,85,170,255,340],yTicks:[0,.2,.4,.6,.8],
       series:[
         {name:"2.8 mm",color:COLORS.small,points:state.beadRuns.small.samples.map(s=>({x:s.laboratoryMinutes,y:s.onp})),width:2.5,markers:true},
@@ -580,7 +580,7 @@ function summaryCard(key, s) {
     <dt>Time to 50% conversion</dt><dd>${formatWhole(s.t50)} min</dd>
     <dt>Time to 80% conversion</dt><dd>${formatWhole(s.t80)} min</dd>
     <dt>Final conversion</dt><dd>${format(s.conversion)}%</dd>
-    <dt>Internal effectiveness factor, η<sub>i</sub></dt><dd>${format(s.eta)}</dd>
+    <dt>Internal effectiveness factor, <span class='math-eta'>η<sub>i</sub></span></dt><dd>${format(s.eta)}</dd>
   </dl></article>`;
 }
 
@@ -598,7 +598,6 @@ function comparisonRows() {
 function renderKineticScan() {
   const k = state.kinetics;
   const area = document.getElementById("stageArea");
-  const statusIndex = k.ratesShown ? 4 : k.scanned ? 3 : k.blanked ? 2 : k.loaded ? 1 : 0;
   const finalABS415 = CALIBRATION * KINETICS.rates.at(-1) * 4.5;
   const displayValue = k.scanned ? format(finalABS415,3) : k.blanked ? "0.000" : format(BACKGROUND_ABS415,3);
   area.innerHTML = `<div class="stage-shell">
@@ -615,7 +614,6 @@ function renderKineticScan() {
           </div>
         </div>
         <div class="panel-pad">
-          <div class="process-steps">${["Load 6 cuvettes","Blank ABS₄₁₅","Scan 4.5 s","Reveal rates"].map((label,i)=>`<div class="process-step ${i<statusIndex?"done":i===statusIndex?"active":""}">${i+1}. ${label}</div>`).join("")}</div>
           <div class="baseline-status ${k.blanked ? "blanked" : ""}"><strong>${k.blanked ? "Background removed" : "Background reading detected"}</strong><span>${k.blanked ? `${format(BACKGROUND_ABS415)} → 0 ABS₄₁₅` : `ABS₄₁₅ = ${format(BACKGROUND_ABS415)} before blanking`}</span></div>
           <div class="controls">
             <button class="button" id="loadCuvettes" type="button" ${k.loaded ? "disabled" : ""}>Load six cuvettes</button>
@@ -715,7 +713,7 @@ function drawKineticTraces(canvas, progress=1) {
     name:String(KINETICS.concentrations[i]), color:COLORS.series[i], width:2.3, markers:progress>=1,
     points:Array.from({length:10},(_,j)=>({x:j*.5,y:rate*j*.5})).filter(p=>p.x<=xEnd+.001)
   }));
-  drawPlot(canvas,{xMin:0,xMax:4.5,yMin:0,yMax:.011,xLabel:"Assay time [s]",yLabel:"ONP concentration [mM]",xTicks:[0,1,2,3,4],yTicks:[0,.002,.004,.006,.008,.010],series});
+  drawPlot(canvas,{xMin:0,xMax:4.5,yMin:0,yMax:.011,xLabel:"Assay time [s]",yLabel:"C<sub>ONP</sub> [mM]",xTicks:[0,1,2,3,4],yTicks:[0,.002,.004,.006,.008,.010],series});
 }
 
 function renderRateCurve() {
@@ -769,7 +767,7 @@ function drawMichaelis(canvas, built, halfGuide) {
     series.push({name:"half horizontal",color:COLORS.yellow,width:2,dash:[6,5],points:[{x:0,y:KINETICS.vmax/2},{x:KINETICS.km,y:KINETICS.vmax/2}]});
     series.push({name:"half vertical",color:COLORS.yellow,width:2,dash:[6,5],points:[{x:KINETICS.km,y:0},{x:KINETICS.km,y:KINETICS.vmax/2}]});
   }
-  drawPlot(canvas,{xMin:0,xMax:22,yMin:0,yMax:.0027,xLabel:"Initial ONPG concentration [mM]",yLabel:"Initial rate [mM/s]",xTicks:[0,5,10,15,20],yTicks:[0,.0005,.001,.0015,.002,.0025],series});
+  drawPlot(canvas,{xMin:0,xMax:22,yMin:0,yMax:.0027,xLabel:"Initial ONPG, C<sub>ONPG,0</sub> [mM]",yLabel:"v<sub>0</sub> [mM/s]",xTicks:[0,5,10,15,20],yTicks:[0,.0005,.001,.0015,.002,.0025],series});
 }
 
 function renderDesign() {
@@ -779,7 +777,7 @@ function renderDesign() {
   const eta = reportedEta(d, profile.eta);
   const boundary = getDesignBoundary();
   area.innerHTML = `<div class="stage-shell">
-    ${stageHeader(6, "Select a bead diameter", "Diameter is the design input. Internal effectiveness and the surface-to-center ONPG profile are calculated outputs from the diffusion–Michaelis–Menten model.", "Target η<sub>i</sub> ≥ 0.95")}
+    ${stageHeader(6, "Select a bead diameter", "Diameter is the design input. Internal effectiveness and the surface-to-center ONPG profile are calculated outputs from the diffusion–Michaelis–Menten model.", "Target <span class='math-eta'>η<sub>i</sub></span> ≥ 0.95")}
     <div class="design-grid">
       <section class="panel panel-pad">
         <div class="panel-title"><div><h3>Diameter control</h3><p>Decrease diameter using 0.1 mm increments near the target boundary.</p></div><span class="pass-badge ${eta>=.95?"pass":""}">${eta>=.95?"MEETS TARGET":"BELOW TARGET"}</span></div>
@@ -795,7 +793,7 @@ function renderDesign() {
           <div class="metric"><span>Center ONPG concentration</span><strong id="centerValue">${format(profile.center,3)}</strong> <small>mM</small></div>
         </div>
         <div class="target-track"><div class="target-fill" style="width:${Math.min(100,eta*100)}%"></div></div>
-        <div class="target-label"><span>0</span><strong>η<sub>i</sub> target = 0.95</strong><span>1.00</span></div>
+        <div class="target-label"><span>0</span><strong><span class='math-eta'>η<sub>i</sub></span> target = 0.95</strong><span>1.00</span></div>
         <div class="note"><strong>Model basis:</strong> the same ONPG, enzyme kinetics, and transport assumptions are held fixed while diameter changes. The 2.8 and 4.6 mm rows are laboratory-tested sizes; smaller design sizes are predictions.</div>
       </section>
       <section class="panel chart-panel">
@@ -803,7 +801,7 @@ function renderDesign() {
         <div class="chart-frame"><canvas id="designProfileChart" aria-label="Radial ONPG concentration profiles for selected bead sizes"></canvas></div>
         <div class="legend" id="designLegend">${designLegend(boundary,d)}</div>
         <div class="panel-title" style="margin-top:18px"><div><h3>Design table</h3><p>The final two rows update from your saved trials.</p></div></div>
-        <div class="data-table-wrap"><table class="data-table result-table"><thead><tr><th>Result</th><th>Bead diameter [mm]</th><th>Internal effectiveness factor, η<sub>i</sub> [-]</th><th>Surface ONPG concentration [mM]</th><th>Center ONPG concentration [mM]</th></tr></thead><tbody>${designRows(boundary)}</tbody></table></div>
+        <div class="data-table-wrap"><table class="data-table result-table"><thead><tr><th>Result</th><th>Bead diameter [mm]</th><th>Internal effectiveness factor, <span class='math-eta'>η<sub>i</sub></span> [-]</th><th>Surface ONPG concentration [mM]</th><th>Center ONPG concentration [mM]</th></tr></thead><tbody>${designRows(boundary)}</tbody></table></div>
       </section>
     </div>
   </div>`;
@@ -866,7 +864,7 @@ function designRows(boundary) {
 }
 
 function designLegend(boundary,d) {
-  if (boundary.below && boundary.passing) return `<span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.large}"></i>d = ${boundary.below.diameter.toFixed(1)} mm; internal effectiveness factor, η<sub>i</sub> = ${format(boundary.below.eta)}</span><span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.small}"></i>d = ${boundary.passing.diameter.toFixed(1)} mm; internal effectiveness factor, η<sub>i</sub> = ${format(boundary.passing.eta)}</span>`;
+  if (boundary.below && boundary.passing) return `<span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.large}"></i>d = ${boundary.below.diameter.toFixed(1)} mm; internal effectiveness factor, <span class='math-eta'>η<sub>i</sub></span> = ${format(boundary.below.eta)}</span><span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.small}"></i>d = ${boundary.passing.diameter.toFixed(1)} mm; internal effectiveness factor, <span class='math-eta'>η<sub>i</sub></span> = ${format(boundary.passing.eta)}</span>`;
   return `<span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.navy}"></i>d = ${d.toFixed(1)} mm; current design</span>`;
 }
 
@@ -907,7 +905,7 @@ function solveBead(diameter, fixedKey=null) {
 }
 
 function drawProfiles(canvas, profiles) {
-  drawPlot(canvas,{xMin:0,xMax:1,yMin:0,yMax:.86,xLabel:"Dimensionless radius, r/R",yLabel:"ONPG concentration [mM]",xTicks:[0,.2,.4,.6,.8,1],yTicks:[0,.2,.4,.6,.8],series:profiles.map(p=>({name:p.name,color:p.color,width:3,points:p.profile.points}))});
+  drawPlot(canvas,{xMin:0,xMax:1,yMin:0,yMax:.86,xLabel:"Dimensionless radius, r/R",yLabel:"C<sub>ONPG</sub> [mM]",xTicks:[0,.2,.4,.6,.8,1],yTicks:[0,.2,.4,.6,.8],series:profiles.map(p=>({name:p.name,color:p.color,width:3,points:p.profile.points}))});
 }
 
 function drawPlot(canvas, options) {
@@ -940,8 +938,36 @@ function drawPlot(canvas, options) {
     if(s.markers){ctx.setLineDash([]);s.points.forEach(p=>{ctx.beginPath();ctx.arc(sx(p.x),sy(p.y),3.4,0,Math.PI*2);ctx.fill();ctx.strokeStyle="#fff";ctx.lineWidth=1;ctx.stroke();});}
     ctx.restore();
   });
-  ctx.fillStyle="#36535f";ctx.font="600 14px Arial, sans-serif";ctx.textAlign="center";ctx.textBaseline="bottom";ctx.fillText(options.xLabel,m.left+w/2,cssHeight-4);
-  ctx.save();ctx.translate(17,m.top+h/2);ctx.rotate(-Math.PI/2);ctx.textAlign="center";ctx.textBaseline="top";ctx.fillText(options.yLabel,0,0);ctx.restore();
+  // Canvas text doesn't interpret markup. Draw subscripts as smaller glyphs
+  // on a lowered baseline so chemical symbols remain legible on both axes.
+  drawMathAxisLabel(ctx, options.xLabel, m.left+w/2, cssHeight-7);
+  drawMathAxisLabel(ctx, options.yLabel, 20, m.top+h/2, -Math.PI/2);
+}
+
+function drawMathAxisLabel(ctx, label, x, y, angle=0) {
+  const tokens = String(label)
+    .split(new RegExp("(<sub>[^<]*</sub>|<sup>[^<]*</sup>)", "g"))
+    .filter(Boolean)
+    .map(fragment => {
+      const sub=fragment.startsWith("<sub>");
+      const sup=fragment.startsWith("<sup>");
+      return {text: (sub||sup) ? fragment.slice(5,-6) : fragment, sub, sup};
+    });
+  const font = small => `600 ${small ? 10 : 14}px Arial, Helvetica, sans-serif`;
+  ctx.save();
+  ctx.translate(x,y);
+  ctx.rotate(angle);
+  ctx.textAlign="left";
+  ctx.textBaseline="alphabetic";
+  ctx.fillStyle="#36535f";
+  const widths=tokens.map(t => { ctx.font=font(t.sub||t.sup); return ctx.measureText(t.text).width; });
+  let cursor=-widths.reduce((a,b)=>a+b,0)/2;
+  tokens.forEach((t,i) => {
+    ctx.font=font(t.sub||t.sup);
+    ctx.fillText(t.text,cursor,t.sub ? 4 : t.sup ? -6 : 0);
+    cursor+=widths[i];
+  });
+  ctx.restore();
 }
 
 function renderDataDialog() {
@@ -952,7 +978,7 @@ function renderDataDialog() {
     if(run.samples.length) sections.push(`<div class="panel-title"><div><h3>${LAB[key].diameter.toFixed(1)} mm bead samples</h3></div></div><div class="data-table-wrap"><table class="data-table"><thead><tr><th>Equivalent lab time [min]</th><th>ABS<sub>415</sub> [-]</th><th>ONP concentration, C<sub>ONP</sub> [mM]</th></tr></thead><tbody>${sampleRows(run.samples)}</tbody></table></div>`);
   }
   if(state.kinetics.ratesShown) sections.push(`<div class="panel-title" style="margin-top:20px"><div><h3>Free-enzyme initial rates</h3></div></div><div class="data-table-wrap"><table class="data-table"><thead><tr><th>Initial ONPG concentration, C<sub>ONPG,0</sub> [mM]</th><th>Initial rate, v<sub>0</sub> [mM/s]</th></tr></thead><tbody>${kineticRateRows()}</tbody></table></div>`);
-  if(state.designTrials.length) sections.push(`<div class="panel-title" style="margin-top:20px"><div><h3>Saved bead designs</h3></div></div><div class="data-table-wrap"><table class="data-table"><thead><tr><th>Bead diameter [mm]</th><th>Internal effectiveness factor, η<sub>i</sub> [-]</th><th>Surface ONPG concentration [mM]</th><th>Center ONPG concentration [mM]</th></tr></thead><tbody>${state.designTrials.map(t=>`<tr><td>${format(t.diameter)}</td><td>${format(t.eta)}</td><td>${format(t.surface)}</td><td>${format(t.center)}</td></tr>`).join("")}</tbody></table></div>`);
+  if(state.designTrials.length) sections.push(`<div class="panel-title" style="margin-top:20px"><div><h3>Saved bead designs</h3></div></div><div class="data-table-wrap"><table class="data-table"><thead><tr><th>Bead diameter [mm]</th><th>Internal effectiveness factor, <span class='math-eta'>η<sub>i</sub></span> [-]</th><th>Surface ONPG concentration [mM]</th><th>Center ONPG concentration [mM]</th></tr></thead><tbody>${state.designTrials.map(t=>`<tr><td>${format(t.diameter)}</td><td>${format(t.eta)}</td><td>${format(t.surface)}</td><td>${format(t.center)}</td></tr>`).join("")}</tbody></table></div>`);
   body.innerHTML=sections.length?sections.join(""):`<div class="empty-state"><h3>No results saved yet</h3><p>In Stage 1, set the autosampler to 28.33 equivalent laboratory minute intervals and start the reactor simulation.</p></div>`;
 }
 
