@@ -451,3 +451,44 @@ html, body, button, input { font-family: Arial, Helvetica, sans-serif; }
 .sample-progress { overflow-x: auto; }
 .sample-dot { min-width: 64px; color: #263b44; }
 .apparatus .minor { fill: #344d59; }
+
+
+/* Oct 2026: compact, single-row autosampler; mathematically legible controls. */
+.clock { min-width: 125px; padding: 7px 10px; border-radius: 8px; }
+.clock span { font-size: 9px; letter-spacing: .04em; }
+.clock strong { font-size: 16px; margin-top: 1px; }
+.sample-progress-label { margin: 12px 18px 0; font-size: 11px; font-weight: 700; color: #344d59; }
+.sample-progress {
+  margin: 5px 18px 0;
+  padding: 0;
+  display: grid;
+  width: calc(100% - 36px);
+  grid-template-columns: repeat(13, minmax(0, 1fr));
+  gap: 3px;
+  overflow: visible;
+}
+.sample-dot {
+  min-width: 0;
+  min-height: 34px;
+  padding: 3px 0 2px;
+  gap: 2px;
+  border-radius: 5px;
+  color: #263b44;
+  overflow: hidden;
+}
+.sample-dot i {
+  width: 15px; height: 15px;
+  font-size: 9px; line-height: 15px;
+  flex-shrink: 0;
+}
+.sample-dot small { font-size: 9px; line-height: 1.05; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.equation sub, .legend sub, .note sub, .metric sub, .data-table sub, .step sub { font-size: .72em; vertical-align: sub; line-height: 0; }
+@media (max-width: 760px) {
+  .sample-progress { gap: 1px; margin-left: 9px; width: calc(100% - 18px); }
+  .sample-progress-label { margin-left: 9px; }
+  .sample-dot { min-height: 22px; padding: 4px 0; }
+  .sample-dot i { display: none; }
+  .sample-dot small { font-size: clamp(6px, 1.7vw, 8px); }
+  .clock { min-width: 105px; padding: 6px 8px; }
+  .clock strong { font-size: 14px; }
+}
