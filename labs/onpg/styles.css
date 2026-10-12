@@ -325,10 +325,6 @@ h1, h2, h3, h4, p { margin-top: 0; }
 .cuvette::after { content: ""; position: absolute; inset: auto 3px 3px; height: 62%; background: var(--cuvette, #fff); border-radius: 2px; transition: height .4s, background .4s; }
 .cuvette-item small { display: block; color: var(--ink); font-size: 11px; font-weight: 750; white-space: nowrap; }
 
-.process-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 0 0 14px; }
-.process-step { padding: 9px 8px; text-align: center; border: 1px solid var(--line); border-radius: 9px; color: var(--muted); background: #f8fbfa; font-size: 11px; font-weight: 750; }
-.process-step.active { border-color: var(--teal); color: var(--teal-dark); background: var(--teal-pale); }
-.process-step.done { color: #fff; background: var(--teal); border-color: var(--teal); }
 .baseline-status { margin: 0 0 13px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border: 1px solid #ead27d; border-radius: 9px; background: #fff8dc; color: #6e5700; font-size: 12px; }
 .baseline-status strong { font-size: 12px; }
 .baseline-status span { font-variant-numeric: tabular-nums; font-weight: 750; }
@@ -392,7 +388,6 @@ h1, h2, h3, h4, p { margin-top: 0; }
   .spectrometer { transform: scale(.92); margin-left: auto; margin-right: auto; }
   .cuvette-rack { gap: 2px; }
   .cuvette { width: 34px; }
-  .process-steps { grid-template-columns: repeat(2, 1fr); }
   .sample-progress { grid-template-columns: repeat(13, 36px); }
   .autosampler-button { min-width: 0; width: 100%; }
   .baseline-status { align-items: flex-start; flex-direction: column; }
@@ -492,3 +487,7 @@ html, body, button, input { font-family: Arial, Helvetica, sans-serif; }
   .clock { min-width: 105px; padding: 6px 8px; }
   .clock strong { font-size: 14px; }
 }
+
+/* Math notation: keep eta and its i as a single symbol with a clear subscript. */
+.math-eta { white-space: nowrap; font-family: Cambria, "Cambria Math", "Times New Roman", serif; font-style: italic; }
+.math-eta sub { font-family: inherit; font-size: .70em; font-style: italic; position: relative; top: .28em; vertical-align: baseline; line-height: 0; margin-left: -.015em; }
