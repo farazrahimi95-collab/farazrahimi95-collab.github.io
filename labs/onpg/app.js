@@ -316,7 +316,12 @@ function sampleRows(samples) {
 }
 
 function sampleProgress(samples) {
-  return SAMPLE_SCHEDULE.map((second, index) => `<span class="sample-dot ${index < samples.length ? "saved" : ""}" title="${formatMinutes(labMinutes(second))} equivalent lab min"><i>${index}</i><small>${formatMinutes(labMinutes(second))} min</small></span>`).join("");
+  // Compact overview: rounded clock labels fit in one row; exact times remain in tooltips and the data tables.
+  return SAMPLE_SCHEDULE.map((second, index) => {
+    const precise = formatMinutes(labMinutes(second));
+    const status = index < samples.length ? "recorded" : "pending";
+    return `<span class="sample-dot ${index < samples.length ? "saved" : ""}" title="${precise} equivalent lab min — ${status}" aria-label="${precise} minutes, ${status}"><i>${index}</i><small>${Math.round(labMinutes(second))}</small></span>`;
+  }).join("");
 }
 
 function beadSampleAt(dataset, simulationSeconds) {
@@ -342,7 +347,8 @@ function renderBeadStage(key) {
       <section class="panel" aria-label="Virtual reactor apparatus">
         <div class="apparatus-wrap">${apparatusSvg(key)}</div>
         <div class="sample-cue" id="sampleCue"></div>
-        <div class="sample-progress" id="sampleProgress" aria-label="Automatic readings from zero to 340 equivalent lab minutes">${sampleProgress(run.samples)}</div>
+        <p class="sample-progress-label">Autosampler readings · equivalent lab time [min]</p>
+         <div class="sample-progress" id="sampleProgress" aria-label="Automatic readings from zero to 340 equivalent lab minutes">${sampleProgress(run.samples)}</div>
         <div class="instrument-strip">
           <div class="instrument-status"><span class="status-light" id="statusLight"></span><div><strong id="runStatus">${run.complete ? "Simulation complete" : "Reactor ready"}</strong><small id="runSubstatus">120 simulation seconds represent 340 equivalent reaction minutes</small></div></div>
           <div class="clock"><span>EQUIVALENT LAB TIME</span><strong id="clockValue">${formatMinutes(labMinutes(run.elapsed))} min</strong></div>
@@ -548,7 +554,7 @@ function renderComparison() {
   const largeProfile = solveBead(4.6, "large");
   const draw = () => {
     drawPlot(document.getElementById("compareChart"), {
-      xMin:0,xMax:340,yMin:0,yMax:.84,xLabel:"Equivalent lab time [min]",yLabel:"C_ONP [mM]",
+      xMin:0,xMax:340,yMin:0,yMax:.84,xLabel:"Equivalent lab time [min]",yLabel:"ONP concentration [mM]",
       xTicks:[0,85,170,255,340],yTicks:[0,.2,.4,.6,.8],
       series:[
         {name:"2.8 mm",color:COLORS.small,points:state.beadRuns.small.samples.map(s=>({x:s.laboratoryMinutes,y:s.onp})),width:2.5,markers:true},
@@ -709,7 +715,7 @@ function drawKineticTraces(canvas, progress=1) {
     name:String(KINETICS.concentrations[i]), color:COLORS.series[i], width:2.3, markers:progress>=1,
     points:Array.from({length:10},(_,j)=>({x:j*.5,y:rate*j*.5})).filter(p=>p.x<=xEnd+.001)
   }));
-  drawPlot(canvas,{xMin:0,xMax:4.5,yMin:0,yMax:.011,xLabel:"Assay time [s]",yLabel:"C_ONP [mM]",xTicks:[0,1,2,3,4],yTicks:[0,.002,.004,.006,.008,.010],series});
+  drawPlot(canvas,{xMin:0,xMax:4.5,yMin:0,yMax:.011,xLabel:"Assay time [s]",yLabel:"ONP concentration [mM]",xTicks:[0,1,2,3,4],yTicks:[0,.002,.004,.006,.008,.010],series});
 }
 
 function renderRateCurve() {
@@ -721,13 +727,13 @@ function renderRateCurve() {
       <section class="panel panel-pad">
         <div class="panel-title"><div><h3>Measured initial rates</h3><p>Each value is the slope of one Stage 4 ONP-time trace.</p></div></div>
         <div class="data-table-wrap"><table class="data-table kinetics-table"><thead><tr><th>Initial ONPG concentration, C<sub>ONPG,0</sub> [mM]</th><th>Initial rate, v₀ [mM/s]</th></tr></thead><tbody>${kineticRateRows()}</tbody></table></div>
-        <div class="equation">v<sub>0</sub> = V<sub>max</sub>[S]<sub>0</sub> / (K<sub>m</sub> + [S]<sub>0</sub>)</div>
+        <div class="equation">v<sub>0</sub> = V<sub>max</sub> C<sub>ONPG,0</sub> / (K<sub>m</sub> + C<sub>ONPG,0</sub>)</div>
         <div class="controls">
           <button class="button" id="buildCurve" type="button" ${!ready || state.curveBuilt ? "disabled" : ""}>Build kinetics plot</button>
           <button class="button button-secondary" id="halfGuide" type="button" ${!state.curveBuilt || state.halfGuide ? "disabled" : ""}>Show half-maximum guide</button>
         </div>
         ${!ready ? `<div class="note"><strong>Stage 4 is incomplete.</strong> Return to the kinetic scan and reveal all six initial rates before building this graph.</div>` : ""}
-        ${state.curveBuilt ? `<div class="callout" style="margin-top:15px"><h4>Teaching fit</h4><p>V<sub>max</sub> = <code>0.00226 mM/s</code> &nbsp;·&nbsp; K<sub>m</sub> = <code>2.00 mM</code>. Measured points need not fall exactly on this supplied curve. A least-squares reciprocal fit to the six displayed rates gives approximately V<sub>max</sub> = 0.00188 mM/s and K<sub>M</sub> = 1.17 mM; reciprocal fitting weights the data differently.</p></div>` : ""}
+        ${state.curveBuilt ? `<div class="callout" style="margin-top:15px"><h4>Teaching fit</h4><p>V<sub>max</sub> = <code>0.00226 mM/s</code> &nbsp;·&nbsp; K<sub>m</sub> = <code>2.00 mM</code>. Measured points need not fall exactly on this supplied curve. A least-squares reciprocal fit to the six displayed rates gives approximately V<sub>max</sub> = 0.00188 mM/s and K<sub>m</sub> = 1.17 mM; reciprocal fitting weights the data differently.</p></div>` : ""}
       </section>
       <section class="panel chart-panel">
         <div class="panel-title"><div><h3>Initial rate versus initial ONPG concentration</h3><p>Measured rates are points; the Michaelis–Menten model is a solid curve.</p></div></div>
@@ -763,7 +769,7 @@ function drawMichaelis(canvas, built, halfGuide) {
     series.push({name:"half horizontal",color:COLORS.yellow,width:2,dash:[6,5],points:[{x:0,y:KINETICS.vmax/2},{x:KINETICS.km,y:KINETICS.vmax/2}]});
     series.push({name:"half vertical",color:COLORS.yellow,width:2,dash:[6,5],points:[{x:KINETICS.km,y:0},{x:KINETICS.km,y:KINETICS.vmax/2}]});
   }
-  drawPlot(canvas,{xMin:0,xMax:22,yMin:0,yMax:.0027,xLabel:"Initial ONPG concentration, C<sub>ONPG,0</sub> [mM]",yLabel:"Initial rate, v₀ [mM/s]",xTicks:[0,5,10,15,20],yTicks:[0,.0005,.001,.0015,.002,.0025],series});
+  drawPlot(canvas,{xMin:0,xMax:22,yMin:0,yMax:.0027,xLabel:"Initial ONPG concentration [mM]",yLabel:"Initial rate [mM/s]",xTicks:[0,5,10,15,20],yTicks:[0,.0005,.001,.0015,.002,.0025],series});
 }
 
 function renderDesign() {
@@ -773,7 +779,7 @@ function renderDesign() {
   const eta = reportedEta(d, profile.eta);
   const boundary = getDesignBoundary();
   area.innerHTML = `<div class="stage-shell">
-    ${stageHeader(6, "Select a bead diameter", "Diameter is the design input. Internal effectiveness and the surface-to-center ONPG profile are calculated outputs from the diffusion–Michaelis–Menten model.", "Target ηᵢ ≥ 0.95")}
+    ${stageHeader(6, "Select a bead diameter", "Diameter is the design input. Internal effectiveness and the surface-to-center ONPG profile are calculated outputs from the diffusion–Michaelis–Menten model.", "Target η<sub>i</sub> ≥ 0.95")}
     <div class="design-grid">
       <section class="panel panel-pad">
         <div class="panel-title"><div><h3>Diameter control</h3><p>Decrease diameter using 0.1 mm increments near the target boundary.</p></div><span class="pass-badge ${eta>=.95?"pass":""}">${eta>=.95?"MEETS TARGET":"BELOW TARGET"}</span></div>
@@ -789,7 +795,7 @@ function renderDesign() {
           <div class="metric"><span>Center ONPG concentration</span><strong id="centerValue">${format(profile.center,3)}</strong> <small>mM</small></div>
         </div>
         <div class="target-track"><div class="target-fill" style="width:${Math.min(100,eta*100)}%"></div></div>
-        <div class="target-label"><span>0</span><strong>ηᵢ target = 0.95</strong><span>1.00</span></div>
+        <div class="target-label"><span>0</span><strong>η<sub>i</sub> target = 0.95</strong><span>1.00</span></div>
         <div class="note"><strong>Model basis:</strong> the same ONPG, enzyme kinetics, and transport assumptions are held fixed while diameter changes. The 2.8 and 4.6 mm rows are laboratory-tested sizes; smaller design sizes are predictions.</div>
       </section>
       <section class="panel chart-panel">
@@ -901,7 +907,7 @@ function solveBead(diameter, fixedKey=null) {
 }
 
 function drawProfiles(canvas, profiles) {
-  drawPlot(canvas,{xMin:0,xMax:1,yMin:0,yMax:.86,xLabel:"Dimensionless radius, r/R",yLabel:"C_ONPG [mM]",xTicks:[0,.2,.4,.6,.8,1],yTicks:[0,.2,.4,.6,.8],series:profiles.map(p=>({name:p.name,color:p.color,width:3,points:p.profile.points}))});
+  drawPlot(canvas,{xMin:0,xMax:1,yMin:0,yMax:.86,xLabel:"Dimensionless radius, r/R",yLabel:"ONPG concentration [mM]",xTicks:[0,.2,.4,.6,.8,1],yTicks:[0,.2,.4,.6,.8],series:profiles.map(p=>({name:p.name,color:p.color,width:3,points:p.profile.points}))});
 }
 
 function drawPlot(canvas, options) {
@@ -947,7 +953,7 @@ function renderDataDialog() {
   }
   if(state.kinetics.ratesShown) sections.push(`<div class="panel-title" style="margin-top:20px"><div><h3>Free-enzyme initial rates</h3></div></div><div class="data-table-wrap"><table class="data-table"><thead><tr><th>Initial ONPG concentration, C<sub>ONPG,0</sub> [mM]</th><th>Initial rate, v<sub>0</sub> [mM/s]</th></tr></thead><tbody>${kineticRateRows()}</tbody></table></div>`);
   if(state.designTrials.length) sections.push(`<div class="panel-title" style="margin-top:20px"><div><h3>Saved bead designs</h3></div></div><div class="data-table-wrap"><table class="data-table"><thead><tr><th>Bead diameter [mm]</th><th>Internal effectiveness factor, η<sub>i</sub> [-]</th><th>Surface ONPG concentration [mM]</th><th>Center ONPG concentration [mM]</th></tr></thead><tbody>${state.designTrials.map(t=>`<tr><td>${format(t.diameter)}</td><td>${format(t.eta)}</td><td>${format(t.surface)}</td><td>${format(t.center)}</td></tr>`).join("")}</tbody></table></div>`);
-  body.innerHTML=sections.length?sections.join(""):`<div class="empty-state"><h3>No results saved yet</h3><p>In Stage 1, set the automatic 10-second sequence and start the reactor simulation.</p></div>`;
+  body.innerHTML=sections.length?sections.join(""):`<div class="empty-state"><h3>No results saved yet</h3><p>In Stage 1, set the autosampler to 28.33 equivalent laboratory minute intervals and start the reactor simulation.</p></div>`;
 }
 
 function sessionCsv() {
