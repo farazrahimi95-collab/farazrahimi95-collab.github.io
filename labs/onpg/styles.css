@@ -436,3 +436,18 @@ h1, h2, h3, h4, p { margin-top: 0; }
 .comparison-table td:first-child{
   text-align:center;
 }
+
+/* Reviewer-requested legibility and standard data tables. */
+:root { --muted: #344d59; }
+html, body, button, input { font-family: Arial, Helvetica, sans-serif; }
+.stage-navigation-label { max-width: 1500px; margin: 14px auto 0; padding: 0 24px; font-size: 15px; font-weight: 700; color: #153242; }
+.step small { font-size: 13px; opacity: 1; }
+.step strong, .panel-title p, .sample-cue, .legend, .note { font-size: 15px; }
+.data-table { border-collapse: collapse; font-size: 15px; }
+.data-table th, .data-table td { border: 1px solid #85959b; padding: 10px 12px; text-align: center; }
+.data-table th { background: #edf2f4; color: #153242; font-weight: 700; }
+.comparison-table col.comparison-time { width: 32%; }
+.comparison-table col.comparison-conc { width: 34%; }
+.sample-progress { overflow-x: auto; }
+.sample-dot { min-width: 64px; color: #263b44; }
+.apparatus .minor { fill: #344d59; }

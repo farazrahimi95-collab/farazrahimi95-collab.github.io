@@ -93,6 +93,9 @@ function format(value) {
   return rounded.toFixed(decimals);
 }
 
+function labMinutes(seconds) { return seconds / RUN_SECONDS * 340; }
+function formatMinutes(value) { return Number(value.toFixed(2)).toString(); }
+
 function formatWhole(value) {
   const n = Number(value);
   return Number.isFinite(n) ? String(Math.round(n)) : "—";
@@ -222,7 +225,7 @@ function beadCircles(key) {
       const cx = x0 + c * dx + jitterX;
       const cy = y0 + r * dy + jitterY;
       circles += `<g class="fluidized-bead" style="--dx:${dxMove}px;--dy:${dyMove}px;--dur:${duration.toFixed(2)}s;--delay:${delay.toFixed(2)}s">
-        <circle cx="${cx}" cy="${cy}" r="${radius}" fill="#f8efc9" stroke="#c59016" stroke-width="1.8"/>
+        <circle cx="${cx}" cy="${cy}" r="${radius}" fill="url(#beadProduct)" stroke="#a28d4b" stroke-width="1.8"/>
         <ellipse cx="${cx - radius * .27}" cy="${cy - radius * .3}" rx="${(radius * .28).toFixed(1)}" ry="${(radius * .18).toFixed(1)}" fill="#fff" opacity=".72"/>
       </g>`;
     }
@@ -235,6 +238,7 @@ function apparatusSvg(key) {
   return `<svg class="apparatus" id="apparatus" viewBox="0 0 840 470" role="img" aria-label="Recirculating ONPG bead reactor with reservoir, submerged pump, fluidized bead column, and inline spectrophotometer">
     <title>Recirculating immobilized-enzyme reactor</title>
     <defs>
+      <radialGradient id="beadProduct"><stop id="beadCore" offset="0%" stop-color="#ffffff"/><stop id="beadEdge" offset="100%" stop-color="#ffffff"/></radialGradient>
       <linearGradient id="glass" x1="0" x2="1"><stop offset="0" stop-color="#ffffff" stop-opacity=".9"/><stop offset=".5" stop-color="#dceceb" stop-opacity=".38"/><stop offset="1" stop-color="#ffffff" stop-opacity=".84"/></linearGradient>
       <filter id="softShadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="5" stdDeviation="6" flood-color="#0f3047" flood-opacity=".13"/></filter>
     </defs>
@@ -307,12 +311,12 @@ function apparatusSvg(key) {
 }
 
 function sampleRows(samples) {
-  if (!samples.length) return `<tr><td colspan="3" class="pending">No readings yet. Set the automatic 10-second sequence to record the zero baseline.</td></tr>`;
-  return samples.map(s => `<tr><td>${formatWhole(s.simulationSeconds)}</td><td>${format(s.a415)}</td><td>${format(s.onp)}</td></tr>`).join("");
+  if (!samples.length) return `<tr><td colspan="3" class="pending">No readings yet. Set the automatic 28.33-min sequence to record the zero baseline.</td></tr>`;
+  return samples.map(s => `<tr><td>${formatMinutes(s.laboratoryMinutes)}</td><td>${format(s.a415)}</td><td>${format(s.onp)}</td></tr>`).join("");
 }
 
 function sampleProgress(samples) {
-  return SAMPLE_SCHEDULE.map((second, index) => `<span class="sample-dot ${index < samples.length ? "saved" : ""}" title="${second} simulation seconds"><i>${index}</i><small>${second}s</small></span>`).join("");
+  return SAMPLE_SCHEDULE.map((second, index) => `<span class="sample-dot ${index < samples.length ? "saved" : ""}" title="${formatMinutes(labMinutes(second))} equivalent lab min"><i>${index}</i><small>${formatMinutes(labMinutes(second))} min</small></span>`).join("");
 }
 
 function beadSampleAt(dataset, simulationSeconds) {
@@ -333,20 +337,20 @@ function renderBeadStage(key) {
   const run = state.beadRuns[key];
   const area = document.getElementById("stageArea");
   area.innerHTML = `<div class="stage-shell">
-    ${stageHeader(stage, `${d.diameter.toFixed(1)} mm bead experiment`, `Set the automatic spectrophotometer, then run the recirculating reactor for two simulated minutes. ${stage === 1 ? "This establishes the first response." : "Only bead diameter changes from Stage 1."}`, `Same enzyme charge; ${INITIAL_ONPG.toFixed(2)} mM ONPG`)}
+    ${stageHeader(stage, `${d.diameter.toFixed(1)} mm bead experiment`, `Set the automatic spectrophotometer, then run 340 equivalent lab minutes in a two-minute playback. ${stage === 1 ? "This establishes the first response." : "Only bead diameter changes from Stage 1."}`, `Same enzyme charge; ${INITIAL_ONPG.toFixed(2)} mM ONPG`)}
     <div class="stage-grid">
       <section class="panel" aria-label="Virtual reactor apparatus">
         <div class="apparatus-wrap">${apparatusSvg(key)}</div>
         <div class="sample-cue" id="sampleCue"></div>
-        <div class="sample-progress" id="sampleProgress" aria-label="Automatic readings from zero to 120 simulation seconds">${sampleProgress(run.samples)}</div>
+        <div class="sample-progress" id="sampleProgress" aria-label="Automatic readings from zero to 340 equivalent lab minutes">${sampleProgress(run.samples)}</div>
         <div class="instrument-strip">
           <div class="instrument-status"><span class="status-light" id="statusLight"></span><div><strong id="runStatus">${run.complete ? "Simulation complete" : "Reactor ready"}</strong><small id="runSubstatus">120 simulation seconds represent 340 equivalent reaction minutes</small></div></div>
-          <div class="clock"><span>SIMULATION TIME / EQUIVALENT REACTION TIME</span><strong id="clockValue">${format(run.elapsed,0)} s · ${format(run.elapsed / RUN_SECONDS * 340,0)} min</strong></div>
+          <div class="clock"><span>EQUIVALENT LAB TIME</span><strong id="clockValue">${formatMinutes(labMinutes(run.elapsed))} min</strong></div>
         </div>
         <div class="panel-pad">
           <div class="controls">
-            <button class="button button-secondary autosampler-button" id="armSampler" type="button" ${run.armed ? "disabled" : ""}>${run.armed ? "Autosampler set · 10 s intervals" : "Set automatic readings · every 10 s"}</button>
-            <button class="button" id="startRun" type="button" ${!run.armed || run.complete ? "disabled" : ""}>${run.complete ? "Simulation complete" : run.elapsed > 0 ? "Resume simulation" : "Start 2-minute simulation"}</button>
+            <button class="button button-secondary autosampler-button" id="armSampler" type="button" ${run.armed ? "disabled" : ""}>${run.armed ? "Autosampler set at 28.33 min intervals" : "Set autosampler · every 28.33 min"}</button>
+            <button class="button" id="startRun" type="button" ${!run.armed || run.complete ? "disabled" : ""}>${run.complete ? "Simulation complete" : run.elapsed > 0 ? "Resume simulation" : "Start 340-min run (2-minute playback)"}</button>
           </div>
         </div>
       </section>
@@ -360,9 +364,9 @@ function renderBeadStage(key) {
           <div class="metric"><span>ABS<sub>415</sub></span><strong id="currentA">${format(CALIBRATION*interpolateCurve(d, run.elapsed/RUN_SECONDS*340),3)}</strong></div>
           <div class="metric"><span>Conversion</span><strong id="currentConversion">${format(100*interpolateCurve(d, run.elapsed/RUN_SECONDS*340)/INITIAL_ONPG,1)}</strong> <small>%</small></div>
         </div>
-        <div class="panel-title"><div><h3>Automatic spectrophotometer readings</h3><p>The instrument records the zero baseline, then one reading every 10 simulation seconds through 120 s. No manual sampling is required.</p></div></div>
-        <div class="data-table-wrap sample-table-wrap"><table class="data-table"><thead><tr><th>Simulation time [s]</th><th>ABS<sub>415</sub> [-]</th><th>ONP concentration, C<sub>ONP</sub> [mM]</th></tr></thead><tbody id="sampleBody">${sampleRows(run.samples)}</tbody></table></div>
-        <div class="note"><strong>Why ABS<sub>415</sub>?</strong> ONP is yellow and absorbs strongly at 415 nm. Absorbance is a dimensionless measure of how much light the sample removes at that wavelength. After blanking, the calibration <strong>C<sub>ONP</sub> = ABS<sub>415</sub> / 3.58</strong> converts the reading to ONP concentration.</div>
+        <div class="panel-title"><div><h3>Automatic spectrophotometer readings</h3><p>The instrument records the zero baseline and 12 further readings at 28.33 equivalent lab min intervals through 340 min. No manual sampling is required.</p></div></div>
+        <div class="data-table-wrap sample-table-wrap"><table class="data-table"><thead><tr><th>Equivalent lab time [min]</th><th>ABS<sub>415</sub> [-]</th><th>ONP concentration, C<sub>ONP</sub> [mM]</th></tr></thead><tbody id="sampleBody">${sampleRows(run.samples)}</tbody></table></div>
+        <div class="note"><strong>Why ABS<sub>415</sub>?</strong> ONP is yellow and absorbs strongly at 415 nm. Absorbance is a dimensionless measure of how much light the sample absorbs at that wavelength. Before beginning a run, the experimentalist obtains a baseline absorbance for the clear liquid containing ONPG and zeroes the spectrophotometer. This subtracts background absorbance from all samples so that ABS<sub>415</sub> measures ONP alone. The calibration <strong>C<sub>ONP</sub> = ABS<sub>415</sub> / 3.58</strong> converts the reading to ONP concentration.</div>
       </section>
     </div>
     <div class="continue-row"><button class="button button-dark" id="continueStage" type="button" ${run.complete && run.samples.length === SAMPLE_SCHEDULE.length ? "" : "disabled"}>Continue to Stage ${next}</button></div>
@@ -392,7 +396,7 @@ function renderBeadStage(key) {
       document.getElementById("sampleBody").innerHTML = sampleRows(run.samples);
       document.getElementById("sampleProgress").innerHTML = sampleProgress(run.samples);
       saveState();
-      toast(`Automatic reading at ${run.samples.at(-1).simulationSeconds} s saved.`);
+      toast(`Automatic reading at ${formatMinutes(run.samples.at(-1).laboratoryMinutes)} min saved.`);
     }
   }
 
@@ -400,14 +404,17 @@ function renderBeadStage(key) {
     const laboratoryTime = run.elapsed / RUN_SECONDS * 340;
     const onp = currentProduct();
     const conversion = 100 * onp / INITIAL_ONPG;
-    document.getElementById("clockValue").textContent = `${formatWhole(run.elapsed)} s / ${formatWhole(laboratoryTime)} min`;
+    document.getElementById("clockValue").textContent = `${formatMinutes(laboratoryTime)} min`;
     document.getElementById("currentOnp").textContent = format(onp,3);
     document.getElementById("currentA").textContent = format(CALIBRATION * onp,3);
     document.getElementById("currentConversion").textContent = format(conversion,1);
     document.getElementById("spectroValue").textContent = format(CALIBRATION * onp,3);
     const fraction = Math.min(1, conversion / 92);
-    const blend = Math.pow(fraction, .72);
-    const startRgb = [226, 241, 243];
+    const blend = Math.pow(Math.max(0, (fraction - .06) / .94), .72);
+    const beadColor = amount => `rgb(255, ${Math.round(255 - 55*amount)}, ${Math.round(255 - 225*amount)})`;
+    document.getElementById("beadCore").setAttribute("stop-color", beadColor(Math.min(1, fraction*2)));
+    document.getElementById("beadEdge").setAttribute("stop-color", beadColor(Math.max(0, Math.min(1, (fraction-.08)*1.4))));
+    const startRgb = [255, 255, 255];
     const endRgb = [247, 194, 45];
     const productColor = `rgb(${startRgb.map((value, i) => Math.round(lerp(value, endRgb[i], blend))).join(",")})`;
     document.getElementById("apparatus").style.setProperty("--solution-color", productColor);
@@ -420,14 +427,14 @@ function renderBeadStage(key) {
     const cue = document.getElementById("sampleCue");
     if (!run.armed) {
       cue.className = "sample-cue attention";
-      cue.textContent = "Before starting, set the spectrophotometer to record the zero baseline and then read automatically every 10 simulation seconds.";
+      cue.textContent = "Before starting, set the spectrophotometer to record the zero baseline and then read automatically every 28.33 equivalent lab min.";
     } else if (run.samples.length >= SAMPLE_SCHEDULE.length) {
       cue.className = "sample-cue";
       cue.textContent = "All 13 scheduled readings, including the zero baseline, were recorded and saved.";
     } else {
       const due = SAMPLE_SCHEDULE[run.samples.length];
       cue.className = "sample-cue";
-      cue.textContent = running ? `Autosampler armed · next reading at ${due} s (${Math.max(0, Math.ceil(due - run.elapsed))} simulation s remaining).` : "Zero baseline saved · automatic readings will continue every 10 s through 120 s.";
+      cue.textContent = running ? `Autosampler armed · next reading at ${formatMinutes(labMinutes(due))} min.` : "Zero baseline saved · readings continue every 28.33 equivalent lab min through 340 min.";
     }
     armButton.disabled = run.armed;
     startButton.disabled = !run.armed || run.complete;
@@ -479,9 +486,9 @@ function renderBeadStage(key) {
     run.armed = true;
     run.samples = [beadSampleAt(d, 0)];
     saveState();
-    armButton.textContent = "Autosampler set · 10 s intervals";
+    armButton.textContent = "Autosampler set at 28.33 min intervals";
     updateVisuals();
-    toast("Zero baseline saved. Autosampler armed at 10-second intervals.");
+    toast("Zero baseline saved. Autosampler set at 28.33 min intervals.");
   });
   startButton.addEventListener("click", start);
   document.getElementById("continueStage").addEventListener("click", () => navigate(next));
@@ -503,7 +510,7 @@ function drawBeadProgress(canvas, dataset, maxTime) {
   if (end > 0) points.push({ x: end, y: interpolateCurve(dataset, end) });
   drawPlot(canvas, {
     xMin: 0, xMax: 340, yMin: 0, yMax: .84,
-    xLabel: "Equivalent reaction time [min]", yLabel: "ONP concentration [mM]",
+    xLabel: "Equivalent lab time [min]", yLabel: "C_ONP [mM]",
     series: [{ name: `${dataset.diameter} mm`, color: dataset.color, points, width: 3 }],
     xTicks: [0, 80, 160, 240, 320], yTicks: [0,.2,.4,.6,.8]
   });
@@ -515,24 +522,24 @@ function renderComparison() {
   const large = beadSummary("large");
   const runsReady = state.beadRuns.small.samples.length === SAMPLE_SCHEDULE.length && state.beadRuns.large.samples.length === SAMPLE_SCHEDULE.length;
   area.innerHTML = `<div class="stage-shell">
-    ${stageHeader(3, "Compare bead diameter", "This page contains no new experiment. Compare the two automatic datasets already collected in Stages 1 and 2, then connect reactor performance with diffusion inside each bead.", "Comparison only · no controls")}
+    ${stageHeader(3, "Compare bead diameter", "The tables and plot below contrast results for 2.8 and 4.6 mm bead sizes.", "Comparison only · no controls")}
     <div class="compare-summary">
       ${summaryCard("small", small)}${summaryCard("large", large)}
     </div>
     <div class="stage-grid analysis-grid">
       <section class="panel chart-panel">
-        <div class="panel-title"><div><h3>Your two automatic sample series</h3><p>Both bead simulations used the same 0 to 120 s schedule, including the zero baseline, so their ONP responses can be compared point by point.</p></div></div>
-        <div class="chart-frame"><canvas id="compareChart" aria-label="Automatic ONP readings for both bead sizes"></canvas><div class="chart-placeholder" ${runsReady ? "hidden" : ""}>Complete the automatic 10-second series in Stages 1 and 2 to populate this comparison.</div></div>
+        <div class="panel-title"><div><h3>Summary of C<sub>ONP</sub> vs. t [min]</h3><p>Both bead runs use the same 0–340 min laboratory time scale.</p></div></div>
+        <div class="chart-frame"><canvas id="compareChart" aria-label="Automatic ONP readings for both bead sizes"></canvas><div class="chart-placeholder" ${runsReady ? "hidden" : ""}>Complete the automatic sample series in Stages 1 and 2 to populate this comparison.</div></div>
         <div class="legend"><span class="legend-item"><i class="legend-swatch point" style="--swatch:${COLORS.small}"></i>2.8 mm automatic readings</span><span class="legend-item"><i class="legend-swatch point" style="--swatch:${COLORS.large}"></i>4.6 mm automatic readings</span></div>
         <div class="panel-title" style="margin-top:18px"><div><h3>Paired results from Stages 1 and 2</h3><p>These are the 13 readings generated by each bead simulation, not a separate dataset.</p></div></div>
-        <div class="data-table-wrap sample-table-wrap"><table class="data-table comparison-table"><colgroup><col class="comparison-time"><col class="comparison-abs"><col class="comparison-conc"><col class="comparison-abs"><col class="comparison-conc"></colgroup><thead><tr><th>Simulation time [s]</th><th>2.8 mm ABS<sub>415</sub> [-]</th><th>2.8 mm C<sub>ONP</sub> [mM]</th><th>4.6 mm ABS<sub>415</sub> [-]</th><th>4.6 mm C<sub>ONP</sub> [mM]</th></tr></thead><tbody>${comparisonRows()}</tbody></table></div>
+        <div class="data-table-wrap sample-table-wrap"><table class="data-table comparison-table"><colgroup><col class="comparison-time"><col class="comparison-conc"><col class="comparison-conc"></colgroup><thead><tr><th>Equivalent lab time [min]</th><th>C<sub>ONP</sub> [mM]<br>2.8 mm bead</th><th>C<sub>ONP</sub> [mM]<br>4.6 mm bead</th></tr></thead><tbody>${comparisonRows()}</tbody></table></div>
       </section>
       <section class="panel chart-panel">
-        <div class="panel-title"><div><h3>Modeled radial ONPG profiles</h3><p>Dimensionless radius runs from bead center (0) to surface (1).</p></div></div>
+        <div class="panel-title"><div><h3>C<sub>ONPG</sub> vs. dimensionless radius</h3><p>Center (0) to surface (1).</p></div></div>
         <div class="chart-frame"><canvas id="profileChart" aria-label="Radial ONPG concentration profiles for both bead sizes"></canvas></div>
-        <div class="legend"><span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.small}"></i>d = 2.80 mm; internal effectiveness factor, η<sub>i</sub> = 0.450</span><span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.large}"></i>d = 4.60 mm; internal effectiveness factor, η<sub>i</sub> = 0.290</span></div>
-        <div class="equation">For spheres of equal total bead volume: &nbsp; A<sub>total</sub> / V<sub>total</sub> = 6 / d</div>
-        <div class="note"><strong>How to read the model:</strong> η<sub>i</sub> compares the actual whole-bead rate with the rate expected if the entire bead were at its surface concentration. It is an output—not a control.</div>
+        <div class="legend"><span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.small}"></i>d = 2.8 mm; internal effectiveness factor, η<sub>i</sub> = 0.450</span><span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.large}"></i>d = 4.6 mm; internal effectiveness factor, η<sub>i</sub> = 0.290</span></div>
+
+        <div class="note">Engineers use an internal effectiveness factor for beads, η<sub>i</sub>, which is the ratio of the actual reaction rate to that expected if the entire bead were at its surface concentration. ONPG consumption in the outer region can leave little substrate available for reaction in the bead interior.</div>
       </section>
     </div>
     <div class="continue-row"><button class="button button-dark" id="continueStage" type="button">Continue to Stage 4</button></div>
@@ -541,7 +548,7 @@ function renderComparison() {
   const largeProfile = solveBead(4.6, "large");
   const draw = () => {
     drawPlot(document.getElementById("compareChart"), {
-      xMin:0,xMax:340,yMin:0,yMax:.84,xLabel:"Equivalent reaction time [min]",yLabel:"ONP concentration [mM]",
+      xMin:0,xMax:340,yMin:0,yMax:.84,xLabel:"Equivalent lab time [min]",yLabel:"C_ONP [mM]",
       xTicks:[0,85,170,255,340],yTicks:[0,.2,.4,.6,.8],
       series:[
         {name:"2.8 mm",color:COLORS.small,points:state.beadRuns.small.samples.map(s=>({x:s.laboratoryMinutes,y:s.onp})),width:2.5,markers:true},
@@ -578,7 +585,7 @@ function comparisonRows() {
   return SAMPLE_SCHEDULE.map((second, index) => {
     const a = small.find(sample => sample.simulationSeconds === second) || small[index];
     const b = large.find(sample => sample.simulationSeconds === second) || large[index];
-    return `<tr><td>${second}</td><td>${value(a,"a415")}</td><td>${value(a,"onp")}</td><td>${value(b,"a415")}</td><td>${value(b,"onp")}</td></tr>`;
+    return `<tr><td>${formatMinutes(labMinutes(second))}</td><td>${value(a,"onp")}</td><td>${value(b,"onp")}</td></tr>`;
   }).join("");
 }
 
@@ -702,14 +709,14 @@ function drawKineticTraces(canvas, progress=1) {
     name:String(KINETICS.concentrations[i]), color:COLORS.series[i], width:2.3, markers:progress>=1,
     points:Array.from({length:10},(_,j)=>({x:j*.5,y:rate*j*.5})).filter(p=>p.x<=xEnd+.001)
   }));
-  drawPlot(canvas,{xMin:0,xMax:4.5,yMin:0,yMax:.011,xLabel:"Assay time [s]",yLabel:"ONP concentration [mM]",xTicks:[0,1,2,3,4],yTicks:[0,.002,.004,.006,.008,.010],series});
+  drawPlot(canvas,{xMin:0,xMax:4.5,yMin:0,yMax:.011,xLabel:"Assay time [s]",yLabel:"C_ONP [mM]",xTicks:[0,1,2,3,4],yTicks:[0,.002,.004,.006,.008,.010],series});
 }
 
 function renderRateCurve() {
   const area = document.getElementById("stageArea");
   const ready = state.kinetics.ratesShown;
   area.innerHTML = `<div class="stage-shell">
-    ${stageHeader(5, "Build the Michaelis–Menten rate curve", "Use the six initial slopes collected in Stage 4. This stage organizes those measurements into a single rate-versus-substrate relationship.", "Analysis only · Stage 4 data")}
+    ${stageHeader(5, "Build the Michaelis–Menten rate curve", "Use the six initial slopes collected in Stage 4. First predict the curve in the worksheet. Then plot the measured values and use the worksheet reciprocal-plot instructions to estimate kinetic parameters.", "Analysis only · Stage 4 data")}
     <div class="stage-grid analysis-grid">
       <section class="panel panel-pad">
         <div class="panel-title"><div><h3>Measured initial rates</h3><p>Each value is the slope of one Stage 4 ONP-time trace.</p></div></div>
@@ -720,7 +727,7 @@ function renderRateCurve() {
           <button class="button button-secondary" id="halfGuide" type="button" ${!state.curveBuilt || state.halfGuide ? "disabled" : ""}>Show half-maximum guide</button>
         </div>
         ${!ready ? `<div class="note"><strong>Stage 4 is incomplete.</strong> Return to the kinetic scan and reveal all six initial rates before building this graph.</div>` : ""}
-        ${state.curveBuilt ? `<div class="callout" style="margin-top:15px"><h4>Teaching fit</h4><p>V<sub>max</sub> = <code>0.00226 mM/s</code> &nbsp;·&nbsp; K<sub>m</sub> = <code>2.00 mM</code>. Measured points need not fall exactly on the fitted curve.</p></div>` : ""}
+        ${state.curveBuilt ? `<div class="callout" style="margin-top:15px"><h4>Teaching fit</h4><p>V<sub>max</sub> = <code>0.00226 mM/s</code> &nbsp;·&nbsp; K<sub>m</sub> = <code>2.00 mM</code>. Measured points need not fall exactly on this supplied curve. A least-squares reciprocal fit to the six displayed rates gives approximately V<sub>max</sub> = 0.00188 mM/s and K<sub>M</sub> = 1.17 mM; reciprocal fitting weights the data differently.</p></div>` : ""}
       </section>
       <section class="panel chart-panel">
         <div class="panel-title"><div><h3>Initial rate versus initial ONPG concentration</h3><p>Measured rates are points; the Michaelis–Menten model is a solid curve.</p></div></div>
@@ -894,7 +901,7 @@ function solveBead(diameter, fixedKey=null) {
 }
 
 function drawProfiles(canvas, profiles) {
-  drawPlot(canvas,{xMin:0,xMax:1,yMin:0,yMax:.86,xLabel:"Dimensionless radius, r/R",yLabel:"ONPG concentration [mM]",xTicks:[0,.2,.4,.6,.8,1],yTicks:[0,.2,.4,.6,.8],series:profiles.map(p=>({name:p.name,color:p.color,width:3,points:p.profile.points}))});
+  drawPlot(canvas,{xMin:0,xMax:1,yMin:0,yMax:.86,xLabel:"Dimensionless radius, r/R",yLabel:"C_ONPG [mM]",xTicks:[0,.2,.4,.6,.8,1],yTicks:[0,.2,.4,.6,.8],series:profiles.map(p=>({name:p.name,color:p.color,width:3,points:p.profile.points}))});
 }
 
 function drawPlot(canvas, options) {
@@ -914,11 +921,11 @@ function drawPlot(canvas, options) {
   const sy=y=>m.top+h-(y-options.yMin)/(options.yMax-options.yMin)*h;
   ctx.clearRect(0,0,cssWidth,cssHeight);
   ctx.fillStyle="#fff";ctx.fillRect(0,0,cssWidth,cssHeight);
-  ctx.font="11px Inter, Segoe UI, sans-serif";
+  ctx.font="14px Arial, sans-serif";
   ctx.strokeStyle="#e2e9e9";ctx.lineWidth=1;
-  ctx.fillStyle="#657b84";
-  (options.yTicks||[]).forEach(t=>{const y=sy(t);ctx.beginPath();ctx.moveTo(m.left,y);ctx.lineTo(m.left+w,y);ctx.stroke();ctx.textAlign="right";ctx.textBaseline="middle";ctx.fillText(t<.01&&t!==0?t.toFixed(4):String(t),m.left-8,y);});
-  (options.xTicks||[]).forEach(t=>{const x=sx(t);ctx.beginPath();ctx.moveTo(x,m.top);ctx.lineTo(x,m.top+h);ctx.stroke();ctx.textAlign="center";ctx.textBaseline="top";ctx.fillText(String(t),x,m.top+h+8);});
+  ctx.fillStyle="#263b44";
+  (options.yTicks||[]).forEach(t=>{const y=sy(t);ctx.beginPath();ctx.moveTo(m.left-5,y);ctx.lineTo(m.left,y);ctx.stroke();ctx.textAlign="right";ctx.textBaseline="middle";ctx.fillText(t<.01&&t!==0?t.toFixed(4):String(t),m.left-8,y);});
+  (options.xTicks||[]).forEach(t=>{const x=sx(t);ctx.beginPath();ctx.moveTo(x,m.top+h);ctx.lineTo(x,m.top+h+5);ctx.stroke();ctx.textAlign="center";ctx.textBaseline="top";ctx.fillText(String(t),x,m.top+h+8);});
   ctx.strokeStyle="#748b94";ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(m.left,m.top);ctx.lineTo(m.left,m.top+h);ctx.lineTo(m.left+w,m.top+h);ctx.stroke();
   (options.series||[]).forEach(s=>{
     if(!s.points?.length)return;
@@ -927,7 +934,7 @@ function drawPlot(canvas, options) {
     if(s.markers){ctx.setLineDash([]);s.points.forEach(p=>{ctx.beginPath();ctx.arc(sx(p.x),sy(p.y),3.4,0,Math.PI*2);ctx.fill();ctx.strokeStyle="#fff";ctx.lineWidth=1;ctx.stroke();});}
     ctx.restore();
   });
-  ctx.fillStyle="#36535f";ctx.font="600 12px Inter, Segoe UI, sans-serif";ctx.textAlign="center";ctx.textBaseline="bottom";ctx.fillText(options.xLabel,m.left+w/2,cssHeight-4);
+  ctx.fillStyle="#36535f";ctx.font="600 14px Arial, sans-serif";ctx.textAlign="center";ctx.textBaseline="bottom";ctx.fillText(options.xLabel,m.left+w/2,cssHeight-4);
   ctx.save();ctx.translate(17,m.top+h/2);ctx.rotate(-Math.PI/2);ctx.textAlign="center";ctx.textBaseline="top";ctx.fillText(options.yLabel,0,0);ctx.restore();
 }
 
@@ -936,7 +943,7 @@ function renderDataDialog() {
   const sections=[];
   for(const key of ["small","large"]){
     const run=state.beadRuns[key];
-    if(run.samples.length) sections.push(`<div class="panel-title"><div><h3>${LAB[key].diameter.toFixed(1)} mm bead samples</h3></div></div><div class="data-table-wrap"><table class="data-table"><thead><tr><th>Simulation time [s]</th><th>ABS<sub>415</sub> [-]</th><th>ONP concentration, C<sub>ONP</sub> [mM]</th></tr></thead><tbody>${sampleRows(run.samples)}</tbody></table></div>`);
+    if(run.samples.length) sections.push(`<div class="panel-title"><div><h3>${LAB[key].diameter.toFixed(1)} mm bead samples</h3></div></div><div class="data-table-wrap"><table class="data-table"><thead><tr><th>Equivalent lab time [min]</th><th>ABS<sub>415</sub> [-]</th><th>ONP concentration, C<sub>ONP</sub> [mM]</th></tr></thead><tbody>${sampleRows(run.samples)}</tbody></table></div>`);
   }
   if(state.kinetics.ratesShown) sections.push(`<div class="panel-title" style="margin-top:20px"><div><h3>Free-enzyme initial rates</h3></div></div><div class="data-table-wrap"><table class="data-table"><thead><tr><th>Initial ONPG concentration, C<sub>ONPG,0</sub> [mM]</th><th>Initial rate, v<sub>0</sub> [mM/s]</th></tr></thead><tbody>${kineticRateRows()}</tbody></table></div>`);
   if(state.designTrials.length) sections.push(`<div class="panel-title" style="margin-top:20px"><div><h3>Saved bead designs</h3></div></div><div class="data-table-wrap"><table class="data-table"><thead><tr><th>Bead diameter [mm]</th><th>Internal effectiveness factor, η<sub>i</sub> [-]</th><th>Surface ONPG concentration [mM]</th><th>Center ONPG concentration [mM]</th></tr></thead><tbody>${state.designTrials.map(t=>`<tr><td>${format(t.diameter)}</td><td>${format(t.eta)}</td><td>${format(t.surface)}</td><td>${format(t.center)}</td></tr>`).join("")}</tbody></table></div>`);
