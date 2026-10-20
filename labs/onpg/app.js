@@ -621,7 +621,7 @@ function renderKineticScan() {
             <button class="button" id="startScan" type="button" ${!k.blanked || k.scanned ? "disabled" : ""}>Start 4.5-s scan</button>
             <button class="button button-secondary" id="showRates" type="button" ${!k.scanned || k.ratesShown ? "disabled" : ""}>Show initial rates</button>
           </div>
-          <div class="note"><strong>Why blank first?</strong> The cuvette and reaction mixture contribute background absorbance before ONP is measured. Blanking subtracts that background and sets the baseline to zero. The calibration converts ABS<sub>415</sub> to C<sub>ONP</sub>, and the slope of each early C<sub>ONP</sub>-time line is the initial rate, v<sub>0</sub>.</div>
+          <div class="note"><strong>Why blank first?</strong> The cuvette and reaction mixture contribute background absorbance before ONP is measured. Blanking subtracts that background and sets the baseline to zero. The calibration <strong>C<sub>ONP</sub> = ABS<sub>415</sub> / 3.43</strong> converts absorbance to ONP concentration, and the slope of each early C<sub>ONP</sub>-time line is the initial rate, v<sub>0</sub>.</div>
         </div>
       </section>
       <section class="panel chart-panel">
