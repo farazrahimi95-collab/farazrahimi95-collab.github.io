@@ -1,6 +1,6 @@
 "use strict";
 
-const CALIBRATION = 3.58; // ABS415 = 3.58 × [ONP, mM]
+const CALIBRATION = 3.43; // rounded fitted slope, ABS415 [-] = 3.43 [mM^-1] × CONP [mM]; fitted slope in supplied graph = 3.4337
 const BACKGROUND_ABS415 = 0.056;
 const INITIAL_ONPG = 0.83;
 // Concentration scale that preserves the supplied MATLAB cBulk = 0.403 at 0.83 mM.
@@ -372,7 +372,7 @@ function renderBeadStage(key) {
         </div>
         <div class="panel-title"><div><h3>Automatic spectrophotometer readings</h3><p>The instrument records the zero baseline and 12 further readings at 28.33 equivalent lab min intervals through 340 min. No manual sampling is required.</p></div></div>
         <div class="data-table-wrap sample-table-wrap"><table class="data-table"><thead><tr><th>Equivalent lab time [min]</th><th>ABS<sub>415</sub> [-]</th><th>ONP concentration, C<sub>ONP</sub> [mM]</th></tr></thead><tbody id="sampleBody">${sampleRows(run.samples)}</tbody></table></div>
-        <div class="note"><strong>Why ABS<sub>415</sub>?</strong> ONP is yellow and absorbs strongly at 415 nm. Absorbance is a dimensionless measure of how much light the sample absorbs at that wavelength. Before beginning a run, the experimentalist obtains a baseline absorbance for the clear liquid containing ONPG and zeroes the spectrophotometer. This subtracts background absorbance from all samples so that ABS<sub>415</sub> measures ONP alone. The calibration <strong>C<sub>ONP</sub> = ABS<sub>415</sub> / 3.58</strong> converts the reading to ONP concentration.</div>
+        <div class="note"><strong>Why ABS<sub>415</sub>?</strong> ONP is yellow and absorbs strongly at 415 nm. Absorbance is a dimensionless measure of how much light the sample absorbs at that wavelength. Before beginning a run, the experimentalist obtains a baseline absorbance for the clear liquid containing ONPG and zeroes the spectrophotometer. This subtracts background absorbance from all samples so that ABS<sub>415</sub> measures ONP alone. The calibration <strong>C<sub>ONP</sub> = ABS<sub>415</sub> / 3.43</strong> converts the reading to ONP concentration.</div>
       </section>
     </div>
     <div class="continue-row"><button class="button button-dark" id="continueStage" type="button" ${run.complete && run.samples.length === SAMPLE_SCHEDULE.length ? "" : "disabled"}>Continue to Stage ${next}</button></div>
