@@ -813,7 +813,10 @@ function renderDesign() {
     const profiles = a.six && a.three ? [
       {name:"0.6 mm", color:COLORS.large, profile:a.six.profile || solveBead(0.6,null)},
       {name:"0.3 mm", color:COLORS.small, profile:a.three.profile || solveBead(0.3,null)}
-    ] : [{name:`${state.designDiameter.toFixed(1)} mm`,color:COLORS.navy,profile:currentProfile}];
+    ] : [];
+    if (!profiles.length || (Math.abs(d-0.6)>.001 && Math.abs(d-0.3)>.001)) {
+      profiles.push({name:`${d.toFixed(1)} mm (current)`,color:COLORS.navy,profile:currentProfile});
+    }
         drawProfiles(document.getElementById("designProfileChart"),profiles);
   };
   draw();
@@ -863,7 +866,7 @@ function designRows(assigned) {
 }
 
 function designLegend(assigned,d) {
-  if (assigned.six && assigned.three) return `<span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.large}"></i>d = 0.6 mm; <span class="math-eta">η<sub>i</sub></span> = ${assigned.six.eta.toFixed(4)}</span><span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.small}"></i>d = 0.3 mm; <span class="math-eta">η<sub>i</sub></span> = ${assigned.three.eta.toFixed(4)}</span>`;
+  if (assigned.six && assigned.three) return `<span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.large}"></i>d = 0.6 mm; <span class="math-eta">η<sub>i</sub></span> = ${assigned.six.eta.toFixed(4)}</span><span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.small}"></i>d = 0.3 mm; <span class="math-eta">η<sub>i</sub></span> = ${assigned.three.eta.toFixed(4)}</span>${(Math.abs(d-0.6)>.001 && Math.abs(d-0.3)>.001)?`<span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.navy}"></i>d = ${d.toFixed(1)} mm; current exploration</span>`:""}`;
   return `<span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.navy}"></i>d = ${d.toFixed(1)} mm; current design (select 0.6 mm, then 0.3 mm)</span>`;
 }
 
