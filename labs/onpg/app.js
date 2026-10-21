@@ -61,7 +61,7 @@ const defaultState = () => ({
   kinetics: { loaded: false, blanked: false, scanned: false, ratesShown: false },
   curveBuilt: false,
   halfGuide: false,
-  designDiameter: 0.5,
+  designDiameter: 2.8,
   designTrials: []
 });
 
@@ -136,7 +136,7 @@ function updateStepper() {
     3: state.beadRuns.small.complete && state.beadRuns.large.complete,
     4: state.kinetics.scanned,
     5: state.curveBuilt,
-    6: getAssignedDesigns().five && getAssignedDesigns().six
+    6: getAssignedDesigns().three && getAssignedDesigns().six
   };
   document.querySelectorAll(".step").forEach(button => {
     const number = Number(button.dataset.stage);
@@ -777,18 +777,16 @@ function renderDesign() {
   const eta = reportedEta(d, profile.eta);
   const assigned = getAssignedDesigns();
   area.innerHTML = `<div class="stage-shell">
-    ${stageHeader(6, "Compare two assigned bead diameters", "Select and save 0.5 mm and 0.6 mm. Record their internal effectiveness factors and concentration profiles; identify which one meets the 0.95 design target.", "Target <span class='math-eta'>η<sub>i</sub></span> ≥ 0.95")}
+    ${stageHeader(6, "Adjust bead diameter and compare two trials", "Use the diameter slider to first set 0.6 mm and save that result. Then reduce the diameter to 0.3 mm and save that result. Compare the internal effectiveness factors and ONPG profiles. You may also explore other diameters.", "Target <span class='math-eta'>η<sub>i</sub></span> ≥ 0.95")}
     <div class="design-grid">
       <section class="panel panel-pad">
-        <div class="panel-title"><div><h3>Diameter control</h3><p>Select and save each assigned diameter: 0.5 mm and 0.6 mm.</p></div><span class="pass-badge ${eta>=.95?"pass":""}">${eta>=.95?"MEETS TARGET":"BELOW TARGET"}</span></div>
+        <div class="panel-title"><div><h3>Adjustable diameter control</h3><p>Required trials: 0.6 mm, then 0.3 mm. Use 0.1 mm increments; other diameters may also be explored.</p></div><span class="pass-badge ${eta>=.95?"pass":""}">${eta>=.95?"MEETS TARGET":"BELOW TARGET"}</span></div>
         <div class="slider-block">
-          <div class="diameter-readout"><strong id="diameterValue">${d.toFixed(1)}</strong><span>mm selected</span></div>
-          <div class="controls">
-            <button class="button ${d===0.5?"":"button-secondary"}" id="selectDesign05" type="button" aria-pressed="${d===0.5}">Select 0.5 mm</button>
-            <button class="button ${d===0.6?"":"button-secondary"}" id="selectDesign06" type="button" aria-pressed="${d===0.6}">Select 0.6 mm</button>
-            <button class="button button-dark" id="saveDiameter" type="button">Save ${d.toFixed(1)} mm result</button>
-          </div>
-          <p><strong>Saved results:</strong> 0.5 mm ${assigned.five?"✓":"— not yet saved"} · 0.6 mm ${assigned.six?"✓":"— not yet saved"}</p>
+          <div class="diameter-readout"><strong id="diameterValue">${d.toFixed(1)}</strong><span>mm diameter</span></div>
+          <input class="range" id="diameterSlider" type="range" min="0.3" max="4.6" step="0.1" value="${d.toFixed(1)}" aria-label="Adjust bead diameter in millimeters">
+          <div class="range-scale"><span>0.3 mm</span><span>4.6 mm</span></div>
+          <div class="nudge-row"><button class="nudge" id="diameterDown" type="button" aria-label="Decrease diameter by 0.1 mm">−</button><button class="button" id="saveDiameter" type="button">Save ${d.toFixed(1)} mm result</button><button class="nudge" id="diameterUp" type="button" aria-label="Increase diameter by 0.1 mm">+</button></div>
+          <p><strong>Assigned trials:</strong> 0.6 mm ${assigned.six?"✓ saved":"— not yet saved"} · 0.3 mm ${assigned.three?"✓ saved":"— not yet saved"}. Additional diameters are optional.</p>
         </div>
         <div class="metric-row">
           <div class="metric"><span>Internal effectiveness factor</span><strong id="etaValue">${eta.toFixed(4)}</strong></div>
@@ -800,20 +798,21 @@ function renderDesign() {
         <div class="note"><strong>Model basis:</strong> the same ONPG, enzyme kinetics, and transport assumptions are held fixed while diameter changes. The 2.8 and 4.6 mm rows are laboratory-tested sizes; smaller design sizes are predictions.</div>
       </section>
       <section class="panel chart-panel">
-        <div class="panel-title"><div><h3>Surface-to-center ONPG profiles</h3><p>Once both assigned results are saved, their profiles appear together on this graph.</p></div></div>
+        <div class="panel-title"><div><h3>Surface-to-center ONPG profiles</h3><p>After saving both required results, the 0.6 mm and 0.3 mm profiles appear together on this graph.</p></div></div>
         <div class="chart-frame"><canvas id="designProfileChart" aria-label="Radial ONPG concentration profiles for selected bead sizes"></canvas></div>
         <div class="legend" id="designLegend">${designLegend(assigned,d)}</div>
-        <div class="panel-title" style="margin-top:18px"><div><h3>Design table</h3><p>The 0.5 mm and 0.6 mm rows update as you save each result.</p></div></div>
+        <div class="panel-title" style="margin-top:18px"><div><h3>Design table</h3><p>The 0.6 mm and 0.3 mm rows update as you save each result.</p></div></div>
         <div class="data-table-wrap"><table class="data-table result-table"><thead><tr><th>Result</th><th>Bead diameter [mm]</th><th>Internal effectiveness factor, <span class='math-eta'>η<sub>i</sub></span> [-]</th><th>Surface ONPG concentration [mM]</th><th>Center ONPG concentration [mM]</th></tr></thead><tbody>${designRows(assigned)}</tbody></table></div>
       </section>
     </div>
   </div>`;
   let currentProfile = profile;
+  const slider = document.getElementById("diameterSlider");
   const draw = () => {
     const a = getAssignedDesigns();
-    const profiles = a.five && a.six ? [
-      {name:"0.5 mm", color:COLORS.small, profile:a.five.profile || solveBead(0.5,null)},
-      {name:"0.6 mm", color:COLORS.large, profile:a.six.profile || solveBead(0.6,null)}
+    const profiles = a.six && a.three ? [
+      {name:"0.6 mm", color:COLORS.large, profile:a.six.profile || solveBead(0.6,null)},
+      {name:"0.3 mm", color:COLORS.small, profile:a.three.profile || solveBead(0.3,null)}
     ] : [{name:`${state.designDiameter.toFixed(1)} mm`,color:COLORS.navy,profile:currentProfile}];
         drawProfiles(document.getElementById("designProfileChart"),profiles);
   };
@@ -821,12 +820,13 @@ function renderDesign() {
   window.addEventListener("resize",draw,{passive:true});
 
   function setDiameter(value) {
-    state.designDiameter = value === 0.6 ? 0.6 : 0.5;
+    state.designDiameter = Math.max(0.3, Math.min(4.6, Math.round(value*10)/10));
     saveState();
     renderDesign();
   }
-  document.getElementById("selectDesign05").addEventListener("click",()=>setDiameter(0.5));
-  document.getElementById("selectDesign06").addEventListener("click",()=>setDiameter(0.6));
+  slider.addEventListener("change",event=>setDiameter(Number(event.target.value)));
+  document.getElementById("diameterDown").addEventListener("click",()=>setDiameter(d-0.1));
+  document.getElementById("diameterUp").addEventListener("click",()=>setDiameter(d+0.1));
     document.getElementById("saveDiameter").addEventListener("click",()=>{
     const trial = { diameter:d, eta, surface:profile.surface, center:profile.center, profile };
     state.designTrials = state.designTrials.filter(t=>Math.abs(t.diameter-d)>.001);
@@ -848,7 +848,7 @@ function reportedEta(d, raw) {
 
 function getAssignedDesigns() {
   const trials = state.designTrials || [];
-  return {five: trials.find(t=>Math.abs(t.diameter-0.5)<0.001) || null,
+  return {three: trials.find(t=>Math.abs(t.diameter-0.3)<0.001) || null,
           six: trials.find(t=>Math.abs(t.diameter-0.6)<0.001) || null};
 }
 
@@ -858,13 +858,13 @@ function designRows(assigned) {
   const row = (label,t) => t ? `<tr><td>${label}</td><td>${t.diameter.toFixed(1)}</td><td>${t.eta.toFixed(4)}</td><td>${format(t.surface,3)}</td><td>${format(t.center,3)}</td></tr>` : `<tr><td>${label}</td><td colspan="4" class="pending">Not saved yet</td></tr>`;
   return row("Large laboratory bead",{diameter:4.6,eta:.29,surface:knownLarge.surface,center:knownLarge.center}) +
     row("Small laboratory bead",{diameter:2.8,eta:.45,surface:knownSmall.surface,center:knownSmall.center}) +
-    row("Assigned 0.5 mm",assigned.five) +
-    row("Assigned 0.6 mm",assigned.six);
+    row("Assigned 0.6 mm",assigned.six) +
+    row("Assigned 0.3 mm",assigned.three);
 }
 
 function designLegend(assigned,d) {
-  if (assigned.five && assigned.six) return `<span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.small}"></i>d = 0.5 mm; <span class="math-eta">η<sub>i</sub></span> = ${assigned.five.eta.toFixed(4)}</span><span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.large}"></i>d = 0.6 mm; <span class="math-eta">η<sub>i</sub></span> = ${assigned.six.eta.toFixed(4)}</span>`;
-  return `<span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.navy}"></i>d = ${d.toFixed(1)} mm; current assigned design</span>`;
+  if (assigned.six && assigned.three) return `<span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.large}"></i>d = 0.6 mm; <span class="math-eta">η<sub>i</sub></span> = ${assigned.six.eta.toFixed(4)}</span><span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.small}"></i>d = 0.3 mm; <span class="math-eta">η<sub>i</sub></span> = ${assigned.three.eta.toFixed(4)}</span>`;
+  return `<span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.navy}"></i>d = ${d.toFixed(1)} mm; current design (select 0.6 mm, then 0.3 mm)</span>`;
 }
 
 function solveBead(diameter, fixedKey=null) {
