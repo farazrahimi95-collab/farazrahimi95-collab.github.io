@@ -742,9 +742,9 @@ function renderRateCurve() {
       </section>
     </div>
     <section class="panel chart-panel" style="margin-top:18px">
-      <div class="panel-title"><div><h3>Extended-range model and saturation</h3><p>Measured Stage 4 rates are circles; additional calculated rates are open triangles. These three high-concentration points are model predictions, not measurements.</p></div></div>
+      <div class="panel-title"><div><h3>Extended-range model and saturation</h3><p>Measured Stage 4 rates are circles; additional calculated rates are orange triangles. These three high-concentration points are model predictions, not measurements.</p></div></div>
       <div class="chart-frame"><canvas id="extendedMmChart" aria-label="Extended ONPG Michaelis–Menten rate curve with three model predictions"></canvas><div class="chart-placeholder" ${state.curveBuilt ? "hidden" : ""}>Build the Stage 5 plot to view saturation predictions.</div></div>
-      <div class="legend"><span class="legend-item"><i class="legend-swatch point" style="--swatch:${COLORS.navy}"></i>Six measured (circles)</span><span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.small}"></i>Teaching model (line)</span><span class="legend-item">△ Three predicted (open triangles)</span></div>
+      <div class="legend"><span class="legend-item"><i class="legend-swatch point" style="--swatch:${COLORS.navy}"></i>Six measured (circles)</span><span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.small}"></i>Teaching model (line)</span><span class="legend-item">△ Three predicted (orange triangles)</span></div>
     </section>
     <div class="continue-row"><button class="button button-dark" id="continueStage" type="button" ${state.curveBuilt ? "" : "disabled"}>Continue to Stage 6</button></div>
   </div>`;
@@ -958,7 +958,7 @@ function drawPlot(canvas, options) {
     if((s.width??2.5)>0){ctx.beginPath();s.points.forEach((p,i)=>{const x=sx(p.x),y=sy(p.y);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();}
     if(s.markers){ctx.setLineDash([]);s.points.forEach(p=>{
       const x=sx(p.x),y=sy(p.y);ctx.beginPath();
-      if(s.markerShape==="triangle"){ctx.moveTo(x,y-6);ctx.lineTo(x+5,y+4);ctx.lineTo(x-5,y+4);ctx.closePath();ctx.fillStyle="#fff";ctx.fill();ctx.strokeStyle=s.color;ctx.lineWidth=2;ctx.stroke();}
+      if(s.markerShape==="triangle"){ctx.moveTo(x,y-6);ctx.lineTo(x+5,y+4);ctx.lineTo(x-5,y+4);ctx.closePath();ctx.fillStyle=s.color;ctx.fill();ctx.strokeStyle="#fff";ctx.lineWidth=1;ctx.stroke();}
       else {ctx.arc(x,y,3.4,0,Math.PI*2);ctx.fill();ctx.strokeStyle="#fff";ctx.lineWidth=1;ctx.stroke();}
     });}
     ctx.restore();
