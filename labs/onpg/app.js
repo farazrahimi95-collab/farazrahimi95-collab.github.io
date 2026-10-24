@@ -792,16 +792,20 @@ function renderDesign() {
   const eta = reportedEta(d, profile.eta);
   const assigned = getAssignedDesigns();
   area.innerHTML = `<div class="stage-shell">
-    ${stageHeader(6, "Adjust bead diameter and compare two trials", "Use the diameter slider to first set 0.6 mm and save that result. Then reduce the diameter to 0.3 mm and save that result. Compare the internal effectiveness factors and ONPG profiles. You may also explore other diameters.", "Target <span class='math-eta'>η<sub>i</sub></span> ≥ 0.95")}
+    ${stageHeader(6, "Adjust bead diameter and compare two trials", "Save the required 0.6 mm and 0.3 mm trials, then explore any diameter from 0.1 to 10 mm using the slider or precise numeric entry. Save all results to compare their profiles and effectiveness factors.", "Target <span class='math-eta'>η<sub>i</sub></span> ≥ 0.95")}
     <div class="design-grid">
       <section class="panel panel-pad">
-        <div class="panel-title"><div><h3>Adjustable diameter control</h3><p>Required trials: 0.6 mm, then 0.3 mm. Use 0.1 mm increments; other diameters may also be explored.</p></div><span class="pass-badge ${eta>=.95?"pass":""}">${eta>=.95?"MEETS TARGET":"BELOW TARGET"}</span></div>
+        <div class="panel-title"><div><h3>Adjustable diameter control</h3><p>Required: 0.6 and 0.3 mm. You can also enter and save any additional diameter from 0.1 to 10 mm.</p></div><span class="pass-badge ${eta>=.95?"pass":""}">${eta>=.95?"MEETS TARGET":"BELOW TARGET"}</span></div>
         <div class="slider-block">
-          <div class="diameter-readout"><strong id="diameterValue">${d.toFixed(1)}</strong><span>mm diameter</span></div>
-          <input class="range" id="diameterSlider" type="range" min="0.3" max="4.6" step="0.1" value="${d.toFixed(1)}" aria-label="Adjust bead diameter in millimeters">
-          <div class="range-scale"><span>0.3 mm</span><span>4.6 mm</span></div>
-          <div class="nudge-row"><button class="nudge" id="diameterDown" type="button" aria-label="Decrease diameter by 0.1 mm">−</button><button class="button" id="saveDiameter" type="button">Save ${d.toFixed(1)} mm result</button><button class="nudge" id="diameterUp" type="button" aria-label="Increase diameter by 0.1 mm">+</button></div>
-          <p><strong>Assigned trials:</strong> 0.6 mm ${assigned.six?"✓ saved":"— not yet saved"} · 0.3 mm ${assigned.three?"✓ saved":"— not yet saved"}. Additional diameters are optional.</p>
+          <div class="diameter-readout"><strong id="diameterValue">${formatDiameter(d)}</strong><span>mm diameter</span></div>
+          <input class="range" id="diameterSlider" type="range" min="0.1" max="10" step="0.1" value="${d}" aria-label="Select bead diameter">
+          <div class="range-scale"><span>0.1 mm</span><span>10 mm</span></div>
+          <div class="exact-diameter-controls">
+            <label for="diameterInput"><strong>Exact bead diameter [mm]</strong><small>Enter any value from 0.1 to 10 mm</small></label>
+            <div class="exact-diameter-entry"><input id="diameterInput" type="number" min="0.1" max="10" step="any" value="${formatDiameter(d)}" aria-label="Exact bead diameter in millimeters"><button class="button button-secondary" id="applyDiameter" type="button">Calculate</button></div>
+          </div>
+          <div class="nudge-row"><button class="nudge" id="diameterDown" type="button" aria-label="Decrease diameter by 0.1 millimeter">−</button><button class="button" id="saveDiameter" type="button">Save ${formatDiameter(d)} mm result</button><button class="nudge" id="diameterUp" type="button" aria-label="Increase diameter by 0.1 millimeter">+</button></div>
+          <p><strong>Required:</strong> 0.6 mm ${assigned.six?"✓ saved":"— not saved"} · 0.3 mm ${assigned.three?"✓ saved":"— not saved"}. <strong>Additional saved:</strong> ${state.designTrials.filter(t=>!isAssignedDiameter(t.diameter)).length}.</p>
         </div>
         <div class="metric-row">
           <div class="metric"><span>Internal effectiveness factor</span><strong id="etaValue">${eta.toFixed(4)}</strong></div>
@@ -813,10 +817,10 @@ function renderDesign() {
         <div class="note"><strong>Model basis:</strong> the same ONPG, enzyme kinetics, and transport assumptions are held fixed while diameter changes. The 2.8 and 4.6 mm rows are laboratory-tested sizes; smaller design sizes are predictions.</div>
       </section>
       <section class="panel chart-panel">
-        <div class="panel-title"><div><h3>Surface-to-center ONPG profiles</h3><p>After saving both required results, the 0.6 mm and 0.3 mm profiles appear together on this graph.</p></div></div>
+        <div class="panel-title"><div><h3>Surface-to-center ONPG profiles</h3><p>The graph shows every saved diameter, plus the current selection if it is not yet saved.</p></div></div>
         <div class="chart-frame"><canvas id="designProfileChart" aria-label="Radial ONPG concentration profiles for selected bead sizes"></canvas></div>
-        <div class="legend" id="designLegend">${designLegend(assigned,d)}</div>
-        <div class="panel-title" style="margin-top:18px"><div><h3>Design table</h3><p>The 0.6 mm and 0.3 mm rows update as you save each result.</p></div></div>
+        <div class="legend" id="designLegend">${designLegend(assigned,d,profile)}</div>
+        <div class="panel-title" style="margin-top:18px"><div><h3>Design table</h3><p>The two required rows stay visible, and additional saved diameters appear as new rows.</p></div></div>
         <div class="data-table-wrap"><table class="data-table result-table"><thead><tr><th>Result</th><th>Bead diameter [mm]</th><th>Internal effectiveness factor, <span class='math-eta'>η<sub>i</sub></span> [-]</th><th>Surface ONPG concentration [mM]</th><th>Center ONPG concentration [mM]</th></tr></thead><tbody>${designRows(assigned)}</tbody></table></div>
       </section>
     </div>
