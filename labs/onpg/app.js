@@ -8,11 +8,9 @@ const INITIAL_ONPG = 0.83;
 const PROFILE_CONCENTRATION_SCALE = 2.059220522647014;
 const FAST_MODE = new URLSearchParams(location.search).get("fast") === "1";
 const RUN_SECONDS = 120;
-const SAMPLE_INTERVAL_SECONDS = 10;
-const SAMPLE_SCHEDULE = Array.from(
-  { length: RUN_SECONDS / SAMPLE_INTERVAL_SECONDS + 1 },
-  (_, index) => index * SAMPLE_INTERVAL_SECONDS
-);
+// Six worksheet checkpoints over the full 340-minute laboratory-equivalent run.
+// During the 120-second playback they occur at 0, 10, 30, 60, 90 and 120 s.
+const SAMPLE_SCHEDULE = [0, 10, 30, 60, 90, 120];
 
 const COLORS = {
   small: "#008d83",
@@ -53,7 +51,6 @@ const KINETICS = {
 };
 
 const HIGH_ONPG_MODEL = [39.8,79.6,159.2].map(concentration => ({concentration,rate:KINETICS.vmax*concentration/(KINETICS.km+concentration)})); // equation predictions, not measurements
-const WORKSHEET_SAMPLE_INDICES = [0,1,3,6,9,12];
 const defaultState = () => ({
   stage: 1,
   beadRuns: {
@@ -313,16 +310,16 @@ function apparatusSvg(key) {
 }
 
 function sampleRows(samples) {
-  if (!samples.length) return `<tr><td colspan="3" class="pending">No readings yet. Set the automatic 28.33-min sequence to record the zero baseline.</td></tr>`;
+  if (!samples.length) return `<tr><td colspan="3" class="pending">No readings yet. Set the six-point autosampler to capture the zero baseline.</td></tr>`;
   return samples.map(s => `<tr><td>${formatMinutes(s.laboratoryMinutes)}</td><td>${format(s.a415)}</td><td>${format(s.onp)}</td></tr>`).join("");
 }
 
 function sampleProgress(samples) {
-  // Compact overview: rounded clock labels fit in one row; exact times remain in tooltips and the data tables.
+  // Six exact worksheet-equivalent sample times; display full labels in one row.
   return SAMPLE_SCHEDULE.map((second, index) => {
     const precise = formatMinutes(labMinutes(second));
     const status = index < samples.length ? "recorded" : "pending";
-    return `<span class="sample-dot ${index < samples.length ? "saved" : ""}" title="${precise} equivalent lab min — ${status}" aria-label="${precise} minutes, ${status}"><i>${index}</i><small>${Math.round(labMinutes(second))}</small></span>`;
+    return `<span class="sample-dot ${index < samples.length ? "saved" : ""}" title="${precise} equivalent lab min — ${status}" aria-label="${precise} minutes, ${status}"><i>${index}</i><small>${precise}</small></span>`;
   }).join("");
 }
 
@@ -357,7 +354,7 @@ function renderBeadStage(key) {
         </div>
         <div class="panel-pad">
           <div class="controls">
-            <button class="button button-secondary autosampler-button" id="armSampler" type="button" ${run.armed ? "disabled" : ""}>${run.armed ? "Autosampler set at 28.33 min intervals" : "Set autosampler · every 28.33 min"}</button>
+            <button class="button button-secondary autosampler-button" id="armSampler" type="button" ${run.armed ? "disabled" : ""}>${run.armed ? "Autosampler set for six worksheet times" : "Set autosampler · six worksheet times"}</button>
             <button class="button" id="startRun" type="button" ${!run.armed || run.complete ? "disabled" : ""}>${run.complete ? "Simulation complete" : run.elapsed > 0 ? "Resume simulation" : "Start 340-min run (2-minute playback)"}</button>
           </div>
         </div>
@@ -372,7 +369,7 @@ function renderBeadStage(key) {
           <div class="metric"><span>ABS<sub>415</sub></span><strong id="currentA">${format(CALIBRATION*interpolateCurve(d, run.elapsed/RUN_SECONDS*340),3)}</strong></div>
           <div class="metric"><span>Conversion</span><strong id="currentConversion">${format(100*interpolateCurve(d, run.elapsed/RUN_SECONDS*340)/INITIAL_ONPG,1)}</strong> <small>%</small></div>
         </div>
-        <div class="panel-title"><div><h3>Automatic spectrophotometer readings</h3><p>The instrument records the zero baseline and 12 further readings at 28.33 equivalent lab min intervals through 340 min. No manual sampling is required.</p></div></div>
+        <div class="panel-title"><div><h3>Automatic spectrophotometer readings</h3><p>The instrument records six worksheet-matched readings automatically at 0, 28.33, 85, 170, 255 and 340 equivalent lab min. The reactor runs for the full 340-minute equivalent period.</p></div></div>
         <div class="data-table-wrap sample-table-wrap"><table class="data-table"><thead><tr><th>Equivalent lab time [min]</th><th>ABS<sub>415</sub> [-]</th><th>ONP concentration, C<sub>ONP</sub> [mM]</th></tr></thead><tbody id="sampleBody">${sampleRows(run.samples)}</tbody></table></div>
         <div class="note"><strong>Why ABS<sub>415</sub>?</strong> ONP is yellow and absorbs strongly at 415 nm. Absorbance is a dimensionless measure of how much light the sample absorbs at that wavelength. Before beginning a run, the experimentalist obtains a baseline absorbance for the clear liquid containing ONPG and zeroes the spectrophotometer. This subtracts background absorbance from all samples so that ABS<sub>415</sub> measures ONP alone. The calibration <strong>C<sub>ONP</sub> = ABS<sub>415</sub> / 3.43</strong> converts the reading to ONP concentration.</div>
       </section>
@@ -435,14 +432,14 @@ function renderBeadStage(key) {
     const cue = document.getElementById("sampleCue");
     if (!run.armed) {
       cue.className = "sample-cue attention";
-      cue.textContent = "Before starting, set the spectrophotometer to record the zero baseline and then read automatically every 28.33 equivalent lab min.";
+      cue.textContent = "Before starting, set the autosampler to capture the zero baseline and five more readings at the six worksheet time points.";
     } else if (run.samples.length >= SAMPLE_SCHEDULE.length) {
       cue.className = "sample-cue";
-      cue.textContent = "All 13 scheduled readings, including the zero baseline, were recorded and saved.";
+      cue.textContent = "All six worksheet readings, including the zero baseline, were recorded and saved. Final conversion is shown above.";
     } else {
       const due = SAMPLE_SCHEDULE[run.samples.length];
       cue.className = "sample-cue";
-      cue.textContent = running ? `Autosampler armed · next reading at ${formatMinutes(labMinutes(due))} min.` : "Zero baseline saved · readings continue every 28.33 equivalent lab min through 340 min.";
+      cue.textContent = running ? `Autosampler armed · next reading at ${formatMinutes(labMinutes(due))} min.` : "Zero baseline saved · the remaining five readings will be collected at their worksheet time points.";
     }
     armButton.disabled = run.armed;
     startButton.disabled = !run.armed || run.complete;
@@ -468,7 +465,7 @@ function renderBeadStage(key) {
       startButton.disabled = true;
       continueButton.disabled = run.samples.length !== SAMPLE_SCHEDULE.length;
       saveState();
-      toast(`${d.diameter.toFixed(1)} mm simulation and all 13 automatic readings saved.`);
+      toast(`${d.diameter.toFixed(1)} mm simulation complete; six readings and final conversion saved.`);
       return;
     }
     raf = requestAnimationFrame(tick);
@@ -494,9 +491,9 @@ function renderBeadStage(key) {
     run.armed = true;
     run.samples = [beadSampleAt(d, 0)];
     saveState();
-    armButton.textContent = "Autosampler set at 28.33 min intervals";
+    armButton.textContent = "Autosampler set for six worksheet times";
     updateVisuals();
-    toast("Zero baseline saved. Autosampler set at 28.33 min intervals.");
+    toast("Zero baseline saved. Six worksheet checkpoints are scheduled.");
   });
   startButton.addEventListener("click", start);
   document.getElementById("continueStage").addEventListener("click", () => navigate(next));
@@ -536,10 +533,10 @@ function renderComparison() {
     </div>
     <div class="stage-grid analysis-grid">
       <section class="panel chart-panel">
-        <div class="panel-title"><div><h3>Summary of C<sub>ONP</sub> vs. t [min]</h3><p>Six worksheet checkpoints on the same 0–340 min time scale; the autosampler records all 13.</p></div></div>
+        <div class="panel-title"><div><h3>Summary of C<sub>ONP</sub> vs. t [min]</h3><p>Six readings covering the complete 0–340 min equivalent experiment.</p></div></div>
         <div class="chart-frame"><canvas id="compareChart" aria-label="Automatic ONP readings for both bead sizes"></canvas><div class="chart-placeholder" ${runsReady ? "hidden" : ""}>Complete the automatic sample series in Stages 1 and 2 to populate this comparison.</div></div>
         <div class="legend"><span class="legend-item"><i class="legend-swatch point" style="--swatch:${COLORS.small}"></i>2.8 mm automatic readings</span><span class="legend-item"><i class="legend-swatch point" style="--swatch:${COLORS.large}"></i>4.6 mm automatic readings</span></div>
-        <div class="panel-title" style="margin-top:18px"><div><h3>Paired results from Stages 1 and 2</h3><p>Six worksheet time points selected from the 13 recorded in each simulation.</p></div></div>
+        <div class="panel-title" style="margin-top:18px"><div><h3>Paired results from Stages 1 and 2</h3><p>The same six time points recorded in Stages 1 and 2 are listed here and in the worksheet.</p></div></div>
         <div class="data-table-wrap sample-table-wrap"><table class="data-table comparison-table"><colgroup><col class="comparison-time"><col class="comparison-conc"><col class="comparison-conc"></colgroup><thead><tr><th>Equivalent lab time [min]</th><th>C<sub>ONP</sub> [mM]<br>2.8 mm bead</th><th>C<sub>ONP</sub> [mM]<br>4.6 mm bead</th></tr></thead><tbody>${comparisonRows()}</tbody></table></div>
       </section>
       <section class="panel chart-panel">
@@ -587,10 +584,9 @@ function summaryCard(key, s) {
 function comparisonRows() {
   const small=state.beadRuns.small.samples, large=state.beadRuns.large.samples;
   const value=(array,second)=>{const sample=array.find(s=>s.simulationSeconds===second);return sample?format(sample.onp,3):'<span class="pending">—</span>';};
-  return WORKSHEET_SAMPLE_INDICES.map(index=>{
-    const second=SAMPLE_SCHEDULE[index];
-    return `<tr><td>${formatMinutes(labMinutes(second))}</td><td>${value(small,second)}</td><td>${value(large,second)}</td></tr>`;
-  }).join("");
+  return SAMPLE_SCHEDULE.map(second=>
+    `<tr><td>${formatMinutes(labMinutes(second))}</td><td>${value(small,second)}</td><td>${value(large,second)}</td></tr>`
+  ).join("");
 }
 
 function renderKineticScan() {
@@ -875,13 +871,18 @@ function getAssignedDesigns() {
 }
 
 function designRows(assigned) {
-  const knownSmall = solveBead(2.8,"small");
-  const knownLarge = solveBead(4.6,"large");
-  const row = (label,t) => t ? `<tr><td>${label}</td><td>${t.diameter.toFixed(1)}</td><td>${t.eta.toFixed(4)}</td><td>${format(t.surface,3)}</td><td>${format(t.center,3)}</td></tr>` : `<tr><td>${label}</td><td colspan="4" class="pending">Not saved yet</td></tr>`;
-  return row("Large laboratory bead",{diameter:4.6,eta:.29,surface:knownLarge.surface,center:knownLarge.center}) +
-    row("Small laboratory bead",{diameter:2.8,eta:.45,surface:knownSmall.surface,center:knownSmall.center}) +
-    row("Assigned 0.6 mm",assigned.six) +
-    row("Assigned 0.3 mm",assigned.three);
+  const knownSmall=solveBead(2.8,"small"),knownLarge=solveBead(4.6,"large");
+  // Keep five individual cells per row even before students save their designs.
+  const row=(label,diameter,t)=>{
+    const eta=t?t.eta.toFixed(4):"—";
+    const surface=t?format(t.surface,3):"—";
+    const center=t?format(t.center,3):"—";
+    return `<tr><td>${label}</td><td>${diameter.toFixed(1)}</td><td>${eta}</td><td>${surface}</td><td>${center}</td></tr>`;
+  };
+  return row("Large laboratory bead",4.6,{eta:.29,surface:knownLarge.surface,center:knownLarge.center}) +
+    row("Small laboratory bead",2.8,{eta:.45,surface:knownSmall.surface,center:knownSmall.center}) +
+    row("Assigned 0.6 mm",0.6,assigned.six) +
+    row("Assigned 0.3 mm",0.3,assigned.three);
 }
 
 function designLegend(assigned,d) {
