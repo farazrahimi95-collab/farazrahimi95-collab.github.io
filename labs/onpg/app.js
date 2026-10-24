@@ -521,6 +521,50 @@ function drawBeadProgress(canvas, dataset, maxTime) {
   });
 }
 
+// Full supplied reactor responses appear as smooth lines; ONLY six recorded
+// samples per bead size appear as dots. Include each recorded sample as a knot
+// so dots lie exactly on the smooth shape-preserving interpolated curves.
+function fullReactorResponseCurve(dataset, samples) {
+  const knots=dataset.times.map((x,i)=>({x,y:dataset.onp[i]}));
+  for(const sample of samples){
+    const x=sample.laboratoryMinutes;
+    const found=knots.find(p=>Math.abs(p.x-x)<1e-8);
+    if(found)found.y=sample.onp;else knots.push({x,y:sample.onp});
+  }
+  knots.sort((a,b)=>a.x-b.x);
+  const n=knots.length,h=[],slope=[],tangent=new Array(n);
+  for(let i=0;i<n-1;i++){
+    h[i]=knots[i+1].x-knots[i].x;
+    slope[i]=(knots[i+1].y-knots[i].y)/h[i];
+  }
+  const edge=(ha,hb,sa,sb)=>{
+    const val=((2*ha+hb)*sa-ha*sb)/(ha+hb);
+    if(Math.sign(val)!==Math.sign(sa))return 0;
+    if(Math.sign(sa)!==Math.sign(sb)&&Math.abs(val)>3*Math.abs(sa))return 3*sa;
+    return val;
+  };
+  tangent[0]=edge(h[0],h[1],slope[0],slope[1]);
+  tangent[n-1]=edge(h[n-2],h[n-3],slope[n-2],slope[n-3]);
+  for(let i=1;i<n-1;i++){
+    if(!slope[i-1]||!slope[i]||Math.sign(slope[i-1])!==Math.sign(slope[i]))tangent[i]=0;
+    else{
+      const w1=2*h[i]+h[i-1],w2=h[i]+2*h[i-1];
+      tangent[i]=(w1+w2)/(w1/slope[i-1]+w2/slope[i]);
+    }
+  }
+  const points=[];
+  for(let i=0;i<n-1;i++){
+    const count=Math.max(2,Math.ceil(h[i]/2));
+    for(let j=0;j<count;j++){
+      const t=j/count,t2=t*t,t3=t2*t;
+      const y=(2*t3-3*t2+1)*knots[i].y+(t3-2*t2+t)*h[i]*tangent[i]+(-2*t3+3*t2)*knots[i+1].y+(t3-t2)*h[i]*tangent[i+1];
+      points.push({x:knots[i].x+t*h[i],y});
+    }
+  }
+  points.push({...knots[n-1]});
+  return points;
+}
+
 function renderComparison() {
   const area = document.getElementById("stageArea");
   const small = beadSummary("small");
@@ -533,9 +577,9 @@ function renderComparison() {
     </div>
     <div class="stage-grid analysis-grid">
       <section class="panel chart-panel">
-        <div class="panel-title"><div><h3>Summary of C<sub>ONP</sub> vs. t [min]</h3><p>Six readings covering the complete 0–340 min equivalent experiment.</p></div></div>
-        <div class="chart-frame"><canvas id="compareChart" aria-label="Automatic ONP readings for both bead sizes"></canvas><div class="chart-placeholder" ${runsReady ? "hidden" : ""}>Complete the automatic sample series in Stages 1 and 2 to populate this comparison.</div></div>
-        <div class="legend"><span class="legend-item"><i class="legend-swatch point" style="--swatch:${COLORS.small}"></i>2.8 mm automatic readings</span><span class="legend-item"><i class="legend-swatch point" style="--swatch:${COLORS.large}"></i>4.6 mm automatic readings</span></div>
+        <div class="panel-title"><div><h3>Summary of C<sub>ONP</sub> vs. t [min]</h3><p>Smooth curves show the complete 0–340 min conversion responses; dots mark only the six recorded sample times for each bead size.</p></div></div>
+        <div class="chart-frame"><canvas id="compareChart" aria-label="Complete smooth ONP conversion curves with six recorded sample markers on each curve"></canvas><div class="chart-placeholder" ${runsReady ? "hidden" : ""}>Complete the automatic sample series in Stages 1 and 2 to populate this comparison.</div></div>
+        <div class="legend"><span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.small}"></i>2.8 mm full response</span><span class="legend-item"><i class="legend-swatch point" style="--swatch:${COLORS.small}"></i>Six samples</span><span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.large}"></i>4.6 mm full response</span><span class="legend-item"><i class="legend-swatch point" style="--swatch:${COLORS.large}"></i>Six samples</span></div>
         <div class="panel-title" style="margin-top:18px"><div><h3>Paired results from Stages 1 and 2</h3><p>The same six time points recorded in Stages 1 and 2 are listed here and in the worksheet.</p></div></div>
         <div class="data-table-wrap sample-table-wrap"><table class="data-table comparison-table"><colgroup><col class="comparison-time"><col class="comparison-conc"><col class="comparison-conc"></colgroup><thead><tr><th>Equivalent lab time [min]</th><th>C<sub>ONP</sub> [mM]<br>2.8 mm bead</th><th>C<sub>ONP</sub> [mM]<br>4.6 mm bead</th></tr></thead><tbody>${comparisonRows()}</tbody></table></div>
       </section>
@@ -555,10 +599,12 @@ function renderComparison() {
     drawPlot(document.getElementById("compareChart"), {
       xMin:0,xMax:340,yMin:0,yMax:.84,xLabel:"Equivalent lab time [min]",yLabel:"C<sub>ONP</sub> [mM]",
       xTicks:[0,85,170,255,340],yTicks:[0,.2,.4,.6,.8],
-      series:[
-        {name:"2.8 mm",color:COLORS.small,points:state.beadRuns.small.samples.map(s=>({x:s.laboratoryMinutes,y:s.onp})),width:2.5,markers:true},
-        {name:"4.6 mm",color:COLORS.large,points:state.beadRuns.large.samples.map(s=>({x:s.laboratoryMinutes,y:s.onp})),width:2.5,markers:true}
-      ]
+      series:runsReady?[
+        {name:"2.8 mm full conversion",color:COLORS.small,points:fullReactorResponseCurve(LAB.small,state.beadRuns.small.samples),width:2.8},
+        {name:"4.6 mm full conversion",color:COLORS.large,points:fullReactorResponseCurve(LAB.large,state.beadRuns.large.samples),width:2.8},
+        {name:"2.8 mm six samples",color:COLORS.small,points:state.beadRuns.small.samples.map(p=>({x:p.laboratoryMinutes,y:p.onp})),width:0,markers:true},
+        {name:"4.6 mm six samples",color:COLORS.large,points:state.beadRuns.large.samples.map(p=>({x:p.laboratoryMinutes,y:p.onp})),width:0,markers:true}
+      ]:[]
     });
     drawProfiles(document.getElementById("profileChart"), [
       {name:"2.8 mm", color:COLORS.small, profile:smallProfile},
