@@ -701,7 +701,7 @@ function kineticLegend() {
 function kineticRows(show) {
   if (!show) return `<tr><td colspan="2" class="pending">Complete the scan, then reveal the initial rates.</td></tr>`;
   return KINETICS.concentrations.map((s,i) =>
-    `<tr><td><span class="color-key" style="--series:${COLORS.series[i]}"></span>${format(s)}</td><td>${format(KINETICS.rates[i])}</td></tr>`
+    `<tr><td><span class="color-key" style="--series:${COLORS.series[i]}"></span>${format(s)}</td><td>${KINETICS.rates[i].toFixed(6)}</td></tr>`
   ).join("");
 }
 
@@ -772,7 +772,7 @@ function drawExtendedMichaelis(canvas,built) {
   drawPlot(canvas,{xMin:0,xMax:165,yMin:0,yMax:.0027,xLabel:"Initial ONPG, C<sub>ONPG,0</sub> [mM]",yLabel:"v<sub>0</sub> [mM/s]",xTicks:[0,40,80,120,160],yTicks:[0,.0005,.001,.0015,.002,.0025],series});
 }
 function kineticRateRows() {
-  return KINETICS.concentrations.map((s,i)=>`<tr><td><span class="color-key" style="--series:${COLORS.series[i]}"></span>${format(s,s<10?3:1)}</td><td>${format(KINETICS.rates[i],6)}</td></tr>`).join("");
+  return KINETICS.concentrations.map((s,i)=>`<tr><td><span class="color-key" style="--series:${COLORS.series[i]}"></span>${format(s,s<10?3:1)}</td><td>${KINETICS.rates[i].toFixed(6)}</td></tr>`).join("");
 }
 
 function drawMichaelis(canvas, built, halfGuide) {
