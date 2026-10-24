@@ -1003,6 +1003,7 @@ function renderDataDialog() {
     if(run.samples.length) sections.push(`<div class="panel-title"><div><h3>${LAB[key].diameter.toFixed(1)} mm bead samples</h3></div></div><div class="data-table-wrap"><table class="data-table"><thead><tr><th>Equivalent lab time [min]</th><th>ABS<sub>415</sub> [-]</th><th>ONP concentration, C<sub>ONP</sub> [mM]</th></tr></thead><tbody>${sampleRows(run.samples)}</tbody></table></div>`);
   }
   if(state.kinetics.ratesShown) sections.push(`<div class="panel-title" style="margin-top:20px"><div><h3>Free-enzyme initial rates</h3></div></div><div class="data-table-wrap"><table class="data-table"><thead><tr><th>Initial ONPG concentration, C<sub>ONPG,0</sub> [mM]</th><th>Initial rate, v<sub>0</sub> [mM/s]</th></tr></thead><tbody>${kineticRateRows()}</tbody></table></div>`);
+  if(state.curveBuilt) sections.push(`<div class="panel-title" style="margin-top:20px"><div><h3>High-concentration teaching-model predictions (not measured)</h3></div></div><div class="data-table-wrap"><table class="data-table kinetics-table"><thead><tr><th>Initial ONPG concentration, C<sub>ONPG,0</sub> [mM]</th><th>Predicted initial rate, v<sub>0</sub> [mM/s]</th></tr></thead><tbody>${highModelRows()}</tbody></table></div>`);
   if(state.designTrials.length) sections.push(`<div class="panel-title" style="margin-top:20px"><div><h3>Saved bead designs</h3></div></div><div class="data-table-wrap"><table class="data-table"><thead><tr><th>Bead diameter [mm]</th><th>Internal effectiveness factor, <span class='math-eta'>η<sub>i</sub></span> [-]</th><th>Surface ONPG concentration [mM]</th><th>Center ONPG concentration [mM]</th></tr></thead><tbody>${state.designTrials.map(t=>`<tr><td>${format(t.diameter)}</td><td>${format(t.eta)}</td><td>${format(t.surface)}</td><td>${format(t.center)}</td></tr>`).join("")}</tbody></table></div>`);
   body.innerHTML=sections.length?sections.join(""):`<div class="empty-state"><h3>No results saved yet</h3><p>In Stage 1, set the autosampler to 28.33 equivalent laboratory minute intervals and start the reactor simulation.</p></div>`;
 }
@@ -1011,6 +1012,7 @@ function sessionCsv() {
   const rows=[["section","condition","simulation_time_s","equivalent_reaction_time_min","ABS415","ONP_mM","initial_rate_mM_s","diameter_mm","eta_i","surface_ONPG_mM","center_ONPG_mM"]];
   for(const key of ["small","large"]) state.beadRuns[key].samples.forEach(s=>rows.push(["bead sample",`${LAB[key].diameter} mm`,s.simulationSeconds,s.laboratoryMinutes,s.a415,s.onp,"",LAB[key].diameter,"","",""]));
   if(state.kinetics.ratesShown) KINETICS.concentrations.forEach((s,i)=>rows.push(["free-enzyme kinetics",`${s} mM ONPG`,"","","","",KINETICS.rates[i],"","","",""]));
+  if(state.curveBuilt) HIGH_ONPG_MODEL.forEach(p=>rows.push(["model extrapolation (not measured)",`${p.concentration} mM ONPG`,"","","","",p.rate,"","","",""]));
   state.designTrials.forEach(t=>rows.push(["bead design",`${t.diameter} mm`,"","","","","",t.diameter,t.eta,t.surface,t.center]));
   return rows.map(r=>r.map(v=>`"${String(v).replaceAll('"','""')}"`).join(",")).join("\n");
 }
