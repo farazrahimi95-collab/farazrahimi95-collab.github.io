@@ -827,38 +827,35 @@ function renderDesign() {
   </div>`;
   let currentProfile = profile;
   const slider = document.getElementById("diameterSlider");
-  const draw = () => {
-    const a = getAssignedDesigns();
-    const profiles = a.six && a.three ? [
-      {name:"0.6 mm", color:COLORS.large, profile:a.six.profile || solveBead(0.6,null)},
-      {name:"0.3 mm", color:COLORS.small, profile:a.three.profile || solveBead(0.3,null)}
-    ] : [];
-    if (!profiles.length || (Math.abs(d-0.6)>.001 && Math.abs(d-0.3)>.001)) {
-      profiles.push({name:`${d.toFixed(1)} mm (current)`,color:COLORS.navy,profile:currentProfile});
-    }
-        drawProfiles(document.getElementById("designProfileChart"),profiles);
-  };
+  const draw=()=>drawProfiles(document.getElementById("designProfileChart"), designProfileSeries(assigned,d,currentProfile));
   draw();
   window.addEventListener("resize",draw,{passive:true});
-
-  function setDiameter(value) {
-    state.designDiameter = Math.max(0.3, Math.min(4.6, Math.round(value*10)/10));
-    saveState();
-    renderDesign();
+  function setDiameter(value){
+    const candidate=Number(value);
+    if(!Number.isFinite(candidate)||candidate<0.1||candidate>10){
+      toast("Enter a diameter between 0.1 and 10 mm.");
+      document.getElementById("diameterInput").value=formatDiameter(d);return;
+    }
+    state.designDiameter=candidate;saveState();renderDesign();
   }
-  slider.addEventListener("change",event=>setDiameter(Number(event.target.value)));
-  document.getElementById("diameterDown").addEventListener("click",()=>setDiameter(d-0.1));
-  document.getElementById("diameterUp").addEventListener("click",()=>setDiameter(d+0.1));
-    document.getElementById("saveDiameter").addEventListener("click",()=>{
-    const trial = { diameter:d, eta, surface:profile.surface, center:profile.center, profile };
-    state.designTrials = state.designTrials.filter(t=>Math.abs(t.diameter-d)>.001);
-    state.designTrials.push(trial);
-    state.designTrials.sort((a,b)=>a.diameter-b.diameter);
-    saveState();
-    toast(`${d.toFixed(1)} mm model result saved.`);
-    renderDesign();
+  slider.addEventListener("change",event=>setDiameter(event.target.value));
+  document.getElementById("applyDiameter").addEventListener("click",()=>{
+    const input=document.getElementById("diameterInput");
+    if(!input.value.trim()){toast("Enter a diameter to calculate.");return;}
+    setDiameter(input.value);
   });
-  bindStageReset(6);
+  document.getElementById("diameterInput").addEventListener("keydown",event=>{
+    if(event.key==="Enter"){event.preventDefault();setDiameter(event.currentTarget.value);}
+  });
+  document.getElementById("diameterDown").addEventListener("click",()=>setDiameter(Number((d-0.1).toFixed(8))));
+  document.getElementById("diameterUp").addEventListener("click",()=>setDiameter(Number((d+0.1).toFixed(8))));
+  document.getElementById("saveDiameter").addEventListener("click",()=>{
+    const trial={diameter:d,eta,surface:profile.surface,center:profile.center,profile};
+    state.designTrials=state.designTrials.filter(t=>Math.abs(t.diameter-d)>1e-9);
+    state.designTrials.push(trial);state.designTrials.sort((a,b)=>a.diameter-b.diameter);
+    saveState();toast(`${formatDiameter(d)} mm model result saved.`);renderDesign();
+  });
+    bindStageReset(6);
   cleanupStage = () => window.removeEventListener("resize",draw);
 }
 
