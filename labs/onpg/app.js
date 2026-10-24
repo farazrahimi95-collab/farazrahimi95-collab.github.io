@@ -718,11 +718,14 @@ function renderRateCurve() {
   const area = document.getElementById("stageArea");
   const ready = state.kinetics.ratesShown;
   area.innerHTML = `<div class="stage-shell">
-    ${stageHeader(5, "Build the Michaelis–Menten rate curve", "Use the six initial slopes collected in Stage 4. First predict the curve in the worksheet. Then plot the measured values and use the worksheet reciprocal-plot instructions to estimate kinetic parameters.", "Analysis only · Stage 4 data")}
+    ${stageHeader(5, "Build the Michaelis–Menten rate curve", "Use six measured Stage 4 initial rates and three higher-substrate predictions calculated from the teaching model. These predictions are not experimental measurements.", "Six measured + three model-predicted rates")}
     <div class="stage-grid analysis-grid">
       <section class="panel panel-pad">
-        <div class="panel-title"><div><h3>Measured initial rates</h3><p>Each value is the slope of one Stage 4 ONP-time trace.</p></div></div>
+        <div class="panel-title"><div><h3>Six measured Stage 4 initial rates</h3><p>Each value is the slope of a supplied ONP-time trace.</p></div></div>
         <div class="data-table-wrap"><table class="data-table kinetics-table"><thead><tr><th>Initial ONPG concentration, C<sub>ONPG,0</sub> [mM]</th><th>Initial rate, v₀ [mM/s]</th></tr></thead><tbody>${kineticRateRows()}</tbody></table></div>
+        <div class="panel-title" style="margin-top:18px"><div><h3>Three high-ONPG model predictions (not measured)</h3><p>Extrapolated from the fitted teaching equation beyond 19.9 mM.</p></div></div>
+        <div class="data-table-wrap"><table class="data-table kinetics-table"><thead><tr><th>Initial ONPG concentration, C<sub>ONPG,0</sub> [mM]</th><th>Predicted initial rate, v<sub>0</sub> [mM/s]</th></tr></thead><tbody>${highModelRows()}</tbody></table></div>
+        <div class="note"><strong>Model-only extrapolation:</strong> uses V<sub>max</sub> = 0.00226 mM/s and K<sub>m</sub> = 2.00 mM. No additional assays were performed. Predictions assume no substrate inhibition, enzyme deactivation, or solubility constraints; feasibility at these concentrations has not been established.</div>
         <div class="equation">v<sub>0</sub> = V<sub>max</sub> C<sub>ONPG,0</sub> / (K<sub>m</sub> + C<sub>ONPG,0</sub>)</div>
         <div class="controls">
           <button class="button" id="buildCurve" type="button" ${!ready || state.curveBuilt ? "disabled" : ""}>Build kinetics plot</button>
@@ -732,15 +735,20 @@ function renderRateCurve() {
         ${state.curveBuilt ? `<div class="callout" style="margin-top:15px"><h4>Teaching fit</h4><p>V<sub>max</sub> = <code>0.00226 mM/s</code> &nbsp;·&nbsp; K<sub>m</sub> = <code>2.00 mM</code>. Measured points need not fall exactly on this supplied curve. A least-squares reciprocal fit to the six displayed rates gives approximately V<sub>max</sub> = 0.00188 mM/s and K<sub>m</sub> = 1.17 mM; reciprocal fitting weights the data differently.</p></div>` : ""}
       </section>
       <section class="panel chart-panel">
-        <div class="panel-title"><div><h3>Initial rate versus initial ONPG concentration</h3><p>Measured rates are points; the Michaelis–Menten model is a solid curve.</p></div></div>
+        <div class="panel-title"><div><h3>Measured range: 0–20 mM</h3><p>Six measured rates are circles; the teaching model is a solid curve.</p></div></div>
         <div class="chart-frame"><canvas id="mmChart" aria-label="Michaelis-Menten graph of initial rate versus initial ONPG concentration"></canvas><div class="chart-placeholder" id="mmPlaceholder" ${state.curveBuilt ? "hidden" : ""}>Click Build kinetics plot after completing Stage 4.</div></div>
         <div class="legend"><span class="legend-item"><i class="legend-swatch point" style="--swatch:${COLORS.navy}"></i>Measured v₀</span><span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.small}"></i>Michaelis–Menten fit</span>${state.halfGuide?`<span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.yellow}"></i>Half maximum</span>`:""}</div>
         ${state.halfGuide ? `<div class="note"><strong>Read the guide:</strong> one-half V<sub>max</sub> = 0.00113 mM/s intersects the fitted curve at [S]<sub>0</sub> = 2.00 mM.</div>` : ""}
       </section>
     </div>
+    <section class="panel chart-panel" style="margin-top:18px">
+      <div class="panel-title"><div><h3>Extended-range model and saturation</h3><p>Measured Stage 4 rates are circles; additional calculated rates are open triangles. These three high-concentration points are model predictions, not measurements.</p></div></div>
+      <div class="chart-frame"><canvas id="extendedMmChart" aria-label="Extended ONPG Michaelis–Menten rate curve with three model predictions"></canvas><div class="chart-placeholder" ${state.curveBuilt ? "hidden" : ""}>Build the Stage 5 plot to view saturation predictions.</div></div>
+      <div class="legend"><span class="legend-item"><i class="legend-swatch point" style="--swatch:${COLORS.navy}"></i>Six measured (circles)</span><span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.small}"></i>Teaching model (line)</span><span class="legend-item">△ Three predicted (open triangles)</span></div>
+    </section>
     <div class="continue-row"><button class="button button-dark" id="continueStage" type="button" ${state.curveBuilt ? "" : "disabled"}>Continue to Stage 6</button></div>
   </div>`;
-  const draw = () => drawMichaelis(document.getElementById("mmChart"), state.curveBuilt, state.halfGuide);
+  const draw = () => {drawMichaelis(document.getElementById("mmChart"),state.curveBuilt,state.halfGuide);drawExtendedMichaelis(document.getElementById("extendedMmChart"),state.curveBuilt);};
   draw();
   window.addEventListener("resize", draw, {passive:true});
   document.getElementById("buildCurve").addEventListener("click", () => { state.curveBuilt=true; saveState(); toast("Kinetics plot built and saved."); renderRateCurve(); });
@@ -750,6 +758,19 @@ function renderRateCurve() {
   cleanupStage = () => window.removeEventListener("resize", draw);
 }
 
+function highModelRows() {
+  return HIGH_ONPG_MODEL.map(p=>`<tr><td>${p.concentration.toFixed(1)}</td><td>${p.rate.toFixed(6)}</td></tr>`).join("");
+}
+function drawExtendedMichaelis(canvas,built) {
+  const curve=[];
+  for(let x=0;x<=160;x+=1)curve.push({x,y:KINETICS.vmax*x/(KINETICS.km+x)});
+  const series=built?[
+    {name:"Model",color:COLORS.small,width:3,points:curve},
+    {name:"Measured",color:COLORS.navy,width:0,markers:true,points:KINETICS.concentrations.map((x,i)=>({x,y:KINETICS.rates[i]}))},
+    {name:"Predicted",color:COLORS.large,width:0,markers:true,markerShape:"triangle",points:HIGH_ONPG_MODEL.map(p=>({x:p.concentration,y:p.rate}))}
+  ]:[];
+  drawPlot(canvas,{xMin:0,xMax:165,yMin:0,yMax:.0027,xLabel:"Initial ONPG, C<sub>ONPG,0</sub> [mM]",yLabel:"v<sub>0</sub> [mM/s]",xTicks:[0,40,80,120,160],yTicks:[0,.0005,.001,.0015,.002,.0025],series});
+}
 function kineticRateRows() {
   return KINETICS.concentrations.map((s,i)=>`<tr><td><span class="color-key" style="--series:${COLORS.series[i]}"></span>${format(s,s<10?3:1)}</td><td>${format(KINETICS.rates[i],6)}</td></tr>`).join("");
 }
@@ -935,7 +956,11 @@ function drawPlot(canvas, options) {
     if(!s.points?.length)return;
     ctx.save();ctx.strokeStyle=s.color;ctx.fillStyle=s.color;ctx.lineWidth=s.width??2.5;ctx.lineJoin="round";ctx.lineCap="round";ctx.setLineDash(s.dash||[]);
     if((s.width??2.5)>0){ctx.beginPath();s.points.forEach((p,i)=>{const x=sx(p.x),y=sy(p.y);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();}
-    if(s.markers){ctx.setLineDash([]);s.points.forEach(p=>{ctx.beginPath();ctx.arc(sx(p.x),sy(p.y),3.4,0,Math.PI*2);ctx.fill();ctx.strokeStyle="#fff";ctx.lineWidth=1;ctx.stroke();});}
+    if(s.markers){ctx.setLineDash([]);s.points.forEach(p=>{
+      const x=sx(p.x),y=sy(p.y);ctx.beginPath();
+      if(s.markerShape==="triangle"){ctx.moveTo(x,y-6);ctx.lineTo(x+5,y+4);ctx.lineTo(x-5,y+4);ctx.closePath();ctx.fillStyle="#fff";ctx.fill();ctx.strokeStyle=s.color;ctx.lineWidth=2;ctx.stroke();}
+      else {ctx.arc(x,y,3.4,0,Math.PI*2);ctx.fill();ctx.strokeStyle="#fff";ctx.lineWidth=1;ctx.stroke();}
+    });}
     ctx.restore();
   });
   // Canvas text doesn't interpret markup. Draw subscripts as smaller glyphs
