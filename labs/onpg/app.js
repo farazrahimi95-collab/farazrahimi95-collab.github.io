@@ -871,24 +871,36 @@ function getAssignedDesigns() {
           six: trials.find(t=>Math.abs(t.diameter-0.6)<0.001) || null};
 }
 
+function formatDiameter(diameter) { return String(diameter); }
+function isAssignedDiameter(diameter) { return Math.abs(diameter-0.3)<1e-9 || Math.abs(diameter-0.6)<1e-9; }
+
 function designRows(assigned) {
-  const knownSmall=solveBead(2.8,"small"),knownLarge=solveBead(4.6,"large");
-  // Keep five individual cells per row even before students save their designs.
-  const row=(label,diameter,t)=>{
-    const eta=t?t.eta.toFixed(4):"—";
-    const surface=t?format(t.surface,3):"—";
-    const center=t?format(t.center,3):"—";
-    return `<tr><td>${label}</td><td>${diameter.toFixed(1)}</td><td>${eta}</td><td>${surface}</td><td>${center}</td></tr>`;
-  };
-  return row("Large laboratory bead",4.6,{eta:.29,surface:knownLarge.surface,center:knownLarge.center}) +
-    row("Small laboratory bead",2.8,{eta:.45,surface:knownSmall.surface,center:knownSmall.center}) +
-    row("Assigned 0.6 mm",0.6,assigned.six) +
-    row("Assigned 0.3 mm",0.3,assigned.three);
+  const small=solveBead(2.8,"small"), large=solveBead(4.6,"large");
+  const row=(label,d,t)=>`<tr><td>${label}</td><td>${formatDiameter(d)}</td><td>${t?t.eta.toFixed(4):"—"}</td><td>${t?format(t.surface,3):"—"}</td><td>${t?format(t.center,3):"—"}</td></tr>`;
+  const fixed=row("Large laboratory bead",4.6,{eta:.29,surface:large.surface,center:large.center}) +
+    row("Small laboratory bead",2.8,{eta:.45,surface:small.surface,center:small.center}) +
+    row("Required design",0.6,assigned.six) + row("Required design",0.3,assigned.three);
+  const extras=state.designTrials.filter(t=>!isAssignedDiameter(t.diameter))
+    .sort((a,b)=>a.diameter-b.diameter).map(t=>row("Additional saved design",t.diameter,t)).join("");
+  return fixed+extras;
 }
 
-function designLegend(assigned,d) {
-  if (assigned.six && assigned.three) return `<span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.large}"></i>d = 0.6 mm; <span class="math-eta">η<sub>i</sub></span> = ${assigned.six.eta.toFixed(4)}</span><span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.small}"></i>d = 0.3 mm; <span class="math-eta">η<sub>i</sub></span> = ${assigned.three.eta.toFixed(4)}</span>${(Math.abs(d-0.6)>.001 && Math.abs(d-0.3)>.001)?`<span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.navy}"></i>d = ${d.toFixed(1)} mm; current exploration</span>`:""}`;
-  return `<span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.navy}"></i>d = ${d.toFixed(1)} mm; current design (select 0.6 mm, then 0.3 mm)</span>`;
+function designProfileSeries(assigned,d,currentProfile) {
+  const trials=state.designTrials.slice().sort((a,b)=>a.diameter-b.diameter);
+  const colors=[COLORS.navy,...COLORS.series];
+  const result=trials.map((t,i)=>({
+    name:`${formatDiameter(t.diameter)} mm`,
+    color:Math.abs(t.diameter-0.6)<1e-9?COLORS.large:Math.abs(t.diameter-0.3)<1e-9?COLORS.small:colors[i%colors.length],
+    profile:t.profile||solveBead(t.diameter,null)
+  }));
+  if(!trials.some(t=>Math.abs(t.diameter-d)<1e-9))result.push({name:`${formatDiameter(d)} mm (current)`,color:COLORS.yellow,profile:currentProfile});
+  return result;
+}
+
+function designLegend(assigned,d,currentProfile) {
+  return designProfileSeries(assigned,d,currentProfile).map(p=>
+    `<span class="legend-item"><i class="legend-swatch" style="--swatch:${p.color}"></i>d = ${p.name}</span>`
+  ).join("");
 }
 
 function solveBead(diameter, fixedKey=null) {
@@ -1006,8 +1018,8 @@ function renderDataDialog() {
   }
   if(state.kinetics.ratesShown) sections.push(`<div class="panel-title" style="margin-top:20px"><div><h3>Free-enzyme initial rates</h3></div></div><div class="data-table-wrap"><table class="data-table"><thead><tr><th>Initial ONPG concentration, C<sub>ONPG,0</sub> [mM]</th><th>Initial rate, v<sub>0</sub> [mM/s]</th></tr></thead><tbody>${kineticRateRows()}</tbody></table></div>`);
   if(state.curveBuilt) sections.push(`<div class="panel-title" style="margin-top:20px"><div><h3>High-concentration teaching-model predictions (not measured)</h3></div></div><div class="data-table-wrap"><table class="data-table kinetics-table"><thead><tr><th>Initial ONPG concentration, C<sub>ONPG,0</sub> [mM]</th><th>Predicted initial rate, v<sub>0</sub> [mM/s]</th></tr></thead><tbody>${highModelRows()}</tbody></table></div>`);
-  if(state.designTrials.length) sections.push(`<div class="panel-title" style="margin-top:20px"><div><h3>Saved bead designs</h3></div></div><div class="data-table-wrap"><table class="data-table"><thead><tr><th>Bead diameter [mm]</th><th>Internal effectiveness factor, <span class='math-eta'>η<sub>i</sub></span> [-]</th><th>Surface ONPG concentration [mM]</th><th>Center ONPG concentration [mM]</th></tr></thead><tbody>${state.designTrials.map(t=>`<tr><td>${format(t.diameter)}</td><td>${format(t.eta)}</td><td>${format(t.surface)}</td><td>${format(t.center)}</td></tr>`).join("")}</tbody></table></div>`);
-  body.innerHTML=sections.length?sections.join(""):`<div class="empty-state"><h3>No results saved yet</h3><p>In Stage 1, set the autosampler to 28.33 equivalent laboratory minute intervals and start the reactor simulation.</p></div>`;
+  if(state.designTrials.length) sections.push(`<div class="panel-title" style="margin-top:20px"><div><h3>Saved bead designs</h3></div></div><div class="data-table-wrap"><table class="data-table"><thead><tr><th>Bead diameter [mm]</th><th>Internal effectiveness factor, <span class='math-eta'>η<sub>i</sub></span> [-]</th><th>Surface ONPG concentration [mM]</th><th>Center ONPG concentration [mM]</th></tr></thead><tbody>${state.designTrials.map(t=>`<tr><td>${formatDiameter(t.diameter)}</td><td>${format(t.eta)}</td><td>${format(t.surface)}</td><td>${format(t.center)}</td></tr>`).join("")}</tbody></table></div>`);
+  body.innerHTML=sections.length?sections.join(""):`<div class="empty-state"><h3>No results saved yet</h3><p>In Stage 1, set the autosampler for six worksheet sample times and start the complete 340-minute equivalent run.</p></div>`;
 }
 
 function sessionCsv() {
