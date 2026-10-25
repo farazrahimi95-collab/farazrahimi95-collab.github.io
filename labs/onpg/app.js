@@ -612,10 +612,10 @@ function renderComparison() {
     <div class="compare-summary">
       ${summaryCard("small", small)}${summaryCard("large", large)}
     </div>
-    <p class="assay-source-note">Initial rates are the slopes at t = 0 of cubic least-squares fits to the original 0–60 min ONP data. Effectiveness factors are calculated from the bead-scale reaction–diffusion model.</p>
+    <p class="assay-source-note">Initial rates come from cubic least-squares fits to the full supplied 0–60 min ONP responses (slope at t = 0), not from the six automatically recorded display points. Effectiveness factors come directly from the bead-scale reaction–diffusion solver.</p>
     <div class="stage-grid analysis-grid">
       <section class="panel chart-panel">
-        <div class="panel-title"><div><h3>Summary of C<sub>ONP</sub> vs. t [min]</h3><p>Smooth curves show the complete 0–340 min conversion responses; dots mark only the six recorded sample times for each bead size.</p></div></div>
+        <div class="panel-title"><div><h3>ONP concentration versus reaction time</h3><p>Smooth curves show the complete 0–340 min conversion responses; dots mark only the six recorded sample times for each bead size.</p></div></div>
         <div class="chart-frame"><canvas id="compareChart" aria-label="Complete smooth ONP conversion curves with six recorded sample markers on each curve"></canvas><div class="chart-placeholder" ${runsReady ? "hidden" : ""}>Complete the automatic sample series in Stages 1 and 2 to populate this comparison.</div></div>
         <div class="legend"><span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.small}"></i>2.8 mm full response</span><span class="legend-item"><i class="legend-swatch point" style="--swatch:${COLORS.small}"></i>Six samples</span><span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.large}"></i>4.6 mm full response</span><span class="legend-item"><i class="legend-swatch point" style="--swatch:${COLORS.large}"></i>Six samples</span></div>
         <div class="panel-title" style="margin-top:18px"><div><h3>Paired results from Stages 1 and 2</h3><p>The same six sampling times recorded in Stages 1 and 2 are listed here.</p></div></div>
@@ -626,7 +626,7 @@ function renderComparison() {
         <div class="chart-frame"><canvas id="profileChart" aria-label="Radial ONPG concentration profiles for both bead sizes"></canvas></div>
         <div class="legend"><span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.small}"></i>d = 2.8 mm; internal effectiveness factor, <span class='math-eta'>η<sub>i</sub></span> = ${smallProfile.eta.toFixed(4)}</span><span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.large}"></i>d = 4.6 mm; internal effectiveness factor, <span class='math-eta'>η<sub>i</sub></span> = ${largeProfile.eta.toFixed(4)}</span></div>
 
-        <div class="note">Engineers use an internal effectiveness factor for beads, <span class='math-eta'>η<sub>i</sub></span>, which is the ratio of the actual reaction rate to that expected if the entire bead were at its surface concentration. ONPG consumption in the outer region can leave little substrate available for reaction in the bead interior.</div>
+        <div class="note">Engineers use an internal effectiveness factor, <span class='math-eta'>η<sub>i</sub></span>, defined as the actual integrated bead reaction rate divided by the rate if the whole bead were at its surface concentration. The model solves d²c/dx² + (2/x)dc/dx − 9φ²c/(1+c) = 0, where x = r/R and c = C<sub>ONPG</sub>/K<sub>m,profile</sub>. Conditions are dc/dx = 0 at x = 0 and dc/dx = 3N<sub>B</sub>(c<sub>bulk</sub> − c<sub>s</sub>) at x = 1. Its surface-film parameter is defined with that factor of three (N<sub>B</sub> = k<sub>f</sub>R/(3D<sub>eff</sub>)); c<sub>bulk</sub> = 0.403. Inputs: 2.8 mm φ = 2.04, N<sub>B</sub> = 16.8; 4.6 mm φ = 3.79, N<sub>B</sub> = 18.6. K<sub>m,profile</sub> is the separately calibrated 2.059 mM profile scale. Results are numerical model outputs, not direct measurements.</div>
       </section>
     </div>
     <div class="continue-row"><button class="button button-dark" id="continueStage" type="button">Continue to Stage 4</button></div>
@@ -892,7 +892,7 @@ function renderDesign() {
         </div>
         <div class="target-track"><div class="target-fill" style="width:${Math.min(100,eta*100)}%"></div></div>
         <div class="target-label"><span>0</span><strong><span class='math-eta'>η<sub>i</sub></span> target = 0.95</strong><span>1.00</span></div>
-        <div class="note"><strong>Model basis:</strong> the bulk ONPG concentration is fixed; the reference beads (2.8 and 4.6 mm) use their individually calibrated parameters. Other diameters are calculated by scaling both the Thiele modulus and film-transfer Biot number with bead radius from the 2.8 mm reference, assuming constant effective diffusivity, film-transfer coefficient, and immobilized enzyme loading. Design outputs are model calculations, not independent measurements.</div>
+        <div class="note"><strong>Model basis:</strong> the bulk ONPG concentration is fixed; the 2.8 and 4.6 mm reference beads use their individually calibrated dimensionless parameters. Other diameters are calculated from the 2.8 mm case by scaling both the Thiele modulus and normalized film-transfer parameter N<sub>B</sub> with bead radius. This assumes unchanged effective diffusivity, film-transfer coefficient, and enzyme loading. Design outputs are model calculations, not independent measurements.</div>
       </section>
       <section class="panel chart-panel">
         <div class="panel-title"><div><h3>Surface-to-center ONPG profiles</h3><p>The graph shows every saved diameter, plus the current selection if it is not yet saved.</p></div></div>
