@@ -318,7 +318,10 @@ h1, h2, h3, h4, p { margin-top: 0; }
 .spectro-button { position: absolute; left: 23px; bottom: 23px; width: 66px; height: 25px; border-radius: 8px; background: #dce9e8; }
 .spectro-knob { position: absolute; right: 28px; bottom: 21px; width: 31px; height: 31px; border-radius: 50%; background: #6f8997; }
 
-.cuvette-rack { display: grid; grid-template-columns: repeat(6, 1fr); gap: 9px; max-width: 520px; margin: 22px auto 0; }
+.cuvette-rack { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 5px; max-width: 540px; margin: 22px auto 0; }
+.cuvette-rack .cuvette { width: min(33px, 100%); height: 74px; }
+.cuvette-rack .cuvette-item small { font-size: 10px; }
+.cuvette-rack .cuvette-item small span { display: block; font-weight: 600; }
 .cuvette-item { text-align: center; opacity: .3; transform: translateY(5px); transition: opacity .3s, transform .3s; }
 .cuvette-rack.loaded .cuvette-item { opacity: 1; transform: translateY(0); }
 .cuvette { width: 39px; height: 82px; margin: 0 auto 7px; position: relative; border: 3px solid #83aca9; border-radius: 7px 7px 5px 5px; background: rgba(255,255,255,.76); overflow: hidden; }
@@ -386,7 +389,7 @@ h1, h2, h3, h4, p { margin-top: 0; }
   .compare-summary { grid-template-columns: 1fr; }
   .spectro-bench { padding: 16px 6px; }
   .spectrometer { transform: scale(.92); margin-left: auto; margin-right: auto; }
-  .cuvette-rack { gap: 2px; }
+  .cuvette-rack { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 8px; max-width: 290px; }
   .cuvette { width: 34px; }
   .sample-progress { grid-template-columns: repeat(6, 36px); }
   .autosampler-button { min-width: 0; width: 100%; }
