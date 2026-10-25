@@ -165,12 +165,12 @@ function beadSummary(key) {
 
 function updateStepper() {
   const complete = {
-    1: state.beadRuns.small.complete,
-    2: state.beadRuns.large.complete,
-    3: state.beadRuns.small.complete && state.beadRuns.large.complete,
-    4: state.kinetics.scanned,
-    5: state.curveBuilt,
-    6: getAssignedDesigns().three && getAssignedDesigns().six
+    1: state.kinetics.scanned,
+    2: state.curveBuilt,
+    3: Boolean(getAssignedDesigns().three && getAssignedDesigns().six),
+    4: state.beadRuns.small.complete,
+    5: state.beadRuns.large.complete,
+    6: state.beadRuns.small.complete && state.beadRuns.large.complete
   };
   document.querySelectorAll(".step").forEach(button => {
     const number = Number(button.dataset.stage);
@@ -190,12 +190,12 @@ function navigate(stage) {
   cleanupStage = () => {};
   state.stage = stage;
   saveState();
-  if (stage === 1) renderBeadStage("small");
-  if (stage === 2) renderBeadStage("large");
-  if (stage === 3) renderComparison();
-  if (stage === 4) renderKineticScan();
-  if (stage === 5) renderRateCurve();
-  if (stage === 6) renderDesign();
+  if (stage === 1) renderKineticScan();
+  if (stage === 2) renderRateCurve();
+  if (stage === 3) renderDesign();
+  if (stage === 4) renderBeadStage("small");
+  if (stage === 5) renderBeadStage("large");
+  if (stage === 6) renderComparison();
   document.getElementById("stageArea").focus({ preventScroll: true });
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
@@ -217,24 +217,24 @@ function bindStageReset(stage) {
   if (!button) return;
   button.addEventListener("click", () => {
     const fresh = defaultState();
-    if (stage === 1) state.beadRuns.small = fresh.beadRuns.small;
-    if (stage === 2) state.beadRuns.large = fresh.beadRuns.large;
-    if (stage === 4) {
+    if (stage === 4) state.beadRuns.small = fresh.beadRuns.small;
+    if (stage === 5) state.beadRuns.large = fresh.beadRuns.large;
+    if (stage === 1) {
       state.kinetics = fresh.kinetics;
       state.curveBuilt = false;
       state.halfGuide = false;
     }
-    if (stage === 5) {
+    if (stage === 2) {
       state.curveBuilt = false;
       state.halfGuide = false;
     }
-    if (stage === 6) {
+    if (stage === 3) {
       state.designDiameter = fresh.designDiameter;
       state.designTrials = [];
     }
     saveState();
     navigate(stage);
-    toast(stage === 3 ? "Comparison view refreshed; both reactor runs were preserved." : `Stage ${stage} reset.`);
+    toast(stage === 6 ? "Comparison view refreshed; both reactor runs were preserved." : `Stage ${stage} reset.`);
   });
 }
 
@@ -370,13 +370,13 @@ function beadSampleAt(dataset, simulationSeconds) {
 }
 
 function renderBeadStage(key) {
-  const stage = key === "small" ? 1 : 2;
+  const stage = key === "small" ? 4 : 5;
   const next = stage + 1;
   const d = LAB[key];
   const run = state.beadRuns[key];
   const area = document.getElementById("stageArea");
   area.innerHTML = `<div class="stage-shell">
-    ${stageHeader(stage, `${d.diameter.toFixed(1)} mm bead experiment`, `Set the automatic spectrophotometer, then run 340 equivalent lab minutes in a one-minute playback. ${stage === 1 ? "This establishes the first response." : "Only bead diameter changes from Stage 1."}`, `Same enzyme charge; ${INITIAL_ONPG.toFixed(2)} mM ONPG`)}
+    ${stageHeader(stage, `${d.diameter.toFixed(1)} mm bead experiment`, `Set the automatic spectrophotometer, then run 340 equivalent lab minutes in a one-minute playback. ${stage === 4 ? "This establishes the first reactor response." : "Only bead diameter changes from Stage 4."}`, `Same enzyme charge; ${INITIAL_ONPG.toFixed(2)} mM ONPG`)}
     <div class="stage-grid">
       <section class="panel" aria-label="Virtual reactor apparatus">
         <div class="apparatus-wrap">${apparatusSvg(key)}</div>
@@ -608,7 +608,7 @@ function renderComparison() {
   const smallProfile = solveBead(2.8, "small");
   const largeProfile = solveBead(4.6, "large");
   area.innerHTML = `<div class="stage-shell">
-    ${stageHeader(3, "Compare bead diameter", "The tables and plot below contrast results for 2.8 and 4.6 mm bead sizes.", "Paired reactor results")}
+    ${stageHeader(6, "Compare bead diameter", "The tables and plot below contrast results for 2.8 and 4.6 mm bead sizes.", "Paired reactor results")}
     <div class="compare-summary">
       ${summaryCard("small", small)}${summaryCard("large", large)}
     </div>
@@ -616,9 +616,9 @@ function renderComparison() {
     <div class="stage-grid analysis-grid">
       <section class="panel chart-panel">
         <div class="panel-title"><div><h3>ONP concentration versus reaction time</h3><p>Smooth curves show the complete 0–340 min conversion responses; dots mark only the six recorded sample times for each bead size.</p></div></div>
-        <div class="chart-frame"><canvas id="compareChart" aria-label="Complete smooth ONP conversion curves with six recorded sample markers on each curve"></canvas><div class="chart-placeholder" ${runsReady ? "hidden" : ""}>Complete the automatic sample series in Stages 1 and 2 to populate this comparison.</div></div>
+        <div class="chart-frame"><canvas id="compareChart" aria-label="Complete smooth ONP conversion curves with six recorded sample markers on each curve"></canvas><div class="chart-placeholder" ${runsReady ? "hidden" : ""}>Complete the automatic sample series in Stages 4 and 5 to populate this comparison.</div></div>
         <div class="legend"><span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.small}"></i>2.8 mm full response</span><span class="legend-item"><i class="legend-swatch point" style="--swatch:${COLORS.small}"></i>Six samples</span><span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.large}"></i>4.6 mm full response</span><span class="legend-item"><i class="legend-swatch point" style="--swatch:${COLORS.large}"></i>Six samples</span></div>
-        <div class="panel-title" style="margin-top:18px"><div><h3>Paired results from Stages 1 and 2</h3><p>The same six sampling times recorded in Stages 1 and 2 are listed here.</p></div></div>
+        <div class="panel-title" style="margin-top:18px"><div><h3>Paired results from Stages 4 and 5</h3><p>The same six sampling times recorded in Stages 4 and 5 are listed here.</p></div></div>
         <div class="data-table-wrap sample-table-wrap"><table class="data-table comparison-table"><colgroup><col class="comparison-time"><col class="comparison-conc"><col class="comparison-conc"></colgroup><thead><tr><th>Equivalent lab time [min]</th><th>C<sub>ONP</sub> [mM]<br>2.8 mm bead</th><th>C<sub>ONP</sub> [mM]<br>4.6 mm bead</th></tr></thead><tbody>${comparisonRows()}</tbody></table></div>
       </section>
       <section class="panel chart-panel">
@@ -630,7 +630,6 @@ function renderComparison() {
         <details class="model-details"><summary>Reaction–diffusion equations and MATLAB parameters</summary>        <div class="note model-method-note">Engineers use an internal effectiveness factor, <span class='math-eta'>η<sub>i</sub></span>, defined as the actual integrated bead reaction rate divided by the rate if the whole bead were at its surface concentration. The model solves d²c/dx² + (2/x)dc/dx − 9φ²c/(1+c) = 0, where x = r/R and c = C<sub>ONPG</sub>/K<sub>m,profile</sub>. Conditions are dc/dx = 0 at x = 0 and dc/dx = 3N<sub>B</sub>(c<sub>bulk</sub> − c<sub>s</sub>) at x = 1. Its surface-film parameter is defined with that factor of three (N<sub>B</sub> = k<sub>f</sub>R/(3D<sub>eff</sub>)); c<sub>bulk</sub> = 0.403. Inputs: 2.8 mm φ = 2.04, N<sub>B</sub> = 16.8; 4.6 mm φ = 3.79, N<sub>B</sub> = 18.6. K<sub>m,profile</sub> is the separately calibrated 2.059 mM profile scale. Results are numerical model outputs, not direct measurements.</div></details>
       </section>
     </div>
-    <div class="continue-row"><button class="button button-dark" id="continueStage" type="button">Continue to Stage 4</button></div>
   </div>`;
   const draw = () => {
     drawPlot(document.getElementById("compareChart"), {
@@ -651,8 +650,7 @@ function renderComparison() {
   draw();
   window.addEventListener("resize", draw, { passive:true });
   cleanupStage = () => window.removeEventListener("resize", draw);
-  document.getElementById("continueStage").addEventListener("click", () => navigate(4));
-  bindStageReset(3);
+  bindStageReset(6);
 }
 
 function summaryCard(key, s) {
@@ -684,7 +682,7 @@ function renderKineticScan() {
   const finalABS415 = CALIBRATION * KINETICS.rates.at(-1) * 4.5;
   const displayValue = k.scanned ? format(finalABS415,3) : k.blanked ? "0.000" : format(BACKGROUND_ABS415,3);
   area.innerHTML = `<div class="stage-shell">
-    ${stageHeader(4, "Run seven free-enzyme assays", "Only the initial ONPG concentration changes. All seven virtual assays use the same enzyme amount, reaction volume, pH, and temperature.", "0.62–39.8 mM ONPG · no beads")}
+    ${stageHeader(1, "Run seven free-enzyme assays", "Only the initial ONPG concentration changes. All seven virtual assays use the same enzyme amount, reaction volume, pH, and temperature.", "0.62–39.8 mM ONPG · no beads")}
     <div class="spectro-layout">
       <section class="panel">
         <div class="spectro-bench">
@@ -716,7 +714,7 @@ function renderKineticScan() {
         <p class="assay-source-note">The six supplied laboratory rates are retained; the 39.8 mM virtual assay uses the Michaelis–Menten reference equation.</p>
       </section>
     </div>
-    <div class="continue-row"><button class="button button-dark" id="continueStage" type="button" ${k.ratesShown ? "" : "disabled"}>Continue to Stage 5</button></div>
+    <div class="continue-row"><button class="button button-dark" id="continueStage" type="button" ${k.ratesShown ? "" : "disabled"}>Continue to Stage 2</button></div>
   </div>`;
 
   let raf = 0;
@@ -766,8 +764,8 @@ function renderKineticScan() {
   document.getElementById("showRates").addEventListener("click", () => {
     k.ratesShown = true; saveState(); toast("Initial-rate table saved to Run data."); refreshStageView(renderKineticScan);
   });
-  document.getElementById("continueStage").addEventListener("click", () => navigate(5));
-  bindStageReset(4);
+  document.getElementById("continueStage").addEventListener("click", () => navigate(2));
+  bindStageReset(1);
   cleanupStage = () => { scanning = false; cancelAnimationFrame(raf); window.removeEventListener("resize", draw); };
 }
 
@@ -808,35 +806,35 @@ function renderRateCurve() {
   const area = document.getElementById("stageArea");
   const ready = state.kinetics.ratesShown;
   area.innerHTML = `<div class="stage-shell">
-    ${stageHeader(5, "Build the Michaelis–Menten rate curve", "Use the seven initial rates from Stage 4 to examine how the rate approaches saturation as ONPG concentration increases.", "Seven initial rates · 0.62–39.8 mM")}
+    ${stageHeader(2, "Build the Michaelis–Menten rate curve", "Use the seven initial rates from Stage 1 to examine how the rate approaches saturation as ONPG concentration increases.", "Seven initial rates · 0.62–39.8 mM")}
     <div class="stage-grid analysis-grid">
       <section class="panel panel-pad">
-        <div class="panel-title"><div><h3>Seven Stage 4 initial rates</h3><p>Each initial rate is the slope of its ONP-time trace.</p></div></div>
-        <div class="data-table-wrap"><table class="data-table kinetics-table"><thead><tr><th>Initial ONPG concentration, C<sub>ONPG,0</sub> [mM]</th><th>Initial rate, v₀ [mM/s]</th></tr></thead><tbody>${ready ? kineticRateRows() : '<tr><td colspan="2" class="pending">Complete Stage 4 and reveal the seven initial rates to populate this table.</td></tr>'}</tbody></table></div>
+        <div class="panel-title"><div><h3>Seven Stage 1 initial rates</h3><p>Each initial rate is the slope of its ONP-time trace.</p></div></div>
+        <div class="data-table-wrap"><table class="data-table kinetics-table"><thead><tr><th>Initial ONPG concentration, C<sub>ONPG,0</sub> [mM]</th><th>Initial rate, v₀ [mM/s]</th></tr></thead><tbody>${ready ? kineticRateRows() : '<tr><td colspan="2" class="pending">Complete Stage 1 and reveal the seven initial rates to populate this table.</td></tr>'}</tbody></table></div>
         <div class="equation">v<sub>0</sub> = V<sub>max</sub> C<sub>ONPG,0</sub> / (K<sub>m</sub> + C<sub>ONPG,0</sub>)</div>
         <div class="controls">
           <button class="button" id="buildCurve" type="button" ${!ready || state.curveBuilt ? "disabled" : ""}>Build kinetics plot</button>
           <button class="button button-secondary" id="halfGuide" type="button" ${!state.curveBuilt || state.halfGuide ? "disabled" : ""}>Show half-maximum guide</button>
         </div>
-        ${!ready ? `<div class="note"><strong>Stage 4 is incomplete.</strong> Return to the kinetic scan and reveal all seven initial rates before building this graph.</div>` : ""}
+        ${!ready ? `<div class="note"><strong>Stage 1 is incomplete.</strong> Return to the kinetic scan and reveal all seven initial rates before building this graph.</div>` : ""}
         ${state.curveBuilt ? `<div class="callout" style="margin-top:15px"><h4>Michaelis–Menten reference</h4><p>V<sub>max</sub> = <code>${KINETICS.vmax.toFixed(6)} mM/s</code> &nbsp;·&nbsp; K<sub>m</sub> = <code>${KINETICS.km.toFixed(2)} mM</code>. The reference is anchored at 19.9 mM rather than fitted to all six laboratory rates. The 39.8 mM virtual assay follows this equation, assuming Michaelis–Menten behavior without substrate inhibition or changing assay conditions.</p></div>` : ""}
       </section>
       <section class="panel chart-panel">
-        <div class="panel-title"><div><h3>Initial-rate saturation · 0–40 mM</h3><p>All seven Stage 4 initial rates appear together with the Michaelis–Menten reference curve.</p></div></div>
-        <div class="chart-frame"><canvas id="mmChart" aria-label="Michaelis-Menten graph of initial rate versus initial ONPG concentration"></canvas><div class="chart-placeholder" id="mmPlaceholder" ${state.curveBuilt ? "hidden" : ""}>Click Build kinetics plot after completing Stage 4.</div></div>
+        <div class="panel-title"><div><h3>Initial-rate saturation · 0–40 mM</h3><p>All seven Stage 1 initial rates appear together with the Michaelis–Menten reference curve.</p></div></div>
+        <div class="chart-frame"><canvas id="mmChart" aria-label="Michaelis-Menten graph of initial rate versus initial ONPG concentration"></canvas><div class="chart-placeholder" id="mmPlaceholder" ${state.curveBuilt ? "hidden" : ""}>Click Build kinetics plot after completing Stage 1.</div></div>
         <div class="legend"><span class="legend-item"><i class="legend-swatch point" style="--swatch:${COLORS.navy}"></i>Seven initial rates</span><span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.small}"></i>Michaelis–Menten curve</span>${state.halfGuide?`<span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.yellow}"></i>Half maximum</span>`:""}</div>
         ${state.halfGuide ? `<div class="note"><strong>Read the guide:</strong> one-half V<sub>max</sub> = ${(KINETICS.vmax/2).toFixed(6)} mM/s intersects the reference curve at [S]<sub>0</sub> = ${KINETICS.km.toFixed(2)} mM.</div>` : ""}
       </section>
     </div>
-    <div class="continue-row"><button class="button button-dark" id="continueStage" type="button" ${state.curveBuilt ? "" : "disabled"}>Continue to Stage 6</button></div>
+    <div class="continue-row"><button class="button button-dark" id="continueStage" type="button" ${state.curveBuilt ? "" : "disabled"}>Continue to Stage 3</button></div>
   </div>`;
   const draw = () => drawMichaelis(document.getElementById("mmChart"), state.curveBuilt, state.halfGuide);
   draw();
   window.addEventListener("resize", draw, {passive:true});
   document.getElementById("buildCurve").addEventListener("click", () => { state.curveBuilt=true; saveState(); toast("Kinetics plot built and saved."); refreshStageView(renderRateCurve); });
   document.getElementById("halfGuide").addEventListener("click", () => { state.halfGuide=true; saveState(); refreshStageView(renderRateCurve); });
-  document.getElementById("continueStage").addEventListener("click", () => navigate(6));
-  bindStageReset(5);
+  document.getElementById("continueStage").addEventListener("click", () => navigate(3));
+  bindStageReset(2);
   cleanupStage = () => window.removeEventListener("resize", draw);
 }
 
@@ -871,7 +869,7 @@ function renderDesign() {
   const eta = reportedEta(d, profile.eta);
   const assigned = getAssignedDesigns();
   area.innerHTML = `<div class="stage-shell">
-    ${stageHeader(6, "Adjust bead diameter and compare two trials", "Save the required 0.6 mm and 0.3 mm trials, then explore any diameter from 0.1 to 10 mm using the slider or precise numeric entry. Save all results to compare their profiles and effectiveness factors.", "Target <span class='math-eta'>η<sub>i</sub></span> ≥ 0.95")}
+    ${stageHeader(3, "Adjust bead diameter and compare two trials", "Save the required 0.6 mm and 0.3 mm trials, then explore any diameter from 0.1 to 10 mm using the slider or precise numeric entry. Save all results to compare their profiles and effectiveness factors.", "Target <span class='math-eta'>η<sub>i</sub></span> ≥ 0.95")}
     <div class="design-grid">
       <section class="panel panel-pad">
         <div class="panel-title"><div><h3>Adjustable diameter control</h3><p>Required: 0.6 and 0.3 mm. You can also enter and save any additional diameter from 0.1 to 10 mm.</p></div><span class="pass-badge ${eta>=.95?"pass":""}">${eta>=.95?"MEETS TARGET":"BELOW TARGET"}</span></div>
@@ -903,6 +901,7 @@ function renderDesign() {
         <div class="data-table-wrap"><table class="data-table result-table"><thead><tr><th>Result</th><th>Bead diameter [mm]</th><th>Internal effectiveness factor, <span class='math-eta'>η<sub>i</sub></span> [-]</th><th>Surface ONPG concentration [mM]</th><th>Center ONPG concentration [mM]</th></tr></thead><tbody>${designRows(assigned)}</tbody></table></div>
       </section>
     </div>
+    <div class="continue-row"><button class="button button-dark" id="continueStage" type="button" ${assigned.six && assigned.three ? "" : "disabled"}>Continue to Stage 4</button></div>
   </div>`;
   let currentProfile = profile;
   const slider = document.getElementById("diameterSlider");
@@ -934,7 +933,8 @@ function renderDesign() {
     state.designTrials.push(trial);state.designTrials.sort((a,b)=>a.diameter-b.diameter);
     saveState();toast(`${formatDiameter(d)} mm model result saved.`);refreshStageView(renderDesign);
   });
-    bindStageReset(6);
+  document.getElementById("continueStage").addEventListener("click", () => navigate(4));
+  bindStageReset(3);
   cleanupStage = () => window.removeEventListener("resize",draw);
 }
 
@@ -1097,7 +1097,7 @@ function renderDataDialog() {
   }
   if(state.kinetics.ratesShown) sections.push(`<div class="panel-title" style="margin-top:20px"><div><h3>Free-enzyme initial rates</h3></div></div><div class="data-table-wrap"><table class="data-table kinetics-table"><thead><tr><th>Initial ONPG concentration, C<sub>ONPG,0</sub> [mM]</th><th>Initial rate, v<sub>0</sub> [mM/s]</th></tr></thead><tbody>${kineticRateRows()}</tbody></table></div><p class="assay-source-note">Six supplied laboratory rates and one 39.8 mM simulated assay are included.</p>`);
   if(state.designTrials.length) sections.push(`<div class="panel-title" style="margin-top:20px"><div><h3>Saved bead designs</h3></div></div><div class="data-table-wrap"><table class="data-table"><thead><tr><th>Bead diameter [mm]</th><th>Internal effectiveness factor, <span class='math-eta'>η<sub>i</sub></span> [-]</th><th>Surface ONPG concentration [mM]</th><th>Center ONPG concentration [mM]</th></tr></thead><tbody>${state.designTrials.map(t=>`<tr><td>${formatDiameter(t.diameter)}</td><td>${format(t.eta)}</td><td>${format(t.surface)}</td><td>${format(t.center)}</td></tr>`).join("")}</tbody></table></div>`);
-  body.innerHTML=sections.length?sections.join(""):`<div class="empty-state"><h3>No results saved yet</h3><p>In Stage 1, set the autosampler for six scheduled sample times and start the complete 340-minute equivalent run.</p></div>`;
+  body.innerHTML=sections.length?sections.join(""):`<div class="empty-state"><h3>No results saved yet</h3><p>Begin in Stage 1 with the kinetic scan, or go to Stage 4 to collect the six bead-reactor readings.</p></div>`;
 }
 
 function sessionCsv() {
