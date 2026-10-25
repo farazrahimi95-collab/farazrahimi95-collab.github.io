@@ -740,8 +740,10 @@ function renderKineticScan() {
   cleanupStage = () => { scanning = false; cancelAnimationFrame(raf); window.removeEventListener("resize", draw); };
 }
 
+function assayConcentrationLabel(concentration) { return format(concentration); }
+
 function cuvetteMarkup() {
-  return KINETICS.concentrations.map((s,i) => `<div class="cuvette-item"><div class="cuvette" data-cuvette="${i}" style="--cuvette:#f8f8ec"></div><small>${s < 10 ? s.toFixed(2) : s.toFixed(1)}<span>mM</span></small></div>`).join("");
+  return KINETICS.concentrations.map((s,i) => `<div class="cuvette-item"><div class="cuvette" data-cuvette="${i}" style="--cuvette:#f8f8ec"></div><small>${assayConcentrationLabel(s)}<span>mM</span></small></div>`).join("");
 }
 
 function updateCuvetteColors(progress) {
@@ -752,13 +754,13 @@ function updateCuvetteColors(progress) {
 }
 
 function kineticLegend() {
-  return KINETICS.concentrations.map((s,i)=>`<span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.series[i]}"></i>${s < 10 ? s.toFixed(2) : s.toFixed(1)} mM</span>`).join("");
+  return KINETICS.concentrations.map((s,i)=>`<span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.series[i]}"></i>${assayConcentrationLabel(s)} mM</span>`).join("");
 }
 
 function kineticRows(show) {
   if (!show) return `<tr><td colspan="2" class="pending">Complete the scan, then reveal the initial rates.</td></tr>`;
   return KINETICS.concentrations.map((s,i) =>
-    `<tr><td><span class="color-key" style="--series:${COLORS.series[i]}"></span>${format(s)}</td><td>${KINETICS.rates[i].toFixed(6)}</td></tr>`
+    `<tr><td><span class="color-key" style="--series:${COLORS.series[i]}"></span>${assayConcentrationLabel(s)}</td><td>${KINETICS.rates[i].toFixed(6)}</td></tr>`
   ).join("");
 }
 
@@ -808,7 +810,7 @@ function renderRateCurve() {
 }
 
 function kineticRateRows() {
-  return KINETICS.concentrations.map((s,i)=>`<tr><td><span class="color-key" style="--series:${COLORS.series[i]}"></span>${format(s,s<10?3:1)}</td><td>${KINETICS.rates[i].toFixed(6)}</td></tr>`).join("");
+  return KINETICS.concentrations.map((s,i)=>`<tr><td><span class="color-key" style="--series:${COLORS.series[i]}"></span>${assayConcentrationLabel(s)}</td><td>${KINETICS.rates[i].toFixed(6)}</td></tr>`).join("");
 }
 
 function drawMichaelis(canvas, built, halfGuide) {
@@ -854,7 +856,7 @@ function renderDesign() {
         </div>
         <div class="target-track"><div class="target-fill" style="width:${Math.min(100,eta*100)}%"></div></div>
         <div class="target-label"><span>0</span><strong><span class='math-eta'>η<sub>i</sub></span> target = 0.95</strong><span>1.00</span></div>
-        <div class="note"><strong>Model basis:</strong> the initial ONPG concentration and bead-scale transport parameters are held fixed while diameter changes. The 2.8 and 4.6 mm rows are laboratory-tested sizes; smaller design sizes are predictions.</div>
+        <div class="note"><strong>Model basis:</strong> the bulk ONPG concentration is fixed; the reference beads (2.8 and 4.6 mm) use their own calibrated reaction–diffusion parameters, while exploratory diameters use the design-model parameterization. Calculated design results are not direct measurements.</div>
       </section>
       <section class="panel chart-panel">
         <div class="panel-title"><div><h3>Surface-to-center ONPG profiles</h3><p>The graph shows every saved diameter, plus the current selection if it is not yet saved.</p></div></div>
@@ -1056,16 +1058,16 @@ function renderDataDialog() {
     const run=state.beadRuns[key];
     if(run.samples.length) sections.push(`<div class="panel-title"><div><h3>${LAB[key].diameter.toFixed(1)} mm bead samples</h3></div></div><div class="data-table-wrap"><table class="data-table"><thead><tr><th>Equivalent lab time [min]</th><th>ABS<sub>415</sub> [-]</th><th>ONP concentration, C<sub>ONP</sub> [mM]</th></tr></thead><tbody>${sampleRows(run.samples)}</tbody></table></div>`);
   }
-  if(state.kinetics.ratesShown) sections.push(`<div class="panel-title" style="margin-top:20px"><div><h3>Free-enzyme initial rates</h3></div></div><div class="data-table-wrap"><table class="data-table"><thead><tr><th>Initial ONPG concentration, C<sub>ONPG,0</sub> [mM]</th><th>Initial rate, v<sub>0</sub> [mM/s]</th></tr></thead><tbody>${kineticRateRows()}</tbody></table></div>`);
+  if(state.kinetics.ratesShown) sections.push(`<div class="panel-title" style="margin-top:20px"><div><h3>Free-enzyme initial rates</h3></div></div><div class="data-table-wrap"><table class="data-table kinetics-table"><thead><tr><th>Initial ONPG concentration, C<sub>ONPG,0</sub> [mM]</th><th>Initial rate, v<sub>0</sub> [mM/s]</th></tr></thead><tbody>${kineticRateRows()}</tbody></table></div><p class="assay-source-note">Six supplied laboratory rates and one 39.8 mM simulated assay are included.</p>`);
   if(state.designTrials.length) sections.push(`<div class="panel-title" style="margin-top:20px"><div><h3>Saved bead designs</h3></div></div><div class="data-table-wrap"><table class="data-table"><thead><tr><th>Bead diameter [mm]</th><th>Internal effectiveness factor, <span class='math-eta'>η<sub>i</sub></span> [-]</th><th>Surface ONPG concentration [mM]</th><th>Center ONPG concentration [mM]</th></tr></thead><tbody>${state.designTrials.map(t=>`<tr><td>${formatDiameter(t.diameter)}</td><td>${format(t.eta)}</td><td>${format(t.surface)}</td><td>${format(t.center)}</td></tr>`).join("")}</tbody></table></div>`);
   body.innerHTML=sections.length?sections.join(""):`<div class="empty-state"><h3>No results saved yet</h3><p>In Stage 1, set the autosampler for six scheduled sample times and start the complete 340-minute equivalent run.</p></div>`;
 }
 
 function sessionCsv() {
-  const rows=[["section","condition","simulation_time_s","equivalent_reaction_time_min","ABS415","ONP_mM","initial_rate_mM_s","diameter_mm","eta_i","surface_ONPG_mM","center_ONPG_mM"]];
-  for(const key of ["small","large"]) state.beadRuns[key].samples.forEach(s=>rows.push(["bead sample",`${LAB[key].diameter} mm`,s.simulationSeconds,s.laboratoryMinutes,s.a415,s.onp,"",LAB[key].diameter,"","",""]));
-  if(state.kinetics.ratesShown) KINETICS.concentrations.forEach((s,i)=>rows.push(["free-enzyme kinetics",`${s} mM ONPG`,"","","","",KINETICS.rates[i],"","","",""]));
-  state.designTrials.forEach(t=>rows.push(["bead design",`${t.diameter} mm`,"","","","","",t.diameter,t.eta,t.surface,t.center]));
+  const rows=[["section","condition","simulation_time_s","equivalent_reaction_time_min","ABS415","ONP_mM","initial_rate_mM_s","diameter_mm","eta_i","surface_ONPG_mM","center_ONPG_mM","source"]];
+  for(const key of ["small","large"]) state.beadRuns[key].samples.forEach(s=>rows.push(["bead sample",`${LAB[key].diameter} mm`,s.simulationSeconds,s.laboratoryMinutes,s.a415,s.onp,"",LAB[key].diameter,"","","","supplied reactor data"]));
+  if(state.kinetics.ratesShown) KINETICS.concentrations.forEach((s,i)=>rows.push(["free-enzyme kinetics",`${s} mM ONPG`,"","","","",KINETICS.rates[i],"","","","",i<6?"supplied laboratory assay":"simulated virtual assay"]));
+  state.designTrials.forEach(t=>rows.push(["bead design",`${t.diameter} mm`,"","","","","",t.diameter,t.eta,t.surface,t.center,"bead-scale model"]));
   return rows.map(r=>r.map(v=>`"${String(v).replaceAll('"','""')}"`).join(",")).join("\n");
 }
 
