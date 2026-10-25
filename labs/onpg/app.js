@@ -17,7 +17,7 @@ const COLORS = {
   large: "#ed8a3a",
   navy: "#0f3047",
   yellow: "#e1ad13",
-  series: ["#2678a9", "#e57b38", "#4d9b59", "#3aa7bc", "#8d5bb1", "#b68a12", "#c45972", "#6075a5", "#457d76"]
+  series: ["#2678a9", "#e57b38", "#4d9b59", "#3aa7bc", "#8d5bb1", "#b68a12", "#c45972"]
 };
 
 const LAB = {
@@ -43,7 +43,7 @@ const LAB = {
   }
 };
 
-// Six laboratory-based rates plus three high-substrate simulated assays.
+// Six supplied laboratory rates plus one high-substrate virtual assay.
 // Anchor the saturating reference curve at the recorded 19.9 mM initial rate.
 const KINETICS = {
   concentrations: [0.621875, 1.24375, 2.4875, 4.975, 9.95, 19.9],
@@ -53,7 +53,7 @@ const KINETICS = {
 const anchorIndex = KINETICS.concentrations.length - 1;
 KINETICS.vmax = KINETICS.rates[anchorIndex] *
   (KINETICS.km + KINETICS.concentrations[anchorIndex]) / KINETICS.concentrations[anchorIndex];
-for (const concentration of [39.8, 79.6, 159.2]) {
+for (const concentration of [39.8]) {
   KINETICS.concentrations.push(concentration);
   KINETICS.rates.push(KINETICS.vmax * concentration / (KINETICS.km + concentration));
 }
@@ -641,17 +641,23 @@ function comparisonRows() {
   ).join("");
 }
 
+function refreshStageView(renderer) {
+  cleanupStage();
+  cleanupStage = () => {};
+  renderer();
+}
+
 function renderKineticScan() {
   const k = state.kinetics;
   const area = document.getElementById("stageArea");
   const finalABS415 = CALIBRATION * KINETICS.rates.at(-1) * 4.5;
   const displayValue = k.scanned ? format(finalABS415,3) : k.blanked ? "0.000" : format(BACKGROUND_ABS415,3);
   area.innerHTML = `<div class="stage-shell">
-    ${stageHeader(4, "Run nine free-enzyme assays", "Only initial ONPG concentration changes. The same free-enzyme amount, solution volume, pH, and temperature are used in all nine virtual assays.", "0.62–159.2 mM ONPG · no beads")}
+    ${stageHeader(4, "Run seven free-enzyme assays", "Only the initial ONPG concentration changes. All seven virtual assays use the same enzyme amount, reaction volume, pH, and temperature.", "0.62–39.8 mM ONPG · no beads")}
     <div class="spectro-layout">
       <section class="panel">
         <div class="spectro-bench">
-          <div class="section-label">NINE-ASSAY SPECTROPHOTOMETER</div>
+          <div class="section-label">SEVEN-ASSAY SPECTROPHOTOMETER</div>
           <div class="cuvette-rack ${k.loaded ? "loaded" : ""}" id="cuvetteRack">${cuvetteMarkup()}</div>
           <div class="spectrometer">
             <div class="spectro-lid" aria-hidden="true"></div>
@@ -662,7 +668,7 @@ function renderKineticScan() {
         <div class="panel-pad">
           <div class="baseline-status ${k.blanked ? "blanked" : ""}"><strong>${k.blanked ? "Background removed" : "Background reading detected"}</strong><span>${k.blanked ? `${format(BACKGROUND_ABS415)} → 0 ABS₄₁₅` : `ABS₄₁₅ = ${format(BACKGROUND_ABS415)} before blanking`}</span></div>
           <div class="controls">
-            <button class="button" id="loadCuvettes" type="button" ${k.loaded ? "disabled" : ""}>Load nine cuvettes</button>
+            <button class="button" id="loadCuvettes" type="button" ${k.loaded ? "disabled" : ""}>Load seven cuvettes</button>
             <button class="button" id="blankSpectro" type="button" ${!k.loaded || k.blanked ? "disabled" : ""}>Blank spectrophotometer</button>
             <button class="button" id="startScan" type="button" ${!k.blanked || k.scanned ? "disabled" : ""}>Start 4.5-s scan</button>
             <button class="button button-secondary" id="showRates" type="button" ${!k.scanned || k.ratesShown ? "disabled" : ""}>Show initial rates</button>
@@ -671,11 +677,12 @@ function renderKineticScan() {
         </div>
       </section>
       <section class="panel chart-panel">
-        <div class="panel-title"><div><h3>Nine ONP-time traces</h3><p>All completed assays remain on the same axes for direct slope comparison.</p></div></div>
-        <div class="chart-frame"><canvas id="kineticTraceChart" aria-label="ONP concentration versus time for nine initial ONPG concentrations"></canvas><div id="kineticPlaceholder" class="chart-placeholder" ${k.scanned ? "hidden" : ""}>Complete the four instrument actions to collect all nine traces.</div></div>
+        <div class="panel-title"><div><h3>Seven ONP-time traces</h3><p>All completed assays remain on the same axes for direct slope comparison.</p></div></div>
+        <div class="chart-frame"><canvas id="kineticTraceChart" aria-label="ONP concentration versus time for seven initial ONPG concentrations"></canvas><div id="kineticPlaceholder" class="chart-placeholder" ${k.scanned ? "hidden" : ""}>Complete the four instrument actions to collect all seven traces.</div></div>
         <div class="legend" id="kineticLegend">${kineticLegend()}</div>
         <div class="panel-title" style="margin-top:18px"><div><h3>Results to record</h3><p>Rates remain hidden until you click Show initial rates.</p></div></div>
         <div class="data-table-wrap"><table class="data-table kinetics-table"><thead><tr><th>Initial ONPG concentration, C<sub>ONPG,0</sub> [mM]</th><th>Initial rate, v<sub>0</sub> [mM/s]</th></tr></thead><tbody id="kineticBody">${kineticRows(k.ratesShown)}</tbody></table></div>
+        <p class="assay-source-note">The six supplied laboratory rates are retained; the 39.8 mM virtual assay uses the Michaelis–Menten reference equation.</p>
       </section>
     </div>
     <div class="continue-row"><button class="button button-dark" id="continueStage" type="button" ${k.ratesShown ? "" : "disabled"}>Continue to Stage 5</button></div>
@@ -695,12 +702,14 @@ function renderKineticScan() {
   window.addEventListener("resize", draw, {passive:true});
 
   document.getElementById("loadCuvettes").addEventListener("click", () => {
-    k.loaded = true; saveState(); toast("Nine cuvettes loaded with equal enzyme amounts."); renderKineticScan();
+    k.loaded = true; saveState(); toast("Seven cuvettes loaded with equal enzyme amounts."); refreshStageView(renderKineticScan);
   });
   document.getElementById("blankSpectro").addEventListener("click", () => {
-    k.blanked = true; saveState(); toast(`Background ABS₄₁₅ ${format(BACKGROUND_ABS415,3)} removed; baseline set to 0.000.`); renderKineticScan();
+    k.blanked = true; saveState(); toast(`Background ABS₄₁₅ ${format(BACKGROUND_ABS415,3)} removed; baseline set to 0.000.`); refreshStageView(renderKineticScan);
   });
   document.getElementById("startScan").addEventListener("click", () => {
+    if (scanning || k.scanned) return;
+    document.getElementById("startScan").disabled = true;
     scanning = true;
     scanStart = performance.now();
     document.getElementById("kineticPlaceholder").hidden = true;
@@ -717,14 +726,14 @@ function renderKineticScan() {
         scanning = false;
         k.scanned = true;
         saveState();
-        toast("Nine assays complete. Initial rates can now be revealed.");
-        renderKineticScan();
+        toast("Seven assays complete. Initial rates can now be revealed.");
+        refreshStageView(renderKineticScan);
       }
     }
     raf = requestAnimationFrame(tick);
   });
   document.getElementById("showRates").addEventListener("click", () => {
-    k.ratesShown = true; saveState(); toast("Initial-rate table saved to Run data."); renderKineticScan();
+    k.ratesShown = true; saveState(); toast("Initial-rate table saved to Run data."); refreshStageView(renderKineticScan);
   });
   document.getElementById("continueStage").addEventListener("click", () => navigate(5));
   bindStageReset(4);
@@ -766,23 +775,23 @@ function renderRateCurve() {
   const area = document.getElementById("stageArea");
   const ready = state.kinetics.ratesShown;
   area.innerHTML = `<div class="stage-shell">
-    ${stageHeader(5, "Build the Michaelis–Menten rate curve", "Use the nine initial rates from Stage 4 to examine enzyme saturation as ONPG concentration increases.", "Nine initial rates · 0.62–159.2 mM")}
+    ${stageHeader(5, "Build the Michaelis–Menten rate curve", "Use the seven initial rates from Stage 4 to examine how the rate approaches saturation as ONPG concentration increases.", "Seven initial rates · 0.62–39.8 mM")}
     <div class="stage-grid analysis-grid">
       <section class="panel panel-pad">
-        <div class="panel-title"><div><h3>Nine Stage 4 initial rates</h3><p>Each initial rate is the slope of its ONP-time trace.</p></div></div>
+        <div class="panel-title"><div><h3>Seven Stage 4 initial rates</h3><p>Each initial rate is the slope of its ONP-time trace.</p></div></div>
         <div class="data-table-wrap"><table class="data-table kinetics-table"><thead><tr><th>Initial ONPG concentration, C<sub>ONPG,0</sub> [mM]</th><th>Initial rate, v₀ [mM/s]</th></tr></thead><tbody>${kineticRateRows()}</tbody></table></div>
         <div class="equation">v<sub>0</sub> = V<sub>max</sub> C<sub>ONPG,0</sub> / (K<sub>m</sub> + C<sub>ONPG,0</sub>)</div>
         <div class="controls">
           <button class="button" id="buildCurve" type="button" ${!ready || state.curveBuilt ? "disabled" : ""}>Build kinetics plot</button>
           <button class="button button-secondary" id="halfGuide" type="button" ${!state.curveBuilt || state.halfGuide ? "disabled" : ""}>Show half-maximum guide</button>
         </div>
-        ${!ready ? `<div class="note"><strong>Stage 4 is incomplete.</strong> Return to the kinetic scan and reveal all six initial rates before building this graph.</div>` : ""}
-        ${state.curveBuilt ? `<div class="callout" style="margin-top:15px"><h4>Michaelis–Menten reference</h4><p>V<sub>max</sub> = <code>${KINETICS.vmax.toFixed(6)} mM/s</code> &nbsp;·&nbsp; K<sub>m</sub> = <code>${KINETICS.km.toFixed(2)} mM</code>. The reference curve passes through the 19.9 mM result and approaches saturation as substrate concentration increases.</p></div>` : ""}
+        ${!ready ? `<div class="note"><strong>Stage 4 is incomplete.</strong> Return to the kinetic scan and reveal all seven initial rates before building this graph.</div>` : ""}
+        ${state.curveBuilt ? `<div class="callout" style="margin-top:15px"><h4>Michaelis–Menten reference</h4><p>V<sub>max</sub> = <code>${KINETICS.vmax.toFixed(6)} mM/s</code> &nbsp;·&nbsp; K<sub>m</sub> = <code>${KINETICS.km.toFixed(2)} mM</code>. The reference is anchored at 19.9 mM rather than fitted to all six laboratory rates. The 39.8 mM virtual assay follows this equation.</p></div>` : ""}
       </section>
       <section class="panel chart-panel">
-        <div class="panel-title"><div><h3>Initial-rate saturation · 0–160 mM</h3><p>All nine Stage 4 initial rates appear together with the Michaelis–Menten reference curve.</p></div></div>
+        <div class="panel-title"><div><h3>Initial-rate saturation · 0–40 mM</h3><p>All seven Stage 4 initial rates appear together with the Michaelis–Menten reference curve.</p></div></div>
         <div class="chart-frame"><canvas id="mmChart" aria-label="Michaelis-Menten graph of initial rate versus initial ONPG concentration"></canvas><div class="chart-placeholder" id="mmPlaceholder" ${state.curveBuilt ? "hidden" : ""}>Click Build kinetics plot after completing Stage 4.</div></div>
-        <div class="legend"><span class="legend-item"><i class="legend-swatch point" style="--swatch:${COLORS.navy}"></i>Nine initial rates</span><span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.small}"></i>Michaelis–Menten curve</span>${state.halfGuide?`<span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.yellow}"></i>Half maximum</span>`:""}</div>
+        <div class="legend"><span class="legend-item"><i class="legend-swatch point" style="--swatch:${COLORS.navy}"></i>Seven initial rates</span><span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.small}"></i>Michaelis–Menten curve</span>${state.halfGuide?`<span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.yellow}"></i>Half maximum</span>`:""}</div>
         ${state.halfGuide ? `<div class="note"><strong>Read the guide:</strong> one-half V<sub>max</sub> = ${(KINETICS.vmax/2).toFixed(6)} mM/s intersects the reference curve at [S]<sub>0</sub> = ${KINETICS.km.toFixed(2)} mM.</div>` : ""}
       </section>
     </div>
@@ -791,8 +800,8 @@ function renderRateCurve() {
   const draw = () => drawMichaelis(document.getElementById("mmChart"), state.curveBuilt, state.halfGuide);
   draw();
   window.addEventListener("resize", draw, {passive:true});
-  document.getElementById("buildCurve").addEventListener("click", () => { state.curveBuilt=true; saveState(); toast("Kinetics plot built and saved."); renderRateCurve(); });
-  document.getElementById("halfGuide").addEventListener("click", () => { state.halfGuide=true; saveState(); renderRateCurve(); });
+  document.getElementById("buildCurve").addEventListener("click", () => { state.curveBuilt=true; saveState(); toast("Kinetics plot built and saved."); refreshStageView(renderRateCurve); });
+  document.getElementById("halfGuide").addEventListener("click", () => { state.halfGuide=true; saveState(); refreshStageView(renderRateCurve); });
   document.getElementById("continueStage").addEventListener("click", () => navigate(6));
   bindStageReset(5);
   cleanupStage = () => window.removeEventListener("resize", draw);
@@ -804,16 +813,16 @@ function kineticRateRows() {
 
 function drawMichaelis(canvas, built, halfGuide) {
   const fit = [];
-  for (let s=0;s<=160;s+=.5) fit.push({x:s,y:KINETICS.vmax*s/(KINETICS.km+s)});
+  for (let s=0;s<=40;s+=.2) fit.push({x:s,y:KINETICS.vmax*s/(KINETICS.km+s)});
   const series = built ? [
     {name:"Fit",color:COLORS.small,width:3,points:fit},
-    {name:"Nine assay rates",color:COLORS.navy,width:0,markers:true,points:KINETICS.concentrations.map((x,i)=>({x,y:KINETICS.rates[i]}))}
+    {name:"Seven assay rates",color:COLORS.navy,width:0,markers:true,points:KINETICS.concentrations.map((x,i)=>({x,y:KINETICS.rates[i]}))}
   ] : [];
   if (built && halfGuide) {
     series.push({name:"half horizontal",color:COLORS.yellow,width:2,dash:[6,5],points:[{x:0,y:KINETICS.vmax/2},{x:KINETICS.km,y:KINETICS.vmax/2}]});
     series.push({name:"half vertical",color:COLORS.yellow,width:2,dash:[6,5],points:[{x:KINETICS.km,y:0},{x:KINETICS.km,y:KINETICS.vmax/2}]});
   }
-  drawPlot(canvas,{xMin:0,xMax:165,yMin:0,yMax:.0027,xLabel:"Initial ONPG, C<sub>ONPG,0</sub> [mM]",yLabel:"v<sub>0</sub> [mM/s]",xTicks:[0,40,80,120,160],yTicks:[0,.0005,.001,.0015,.002,.0025],series});
+  drawPlot(canvas,{xMin:0,xMax:42,yMin:0,yMax:.0027,xLabel:"Initial ONPG, C<sub>ONPG,0</sub> [mM]",yLabel:"v<sub>0</sub> [mM/s]",xTicks:[0,10,20,30,40],yTicks:[0,.0005,.001,.0015,.002,.0025],series});
 }
 
 function renderDesign() {
@@ -845,7 +854,7 @@ function renderDesign() {
         </div>
         <div class="target-track"><div class="target-fill" style="width:${Math.min(100,eta*100)}%"></div></div>
         <div class="target-label"><span>0</span><strong><span class='math-eta'>η<sub>i</sub></span> target = 0.95</strong><span>1.00</span></div>
-        <div class="note"><strong>Model basis:</strong> the same ONPG, enzyme kinetics, and transport assumptions are held fixed while diameter changes. The 2.8 and 4.6 mm rows are laboratory-tested sizes; smaller design sizes are predictions.</div>
+        <div class="note"><strong>Model basis:</strong> the initial ONPG concentration and bead-scale transport parameters are held fixed while diameter changes. The 2.8 and 4.6 mm rows are laboratory-tested sizes; smaller design sizes are predictions.</div>
       </section>
       <section class="panel chart-panel">
         <div class="panel-title"><div><h3>Surface-to-center ONPG profiles</h3><p>The graph shows every saved diameter, plus the current selection if it is not yet saved.</p></div></div>
@@ -867,7 +876,7 @@ function renderDesign() {
       toast("Enter a diameter between 0.1 and 10 mm.");
       document.getElementById("diameterInput").value=formatDiameter(d);return;
     }
-    state.designDiameter=candidate;saveState();renderDesign();
+    state.designDiameter=candidate;saveState();refreshStageView(renderDesign);
   }
   slider.addEventListener("change",event=>setDiameter(event.target.value));
   document.getElementById("applyDiameter").addEventListener("click",()=>{
@@ -884,7 +893,7 @@ function renderDesign() {
     const trial={diameter:d,eta,surface:profile.surface,center:profile.center,profile};
     state.designTrials=state.designTrials.filter(t=>Math.abs(t.diameter-d)>1e-9);
     state.designTrials.push(trial);state.designTrials.sort((a,b)=>a.diameter-b.diameter);
-    saveState();toast(`${formatDiameter(d)} mm model result saved.`);renderDesign();
+    saveState();toast(`${formatDiameter(d)} mm model result saved.`);refreshStageView(renderDesign);
   });
     bindStageReset(6);
   cleanupStage = () => window.removeEventListener("resize",draw);
