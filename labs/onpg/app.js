@@ -523,7 +523,7 @@ function drawBeadProgress(canvas, dataset, maxTime) {
     xMin: 0, xMax: 340, yMin: 0, yMax: .84,
     xLabel: "Equivalent lab time [min]", yLabel: "C<sub>ONP</sub> [mM]",
     series: [{ name: `${dataset.diameter} mm`, color: dataset.color, points, width: 3 }],
-    xTicks: [0, 80, 160, 240, 320], yTicks: [0,.2,.4,.6,.8]
+    xTicks: [0,85,170,255,340], yTicks: [0,.2,.4,.6,.8]
   });
 }
 
@@ -827,10 +827,16 @@ function drawMichaelis(canvas, built, halfGuide) {
   drawPlot(canvas,{xMin:0,xMax:42,yMin:0,yMax:.0027,xLabel:"Initial ONPG, C<sub>ONPG,0</sub> [mM]",yLabel:"v<sub>0</sub> [mM/s]",xTicks:[0,10,20,30,40],yTicks:[0,.0005,.001,.0015,.002,.0025],series});
 }
 
+function referenceBeadKey(diameter) {
+  if (Math.abs(diameter - 2.8) < 1e-9) return "small";
+  if (Math.abs(diameter - 4.6) < 1e-9) return "large";
+  return null;
+}
+
 function renderDesign() {
   const area = document.getElementById("stageArea");
   const d = state.designDiameter;
-  const profile = solveBead(d, null);
+  const profile = solveBead(d, referenceBeadKey(d));
   const eta = reportedEta(d, profile.eta);
   const assigned = getAssignedDesigns();
   area.innerHTML = `<div class="stage-shell">
@@ -933,7 +939,7 @@ function designProfileSeries(assigned,d,currentProfile) {
   const result=trials.map((t,i)=>({
     name:`${formatDiameter(t.diameter)} mm`,
     color:Math.abs(t.diameter-0.6)<1e-9?COLORS.large:Math.abs(t.diameter-0.3)<1e-9?COLORS.small:colors[i%colors.length],
-    profile:t.profile||solveBead(t.diameter,null)
+    profile:t.profile||solveBead(t.diameter,referenceBeadKey(t.diameter))
   }));
   if(!trials.some(t=>Math.abs(t.diameter-d)<1e-9))result.push({name:`${formatDiameter(d)} mm (current)`,color:COLORS.yellow,profile:currentProfile});
   return result;
