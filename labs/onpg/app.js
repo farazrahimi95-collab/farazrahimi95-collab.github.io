@@ -25,20 +25,16 @@ const LAB = {
     diameter: 2.8,
     times: [0,10,20,30,40,50,60,70,80,90,100,110,120,130,140,150,160,170,230,280,340],
     onp: [0,0.1438865,0.2817730,0.3775248,0.4639362,0.5350993,0.5884468,0.6306596,0.6630213,0.6868794,0.7051560,0.7143901,0.7344468,0.7499291,0.7509716,0.7499787,0.7509645,0.7525177,0.7613901,0.7670213,0.7670213],
-    initialRate: 0.017,
-    eta: 0.45,
-    phi: 2.30,
-    biot: 13.5,
+    phi: 2.04,
+    biot: 16.8,
     color: COLORS.small
   },
   large: {
     diameter: 4.6,
     times: [0,10,20,30,40,50,60,70,80,90,100,110,120,130,140,150,160,170,180,190,200,210,220,240,260,300,340],
     onp: [0,0.0911915,0.1614113,0.2279362,0.2938227,0.3464681,0.3926099,0.4360142,0.4756241,0.5075248,0.5390284,0.5675887,0.5937021,0.6111702,0.6281915,0.6533333,0.6662908,0.6749433,0.6851702,0.6906241,0.6982979,0.7043617,0.7086454,0.7096950,0.7127943,0.7150213,0.7168369],
-    initialRate: 0.009,
-    eta: 0.29,
-    phi: 3.78,
-    biot: 11.6,
+    phi: 3.79,
+    biot: 18.6,
     color: COLORS.large
   }
 };
@@ -123,14 +119,47 @@ function crossingTime(dataset, concentration) {
   return lerp(dataset.times[i - 1], dataset.times[i], f);
 }
 
+// Estimate the instantaneous initial rate from an unweighted cubic least-squares
+// fit to the original 0–60 minute ONP-versus-time points. v0 = dC_ONP/dt at t=0.
+// Normalize the fitting time to [0,1] to keep the normal equations conditioned.
+function reactorInitialRate(dataset) {
+  const windowMinutes = 60;
+  const order = 3;
+  const a = Array.from({length: order + 1}, () => Array(order + 2).fill(0));
+  dataset.times.forEach((time, i) => {
+    if (time > windowMinutes) return;
+    const x = time / windowMinutes;
+    const powers = Array.from({length: 2*order + 1}, (_,j) => x**j);
+    for (let row=0;row<=order;row++) {
+      for (let col=0;col<=order;col++) a[row][col] += powers[row+col];
+      a[row][order+1] += powers[row] * dataset.onp[i];
+    }
+  });
+  // Partial-pivot Gaussian elimination for the four polynomial coefficients.
+  for (let j=0;j<=order;j++) {
+    let pivot=j;
+    for (let i=j+1;i<=order;i++) if (Math.abs(a[i][j])>Math.abs(a[pivot][j])) pivot=i;
+    if (Math.abs(a[pivot][j])<1e-12) throw new Error("Insufficient independent initial-rate samples");
+    [a[j],a[pivot]]=[a[pivot],a[j]];
+    const scale=a[j][j];
+    for (let k=j;k<=order+1;k++) a[j][k]/=scale;
+    for (let i=0;i<=order;i++) {
+      if (i===j) continue;
+      const fac=a[i][j];
+      for (let k=j;k<=order+1;k++) a[i][k]-=fac*a[j][k];
+    }
+  }
+  return a[1][order+1] / windowMinutes;
+}
+
 function beadSummary(key) {
-  const d = LAB[key];
+  const d=LAB[key];
   return {
-    initialRate: d.initialRate,
-    t50: crossingTime(d, INITIAL_ONPG * 0.50),
-    t80: crossingTime(d, INITIAL_ONPG * 0.80),
-    conversion: 100 * d.onp.at(-1) / INITIAL_ONPG,
-    eta: d.eta
+    initialRate: reactorInitialRate(d),
+    t50: crossingTime(d, INITIAL_ONPG*0.50),
+    t80: crossingTime(d, INITIAL_ONPG*0.80),
+    conversion: 100*d.onp.at(-1)/INITIAL_ONPG,
+    eta: solveBead(d.diameter,key).eta
   };
 }
 
@@ -576,11 +605,14 @@ function renderComparison() {
   const small = beadSummary("small");
   const large = beadSummary("large");
   const runsReady = state.beadRuns.small.samples.length === SAMPLE_SCHEDULE.length && state.beadRuns.large.samples.length === SAMPLE_SCHEDULE.length;
+  const smallProfile = solveBead(2.8, "small");
+  const largeProfile = solveBead(4.6, "large");
   area.innerHTML = `<div class="stage-shell">
     ${stageHeader(3, "Compare bead diameter", "The tables and plot below contrast results for 2.8 and 4.6 mm bead sizes.", "Comparison only · no controls")}
     <div class="compare-summary">
       ${summaryCard("small", small)}${summaryCard("large", large)}
     </div>
+    <p class="assay-source-note">Initial rates are the slopes at t = 0 of cubic least-squares fits to the original 0–60 min ONP data. Effectiveness factors are calculated from the bead-scale reaction–diffusion model.</p>
     <div class="stage-grid analysis-grid">
       <section class="panel chart-panel">
         <div class="panel-title"><div><h3>Summary of C<sub>ONP</sub> vs. t [min]</h3><p>Smooth curves show the complete 0–340 min conversion responses; dots mark only the six recorded sample times for each bead size.</p></div></div>
@@ -592,15 +624,13 @@ function renderComparison() {
       <section class="panel chart-panel">
         <div class="panel-title"><div><h3>C<sub>ONPG</sub> vs. dimensionless radius</h3><p>Center (0) to surface (1).</p></div></div>
         <div class="chart-frame"><canvas id="profileChart" aria-label="Radial ONPG concentration profiles for both bead sizes"></canvas></div>
-        <div class="legend"><span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.small}"></i>d = 2.8 mm; internal effectiveness factor, <span class='math-eta'>η<sub>i</sub></span> = 0.450</span><span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.large}"></i>d = 4.6 mm; internal effectiveness factor, <span class='math-eta'>η<sub>i</sub></span> = 0.290</span></div>
+        <div class="legend"><span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.small}"></i>d = 2.8 mm; internal effectiveness factor, <span class='math-eta'>η<sub>i</sub></span> = ${smallProfile.eta.toFixed(4)}</span><span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.large}"></i>d = 4.6 mm; internal effectiveness factor, <span class='math-eta'>η<sub>i</sub></span> = ${largeProfile.eta.toFixed(4)}</span></div>
 
         <div class="note">Engineers use an internal effectiveness factor for beads, <span class='math-eta'>η<sub>i</sub></span>, which is the ratio of the actual reaction rate to that expected if the entire bead were at its surface concentration. ONPG consumption in the outer region can leave little substrate available for reaction in the bead interior.</div>
       </section>
     </div>
     <div class="continue-row"><button class="button button-dark" id="continueStage" type="button">Continue to Stage 4</button></div>
   </div>`;
-  const smallProfile = solveBead(2.8, "small");
-  const largeProfile = solveBead(4.6, "large");
   const draw = () => {
     drawPlot(document.getElementById("compareChart"), {
       xMin:0,xMax:340,yMin:0,yMax:.84,xLabel:"Equivalent lab time [min]",yLabel:"C<sub>ONP</sub> [mM]",
@@ -627,9 +657,9 @@ function renderComparison() {
 function summaryCard(key, s) {
   const d = LAB[key];
   return `<article class="result-card"><h4><i class="bead-dot" style="--swatch:${d.color}"></i>${d.diameter.toFixed(1)} mm beads</h4><dl>
-    <dt>Initial rate</dt><dd>${format(s.initialRate)} mM/min</dd>
+    <dt>Initial rate (0–60 min fit)</dt><dd>${s.initialRate.toFixed(5)} mM/min</dd>
     <dt>Final conversion</dt><dd>${format(s.conversion)}%</dd>
-    <dt>Internal effectiveness factor, <span class='math-eta'>η<sub>i</sub></span></dt><dd>${format(s.eta)}</dd>
+    <dt>Internal effectiveness factor, <span class='math-eta'>η<sub>i</sub></span></dt><dd>${s.eta.toFixed(4)}</dd>
   </dl></article>`;
 }
 
@@ -862,7 +892,7 @@ function renderDesign() {
         </div>
         <div class="target-track"><div class="target-fill" style="width:${Math.min(100,eta*100)}%"></div></div>
         <div class="target-label"><span>0</span><strong><span class='math-eta'>η<sub>i</sub></span> target = 0.95</strong><span>1.00</span></div>
-        <div class="note"><strong>Model basis:</strong> the bulk ONPG concentration is fixed; the reference beads (2.8 and 4.6 mm) use their own calibrated reaction–diffusion parameters, while exploratory diameters use the design-model parameterization. Calculated design results are not direct measurements.</div>
+        <div class="note"><strong>Model basis:</strong> the bulk ONPG concentration is fixed; the reference beads (2.8 and 4.6 mm) use their individually calibrated parameters. Other diameters are calculated by scaling both the Thiele modulus and film-transfer Biot number with bead radius from the 2.8 mm reference, assuming constant effective diffusivity, film-transfer coefficient, and immobilized enzyme loading. Design outputs are model calculations, not independent measurements.</div>
       </section>
       <section class="panel chart-panel">
         <div class="panel-title"><div><h3>Surface-to-center ONPG profiles</h3><p>The graph shows every saved diameter, plus the current selection if it is not yet saved.</p></div></div>
@@ -907,11 +937,7 @@ function renderDesign() {
   cleanupStage = () => window.removeEventListener("resize",draw);
 }
 
-function reportedEta(d, raw) {
-  if (Math.abs(d-2.8)<.001) return .45;
-  if (Math.abs(d-4.6)<.001) return .29;
-  return raw;
-}
+function reportedEta(d, raw) { return raw; }
 
 function getAssignedDesigns() {
   const trials = state.designTrials || [];
@@ -925,8 +951,8 @@ function isAssignedDiameter(diameter) { return Math.abs(diameter-0.3)<1e-9 || Ma
 function designRows(assigned) {
   const small=solveBead(2.8,"small"), large=solveBead(4.6,"large");
   const row=(label,d,t)=>`<tr><td>${label}</td><td>${formatDiameter(d)}</td><td>${t?t.eta.toFixed(4):"—"}</td><td>${t?format(t.surface,3):"—"}</td><td>${t?format(t.center,3):"—"}</td></tr>`;
-  const fixed=row("Large laboratory bead",4.6,{eta:.29,surface:large.surface,center:large.center}) +
-    row("Small laboratory bead",2.8,{eta:.45,surface:small.surface,center:small.center}) +
+  const fixed=row("Large laboratory bead",4.6,large) +
+    row("Small laboratory bead",2.8,small) +
     row("Required design",0.6,assigned.six) + row("Required design",0.3,assigned.three);
   const extras=state.designTrials.filter(t=>!isAssignedDiameter(t.diameter))
     .sort((a,b)=>a.diameter-b.diameter).map(t=>row("Additional saved design",t.diameter,t)).join("");
@@ -953,8 +979,12 @@ function designLegend(assigned,d,currentProfile) {
 
 function solveBead(diameter, fixedKey=null) {
   const cBulk = INITIAL_ONPG / PROFILE_CONCENTRATION_SCALE;
-  const phi = fixedKey ? LAB[fixedKey].phi : .8214 * diameter;
-  const biot = fixedKey ? LAB[fixedKey].biot : 15;
+  // Reference beads use their individually calibrated parameters. For trial
+  // diameters we scale from the 2.8-mm case, with constant effective diffusivity,
+  // immobilized-enzyme loading and external film coefficient: phi, Bi ∝ radius.
+  const ratio = diameter / LAB.small.diameter;
+  const phi = fixedKey ? LAB[fixedKey].phi : LAB.small.phi * ratio;
+  const biot = fixedKey ? LAB[fixedKey].biot : LAB.small.biot * ratio;
   const eps = 1e-4;
   const steps = 700;
 
@@ -984,7 +1014,7 @@ function solveBead(diameter, fixedKey=null) {
   for(let i=0;i<65;i+=1){const mid=(lo+hi)/2;if(residual(mid)>0)hi=mid;else lo=mid;}
   const solved=integrate((lo+hi)/2,true);
   const eta=solved.u*(1+solved.c)/(3*phi*phi*solved.c);
-  return {eta,surface:solved.c*PROFILE_CONCENTRATION_SCALE,center:(lo+hi)/2*PROFILE_CONCENTRATION_SCALE,points:solved.points,diameter};
+  return {eta,surface:solved.c*PROFILE_CONCENTRATION_SCALE,center:(lo+hi)/2*PROFILE_CONCENTRATION_SCALE,points:solved.points,diameter,phi,biot};
 }
 
 function drawProfiles(canvas, profiles) {
