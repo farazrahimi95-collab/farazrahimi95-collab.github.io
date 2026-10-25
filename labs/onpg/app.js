@@ -812,7 +812,7 @@ function renderRateCurve() {
     <div class="stage-grid analysis-grid">
       <section class="panel panel-pad">
         <div class="panel-title"><div><h3>Seven Stage 4 initial rates</h3><p>Each initial rate is the slope of its ONP-time trace.</p></div></div>
-        <div class="data-table-wrap"><table class="data-table kinetics-table"><thead><tr><th>Initial ONPG concentration, C<sub>ONPG,0</sub> [mM]</th><th>Initial rate, v₀ [mM/s]</th></tr></thead><tbody>${kineticRateRows()}</tbody></table></div>
+        <div class="data-table-wrap"><table class="data-table kinetics-table"><thead><tr><th>Initial ONPG concentration, C<sub>ONPG,0</sub> [mM]</th><th>Initial rate, v₀ [mM/s]</th></tr></thead><tbody>${ready ? kineticRateRows() : '<tr><td colspan="2" class="pending">Complete Stage 4 and reveal the seven initial rates to populate this table.</td></tr>'}</tbody></table></div>
         <div class="equation">v<sub>0</sub> = V<sub>max</sub> C<sub>ONPG,0</sub> / (K<sub>m</sub> + C<sub>ONPG,0</sub>)</div>
         <div class="controls">
           <button class="button" id="buildCurve" type="button" ${!ready || state.curveBuilt ? "disabled" : ""}>Build kinetics plot</button>
