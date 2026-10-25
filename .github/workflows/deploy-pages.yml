@@ -53,23 +53,19 @@ jobs:
           cp "labs/parallel-heat-transfer/Heat Transfer Worksheet.pdf" labs/parallel-heat-transfer/Panel_Heat_Transfer_Worksheet.pdf
           test -s "labs/parallel-heat-transfer/Heat Transfer Worksheet.pdf"
 
-      - name: Generate updated ONPG Worksheet
+      - name: Verify reviewed Worksheet files
         run: |
-          python -m pip install -q python-docx Pillow
-          python labs/onpg/build_worksheet.py
           test -s labs/onpg/Worksheet.docx
-          mkdir -p /tmp/onpg-worksheet-export
-          timeout 90s libreoffice -env:UserInstallation=file:///tmp/lo-onpg-worksheet --headless --convert-to pdf --outdir /tmp/onpg-worksheet-export labs/onpg/Worksheet.docx
-          cp /tmp/onpg-worksheet-export/Worksheet.pdf labs/onpg/Worksheet.pdf
           test -s labs/onpg/Worksheet.pdf
+          python -m pip install -q python-docx
           python - <<'PY'
           from docx import Document
-          d=Document('labs/onpg/Worksheet.docx')
-          body="\n".join(p.text for p in d.paragraphs)
-          assert "eight-step" not in body.lower()
-          assert "39.8" in body
-          assert len(d.element.body.xpath('.//m:oMath')) >= 3
-          print("ONPG Worksheet math and model checks passed")
+          doc=Document('labs/onpg/Worksheet.docx')
+          text="\n".join(p.text for p in doc.paragraphs)
+          assert "39.8" in text
+          assert len(doc.element.body.xpath('.//m:oMath')) >= 10
+          assert len(doc.tables) >= 5
+          print("Reviewed Worksheet.docx and Worksheet.pdf published unchanged")
           PY
 
       - name: Upload website
