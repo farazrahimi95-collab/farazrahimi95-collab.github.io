@@ -53,6 +53,25 @@ jobs:
           cp "labs/parallel-heat-transfer/Heat Transfer Worksheet.pdf" labs/parallel-heat-transfer/Panel_Heat_Transfer_Worksheet.pdf
           test -s "labs/parallel-heat-transfer/Heat Transfer Worksheet.pdf"
 
+      - name: Generate updated ONPG Worksheet
+        run: |
+          python -m pip install -q python-docx Pillow
+          python labs/onpg/build_worksheet.py
+          test -s labs/onpg/Worksheet.docx
+          mkdir -p /tmp/onpg-worksheet-export
+          timeout 90s libreoffice -env:UserInstallation=file:///tmp/lo-onpg-worksheet --headless --convert-to pdf --outdir /tmp/onpg-worksheet-export labs/onpg/Worksheet.docx
+          cp /tmp/onpg-worksheet-export/Worksheet.pdf labs/onpg/Worksheet.pdf
+          test -s labs/onpg/Worksheet.pdf
+          python - <<'PY'
+          from docx import Document
+          d=Document('labs/onpg/Worksheet.docx')
+          body="\n".join(p.text for p in d.paragraphs)
+          assert "eight-step" not in body.lower()
+          assert "39.8" in body
+          assert len(d.element.body.xpath('.//m:oMath')) >= 3
+          print("ONPG Worksheet math and model checks passed")
+          PY
+
       - name: Upload website
         uses: actions/upload-pages-artifact@v3
         with:
