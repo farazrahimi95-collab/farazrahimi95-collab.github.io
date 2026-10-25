@@ -608,7 +608,7 @@ function renderComparison() {
   const smallProfile = solveBead(2.8, "small");
   const largeProfile = solveBead(4.6, "large");
   area.innerHTML = `<div class="stage-shell">
-    ${stageHeader(3, "Compare bead diameter", "The tables and plot below contrast results for 2.8 and 4.6 mm bead sizes.", "Comparison only · no controls")}
+    ${stageHeader(3, "Compare bead diameter", "The tables and plot below contrast results for 2.8 and 4.6 mm bead sizes.", "Paired reactor results")}
     <div class="compare-summary">
       ${summaryCard("small", small)}${summaryCard("large", large)}
     </div>
@@ -626,7 +626,8 @@ function renderComparison() {
         <div class="chart-frame"><canvas id="profileChart" aria-label="Radial ONPG concentration profiles for both bead sizes"></canvas></div>
         <div class="legend"><span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.small}"></i>d = 2.8 mm; internal effectiveness factor, <span class='math-eta'>η<sub>i</sub></span> = ${smallProfile.eta.toFixed(4)}</span><span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.large}"></i>d = 4.6 mm; internal effectiveness factor, <span class='math-eta'>η<sub>i</sub></span> = ${largeProfile.eta.toFixed(4)}</span></div>
 
-        <div class="note">Engineers use an internal effectiveness factor, <span class='math-eta'>η<sub>i</sub></span>, defined as the actual integrated bead reaction rate divided by the rate if the whole bead were at its surface concentration. The model solves d²c/dx² + (2/x)dc/dx − 9φ²c/(1+c) = 0, where x = r/R and c = C<sub>ONPG</sub>/K<sub>m,profile</sub>. Conditions are dc/dx = 0 at x = 0 and dc/dx = 3N<sub>B</sub>(c<sub>bulk</sub> − c<sub>s</sub>) at x = 1. Its surface-film parameter is defined with that factor of three (N<sub>B</sub> = k<sub>f</sub>R/(3D<sub>eff</sub>)); c<sub>bulk</sub> = 0.403. Inputs: 2.8 mm φ = 2.04, N<sub>B</sub> = 16.8; 4.6 mm φ = 3.79, N<sub>B</sub> = 18.6. K<sub>m,profile</sub> is the separately calibrated 2.059 mM profile scale. Results are numerical model outputs, not direct measurements.</div>
+        <div class="note">The internal effectiveness factor, <span class='math-eta'>η<sub>i</sub></span>, compares the actual integrated bead reaction rate with the rate if the entire bead were at its surface concentration. Lower values indicate stronger internal diffusion limitations.</div>
+        <details class="model-details"><summary>Reaction–diffusion equations and MATLAB parameters</summary>        <div class="note model-method-note">Engineers use an internal effectiveness factor, <span class='math-eta'>η<sub>i</sub></span>, defined as the actual integrated bead reaction rate divided by the rate if the whole bead were at its surface concentration. The model solves d²c/dx² + (2/x)dc/dx − 9φ²c/(1+c) = 0, where x = r/R and c = C<sub>ONPG</sub>/K<sub>m,profile</sub>. Conditions are dc/dx = 0 at x = 0 and dc/dx = 3N<sub>B</sub>(c<sub>bulk</sub> − c<sub>s</sub>) at x = 1. Its surface-film parameter is defined with that factor of three (N<sub>B</sub> = k<sub>f</sub>R/(3D<sub>eff</sub>)); c<sub>bulk</sub> = 0.403. Inputs: 2.8 mm φ = 2.04, N<sub>B</sub> = 16.8; 4.6 mm φ = 3.79, N<sub>B</sub> = 18.6. K<sub>m,profile</sub> is the separately calibrated 2.059 mM profile scale. Results are numerical model outputs, not direct measurements.</div></details>
       </section>
     </div>
     <div class="continue-row"><button class="button button-dark" id="continueStage" type="button">Continue to Stage 4</button></div>
@@ -818,7 +819,7 @@ function renderRateCurve() {
           <button class="button button-secondary" id="halfGuide" type="button" ${!state.curveBuilt || state.halfGuide ? "disabled" : ""}>Show half-maximum guide</button>
         </div>
         ${!ready ? `<div class="note"><strong>Stage 4 is incomplete.</strong> Return to the kinetic scan and reveal all seven initial rates before building this graph.</div>` : ""}
-        ${state.curveBuilt ? `<div class="callout" style="margin-top:15px"><h4>Michaelis–Menten reference</h4><p>V<sub>max</sub> = <code>${KINETICS.vmax.toFixed(6)} mM/s</code> &nbsp;·&nbsp; K<sub>m</sub> = <code>${KINETICS.km.toFixed(2)} mM</code>. The reference is anchored at 19.9 mM rather than fitted to all six laboratory rates. The 39.8 mM virtual assay follows this equation.</p></div>` : ""}
+        ${state.curveBuilt ? `<div class="callout" style="margin-top:15px"><h4>Michaelis–Menten reference</h4><p>V<sub>max</sub> = <code>${KINETICS.vmax.toFixed(6)} mM/s</code> &nbsp;·&nbsp; K<sub>m</sub> = <code>${KINETICS.km.toFixed(2)} mM</code>. The reference is anchored at 19.9 mM rather than fitted to all six laboratory rates. The 39.8 mM virtual assay follows this equation, assuming Michaelis–Menten behavior without substrate inhibition or changing assay conditions.</p></div>` : ""}
       </section>
       <section class="panel chart-panel">
         <div class="panel-title"><div><h3>Initial-rate saturation · 0–40 mM</h3><p>All seven Stage 4 initial rates appear together with the Michaelis–Menten reference curve.</p></div></div>
