@@ -68,6 +68,24 @@ jobs:
           print("Reviewed Worksheet.docx and Worksheet.pdf published unchanged")
           PY
 
+      - name: Reorder the reviewed ONPG Worksheet to match Stages 1–6
+        run: |
+          python labs/onpg/reorder_worksheet.py
+          mkdir -p /tmp/onpg-reordered-pdf
+          timeout 90s libreoffice -env:UserInstallation=file:///tmp/lo-onpg-reorder --headless --convert-to pdf --outdir /tmp/onpg-reordered-pdf labs/onpg/Worksheet.docx
+          cp /tmp/onpg-reordered-pdf/Worksheet.pdf labs/onpg/Worksheet.pdf
+          test -s labs/onpg/Worksheet.docx
+          test -s labs/onpg/Worksheet.pdf
+          python - <<'PY'
+          from docx import Document
+          d=Document('labs/onpg/Worksheet.docx')
+          t='\n'.join(p.text for p in d.paragraphs)
+          assert t.index('Experiment 1: Free-Enzyme') < t.index('Experiment 2: Bead-Diameter') < t.index('Experiment 3: Compare')
+          assert t.index('Homework 1: ONPG') < t.index('Homework 2: ONP')
+          assert len(d.tables)==5
+          print('Reviewed Word equations, tables, and reordered section references.')
+          PY
+
       - name: Upload website
         uses: actions/upload-pages-artifact@v3
         with:
