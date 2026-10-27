@@ -82,6 +82,17 @@ jobs:
           from docx import Document
           d=Document('labs/onpg/Worksheet.docx')
           t='\n'.join(p.text for p in d.paragraphs)
+          # The student-facing order must agree with the SIX stages on the website.
+          stage_markers = [
+              'Experiment 1: Free-Enzyme Kinetics (Stage 1)',
+              'Experiment 1: Michaelis–Menten Analysis (Stage 2)',
+              'Experiment 2: Bead-Diameter Design (Stage 3)',
+              'Open Stage 4 (2.8 mm beads)',
+              'Continue to Stage 5 (4.6 mm beads)',
+              'Open Stage 6 to compare',
+          ]
+          assert all(marker in t for marker in stage_markers), 'One or more worksheet stages missing'
+          assert [t.index(marker) for marker in stage_markers] == sorted(t.index(marker) for marker in stage_markers), 'Worksheet stage order differs from website'
           assert t.index('Experiment 1: Free-Enzyme') < t.index('Experiment 2: Bead-Diameter') < t.index('Experiment 3: Compare')
           assert t.count('Homework Questions') == 1
           assert 'Homework 1:' not in t and 'Homework 2:' not in t
@@ -93,6 +104,15 @@ jobs:
           assert len(d.tables)==5
           print('Reviewed Word equations, tables, and reordered section references.')
           PY
+
+      # Publish both historical worksheet URLs with the SAME reviewed, staged-order
+      # document. Older links must never show the obsolete 10-page worksheet.
+      - name: Synchronize ONPG worksheet URLs
+        run: |
+          cp labs/onpg/Worksheet.pdf labs/onpg/ONPG_Virtual_Lab_Worksheet.pdf
+          cp labs/onpg/Worksheet.docx labs/onpg/ONPG_Virtual_Lab_Worksheet.docx
+          cmp labs/onpg/Worksheet.pdf labs/onpg/ONPG_Virtual_Lab_Worksheet.pdf
+          cmp labs/onpg/Worksheet.docx labs/onpg/ONPG_Virtual_Lab_Worksheet.docx
 
       - name: Upload website
         uses: actions/upload-pages-artifact@v3
