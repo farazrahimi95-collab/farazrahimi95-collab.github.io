@@ -856,16 +856,10 @@ function drawMichaelis(canvas, built, halfGuide) {
   drawPlot(canvas,{xMin:0,xMax:42,yMin:0,yMax:.0027,xLabel:"Initial ONPG, C<sub>ONPG,0</sub> [mM]",yLabel:"v<sub>0</sub> [mM/s]",xTicks:[0,10,20,30,40],yTicks:[0,.0005,.001,.0015,.002,.0025],series});
 }
 
-function referenceBeadKey(diameter) {
-  if (Math.abs(diameter - 2.8) < 1e-9) return "small";
-  if (Math.abs(diameter - 4.6) < 1e-9) return "large";
-  return null;
-}
-
 function renderDesign() {
   const area = document.getElementById("stageArea");
   const d = state.designDiameter;
-  const profile = solveBead(d, referenceBeadKey(d));
+  const profile = solveBead(d);
   const eta = reportedEta(d, profile.eta);
   const assigned = getAssignedDesigns();
   area.innerHTML = `<div class="stage-shell">
@@ -891,7 +885,7 @@ function renderDesign() {
         </div>
         <div class="target-track"><div class="target-fill" style="width:${Math.min(100,eta*100)}%"></div></div>
         <div class="target-label"><span>0</span><strong><span class='math-eta'>η<sub>i</sub></span> target = 0.95</strong><span>1.00</span></div>
-        <div class="note"><strong>Model basis:</strong> the bulk ONPG concentration is fixed; the 2.8 and 4.6 mm reference beads use their individually calibrated dimensionless parameters. Other diameters are calculated from the 2.8 mm case by scaling both the Thiele modulus and normalized film-transfer parameter N<sub>B</sub> with bead radius. This assumes unchanged effective diffusivity, film-transfer coefficient, and enzyme loading. Design outputs are model calculations, not independent measurements.</div>
+        <div class="note"><strong>Model basis:</strong> the bulk ONPG concentration is fixed; all adjustable-diameter design results (including 2.8 and 4.6 mm selections) use one continuous calculation: the Thiele modulus and normalized film-transfer parameter N<sub>B</sub> scale with bead radius from the 2.8 mm baseline. The separate 2.8 and 4.6 mm laboratory reference rows retain their individually calibrated values and are not part of this design curve. The model assumes unchanged effective diffusivity, film-transfer coefficient and enzyme loading; its outputs are predictions, not independent measurements.</div>
       </section>
       <section class="panel chart-panel">
         <div class="panel-title"><div><h3>Surface-to-center ONPG profiles</h3><p>The graph shows every saved diameter, plus the current selection if it is not yet saved.</p></div></div>
@@ -966,7 +960,7 @@ function designProfileSeries(assigned,d,currentProfile) {
   const result=trials.map((t,i)=>({
     name:`${formatDiameter(t.diameter)} mm`,
     color:Math.abs(t.diameter-0.6)<1e-9?COLORS.large:Math.abs(t.diameter-0.3)<1e-9?COLORS.small:colors[i%colors.length],
-    profile:t.profile||solveBead(t.diameter,referenceBeadKey(t.diameter))
+    profile:t.profile||solveBead(t.diameter)
   }));
   if(!trials.some(t=>Math.abs(t.diameter-d)<1e-9))result.push({name:`${formatDiameter(d)} mm (current)`,color:COLORS.yellow,profile:currentProfile});
   return result;
@@ -980,9 +974,9 @@ function designLegend(assigned,d,currentProfile) {
 
 function solveBead(diameter, fixedKey=null) {
   const cBulk = INITIAL_ONPG / PROFILE_CONCENTRATION_SCALE;
-  // Reference beads use their individually calibrated parameters. For trial
-  // diameters we scale from the 2.8-mm case, with constant effective diffusivity,
-  // immobilized-enzyme loading and external film coefficient: phi, Bi ∝ radius.
+  // Laboratory reference rows use calibrated parameters via fixedKey.
+  // All adjustable design diameters use the 2.8-mm baseline scaling
+  // with fixed diffusivity, enzyme loading and film coefficient: phi, Bi ∝ radius.
   const ratio = diameter / LAB.small.diameter;
   const phi = fixedKey ? LAB[fixedKey].phi : LAB.small.phi * ratio;
   const biot = fixedKey ? LAB[fixedKey].biot : LAB.small.biot * ratio;

@@ -38,6 +38,30 @@ update_run(figure,
     "Fig. 7. Reciprocal plot for the six supplied laboratory assays. Exclude the simulated 39.8 mM point.",
     "Fig. 7. Reciprocal plot for all seven Stage 1 initial rates.")
 
+# Change only Question 15: compare percentage concentration decrease.
+# Preserve its bold number, native editable equations and all other content.
+q15 = find_one("15. Which bead has the larger decrease in ONPG concentration")
+assert len(q15.runs) == 2, len(q15.runs)
+q15.runs[1].text = (
+    "Which bead has the greater percentage decrease in ONPG concentration from its surface "
+    "to its center? For each bead, calculate 100("
+)
+def subscript_concentration(letter):
+    q15.add_run("C")
+    r = q15.add_run(letter)
+    r.font.subscript = True
+subscript_concentration("s")
+q15.add_run(" − ")
+subscript_concentration("c")
+q15.add_run(")/")
+subscript_concentration("s")
+q15.add_run(", where ")
+subscript_concentration("s")
+q15.add_run(" and ")
+subscript_concentration("c")
+q15.add_run(" are the surface and center ONPG concentrations, respectively.")
+assert q15.text.startswith("15. Which bead has the greater percentage decrease")
+
 assert len(doc.tables) == table_count == 5
 assert len(doc.element.body.xpath(".//m:oMath")) == math_count
 doc.save(path)
@@ -46,6 +70,7 @@ checked = Document(path)
 alltext = "\n".join(p.text for p in checked.paragraphs)
 assert "Using all seven Stage 1 initial rates (0.622–39.8 mM)" in alltext
 assert "Fig. 7. Reciprocal plot for all seven Stage 1 initial rates." in alltext
+assert "15. Which bead has the greater percentage decrease" in alltext
 assert "exclude" not in "\n".join(p.text for p in checked.paragraphs if p.text.startswith(("Question 2.", "Fig. 7."))).lower()
 assert len(checked.element.body.xpath(".//m:oMath")) == math_count
 print(f"Seven-rate homework aligned; preserved {math_count} editable equations and {table_count} tables.")
