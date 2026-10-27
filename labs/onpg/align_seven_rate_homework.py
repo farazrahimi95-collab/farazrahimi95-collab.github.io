@@ -40,11 +40,15 @@ update_run(figure,
 
 # Change only Question 15: compare percentage concentration decrease.
 # Preserve its bold number, native editable equations and all other content.
-q15 = find_one("15. Which bead has the larger decrease in ONPG concentration")
-assert len(q15.runs) == 2, len(q15.runs)
-q15.runs[1].text = (
+matches = [p for p in doc.paragraphs if p.text.strip().startswith("15.")]
+assert len(matches) == 1, ("Question 15 count", len(matches))
+q15 = matches[0]
+assert "ONPG" in q15.text, q15.text
+q15.clear()  # Keep paragraph style and position; revise this question only.
+q15.add_run("15. ").bold = True
+q15.add_run(
     "Which bead has the greater percentage decrease in ONPG concentration from its surface "
-    "to its center? For each bead, calculate 100("
+    "to its center? For each bead, calculate 100 × ("
 )
 def subscript_concentration(letter):
     q15.add_run("C")
@@ -53,7 +57,7 @@ def subscript_concentration(letter):
 subscript_concentration("s")
 q15.add_run(" − ")
 subscript_concentration("c")
-q15.add_run(")/")
+q15.add_run(") / ")
 subscript_concentration("s")
 q15.add_run(", where ")
 subscript_concentration("s")
