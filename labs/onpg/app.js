@@ -875,7 +875,7 @@ function renderDesign() {
             <label for="diameterInput"><strong>Exact bead diameter [mm]</strong><small>Enter any value from 0.1 to 10 mm</small></label>
             <div class="exact-diameter-entry"><input id="diameterInput" type="number" min="0.1" max="10" step="any" value="${formatDiameter(d)}" aria-label="Exact bead diameter in millimeters"><button class="button button-secondary" id="applyDiameter" type="button">Calculate</button></div>
           </div>
-          <div class="nudge-row"><button class="nudge" id="diameterDown" type="button" aria-label="Decrease diameter by 0.1 millimeter">−</button><button class="button" id="saveDiameter" type="button">Save ${formatDiameter(d)} mm result</button><button class="nudge" id="diameterUp" type="button" aria-label="Increase diameter by 0.1 millimeter">+</button></div>
+          <div class="nudge-row"><button class="nudge" id="diameterDown" type="button" aria-label="Decrease diameter by 0.1 millimeter">−</button><button class="button" id="saveDiameter" type="button">Save result</button><button class="nudge" id="diameterUp" type="button" aria-label="Increase diameter by 0.1 millimeter">+</button></div>
           <p><strong>Required:</strong> 0.6 mm ${assigned.six?"✓ saved":"— not saved"} · 0.3 mm ${assigned.three?"✓ saved":"— not saved"}. <strong>Additional saved:</strong> ${state.designTrials.filter(t=>!isAssignedDiameter(t.diameter)).length}.</p>
         </div>
         <div class="metric-row">
@@ -885,7 +885,7 @@ function renderDesign() {
         </div>
         <div class="target-track"><div class="target-fill" style="width:${Math.min(100,eta*100)}%"></div></div>
         <div class="target-label"><span>0</span><strong><span class='math-eta'>η<sub>i</sub></span> target = 0.95</strong><span>1.00</span></div>
-        <div class="note"><strong>How it works:</strong> The same reaction–diffusion model calculates ONPG concentration and effectiveness factor for every bead diameter. It matches the original MATLAB results for 2.8 and 4.6 mm beads. Other diameters are model predictions.</div>
+        <div class="note"><strong>How it works:</strong> We use the same MATLAB reaction–diffusion equations applied to our laboratory experiments with 2.8 and 4.6 mm beads. The simulation extends this approach to predict ONPG concentration profiles and internal effectiveness factors for smaller and larger beads.</div>
       </section>
       <section class="panel chart-panel">
         <div class="panel-title"><div><h3>Surface-to-center ONPG profiles</h3><p>The graph shows every saved diameter, plus the current selection if it is not yet saved.</p></div></div>
@@ -922,10 +922,20 @@ function renderDesign() {
   document.getElementById("diameterDown").addEventListener("click",()=>setDiameter(Number((d-0.1).toFixed(8))));
   document.getElementById("diameterUp").addEventListener("click",()=>setDiameter(Number((d+0.1).toFixed(8))));
   document.getElementById("saveDiameter").addEventListener("click",()=>{
-    const trial={diameter:d,eta,surface:profile.surface,center:profile.center,profile};
-    state.designTrials=state.designTrials.filter(t=>Math.abs(t.diameter-d)>1e-9);
+    // Save the diameter currently typed in the exact-value box, even if
+    // the student has not pressed Calculate or Enter first.
+    const input = document.getElementById("diameterInput").value.trim();
+    const selectedDiameter = Number(input);
+    if(!input || !Number.isFinite(selectedDiameter) || selectedDiameter<0.1 || selectedDiameter>10){
+      toast("Enter a diameter between 0.1 and 10 mm before saving.");return;
+    }
+    const selectedProfile = Math.abs(selectedDiameter-d)<1e-12 ? profile : solveBead(selectedDiameter);
+    const trial={diameter:selectedDiameter,eta:reportedEta(selectedDiameter,selectedProfile.eta),
+      surface:selectedProfile.surface,center:selectedProfile.center,profile:selectedProfile};
+    state.designTrials=state.designTrials.filter(t=>Math.abs(t.diameter-selectedDiameter)>1e-9);
     state.designTrials.push(trial);state.designTrials.sort((a,b)=>a.diameter-b.diameter);
-    saveState();toast(`${formatDiameter(d)} mm model result saved.`);refreshStageView(renderDesign);
+    state.designDiameter=selectedDiameter;
+    saveState();toast(`${formatDiameter(selectedDiameter)} mm model result saved.`);refreshStageView(renderDesign);
   });
   document.getElementById("continueStage").addEventListener("click", () => navigate(4));
   bindStageReset(3);
