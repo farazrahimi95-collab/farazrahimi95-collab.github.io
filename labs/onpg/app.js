@@ -885,7 +885,7 @@ function renderDesign() {
         </div>
         <div class="target-track"><div class="target-fill" style="width:${Math.min(100,eta*100)}%"></div></div>
         <div class="target-label"><span>0</span><strong><span class='math-eta'>η<sub>i</sub></span> target = 0.95</strong><span>1.00</span></div>
-        <div class="note"><strong>Model basis:</strong> the bulk ONPG concentration is fixed; all adjustable-diameter design results (including 2.8 and 4.6 mm selections) use one continuous calculation: the Thiele modulus and normalized film-transfer parameter N<sub>B</sub> scale with bead radius from the 2.8 mm baseline. The separate 2.8 and 4.6 mm laboratory reference rows retain their individually calibrated values and are not part of this design curve. The model assumes unchanged effective diffusivity, film-transfer coefficient and enzyme loading; its outputs are predictions, not independent measurements.</div>
+        <div class="note"><strong>How it works:</strong> The same reaction–diffusion model calculates ONPG concentration and effectiveness factor for every bead diameter. It matches the original MATLAB results for 2.8 and 4.6 mm beads. Other diameters are model predictions.</div>
       </section>
       <section class="panel chart-panel">
         <div class="panel-title"><div><h3>Surface-to-center ONPG profiles</h3><p>The graph shows every saved diameter, plus the current selection if it is not yet saved.</p></div></div>
@@ -972,14 +972,44 @@ function designLegend(assigned,d,currentProfile) {
   ).join("");
 }
 
+// Map diameter to inputs for the original MATLAB bead-scale boundary-value
+// problem. Use only the previously established 2.8/4.6-mm model inputs
+// (NOT numerical examples from the transport workbook).
+//
+// Outside the reference interval: phi is proportional to radius for unchanged
+// kinetic properties and diffusivity; N_B is proportional to sqrt(diameter)
+// from Re~d, Sh~Re^0.5 and k_c=Sh*D_water/d at constant fluid velocity.
+// Inside: interpolate phi and N_B between the two independently calibrated
+// reference input sets in log-diameter space. This is an empirical estimate
+// for unmeasured bead sizes, not a claim of independently known properties.
+// The endpoints are exact and continuous; no model switches at 2.8/4.6 mm.
+function diameterModelInputs(diameter) {
+  const small = LAB.small, large = LAB.large;
+  if (diameter <= small.diameter) {
+    const ratio = diameter / small.diameter;
+    return {phi:small.phi*ratio, biot:small.biot*Math.sqrt(ratio)};
+  }
+  if (diameter >= large.diameter) {
+    const ratio = diameter / large.diameter;
+    return {phi:large.phi*ratio, biot:large.biot*Math.sqrt(ratio)};
+  }
+  const fraction = Math.log(diameter/small.diameter) /
+    Math.log(large.diameter/small.diameter);
+  return {
+    phi:small.phi*Math.pow(large.phi/small.phi,fraction),
+    biot:small.biot*Math.pow(large.biot/small.biot,fraction)
+  };
+}
+
 function solveBead(diameter, fixedKey=null) {
   const cBulk = INITIAL_ONPG / PROFILE_CONCENTRATION_SCALE;
-  // Laboratory reference rows use calibrated parameters via fixedKey.
-  // All adjustable design diameters use the 2.8-mm baseline scaling
-  // with fixed diffusivity, enzyme loading and film coefficient: phi, Bi ∝ radius.
-  const ratio = diameter / LAB.small.diameter;
-  const phi = fixedKey ? LAB[fixedKey].phi : LAB.small.phi * ratio;
-  const biot = fixedKey ? LAB[fixedKey].biot : LAB.small.biot * ratio;
+  // All diameters use the same MATLAB-equivalent nonlinear differential
+  // equation and boundary conditions. Reference results use their exact
+  // originally calibrated parameter sets.
+  const inputs = fixedKey
+    ? {phi:LAB[fixedKey].phi, biot:LAB[fixedKey].biot}
+    : diameterModelInputs(diameter);
+  const {phi,biot} = inputs;
   const eps = 1e-4;
   const steps = 700;
 
