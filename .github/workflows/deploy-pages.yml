@@ -88,8 +88,8 @@ jobs:
               'Experiment 1: Free-Enzyme Kinetics (Stage 1)',
               'Experiment 1: Michaelis–Menten Analysis (Stage 2)',
               'Experiment 2: Bead-Diameter Design (Stage 3)',
-              'Open Stage 4 (2.8 mm beads)',
-              'Continue to Stage 5 (4.6 mm beads)',
+              'In Stage 4 (2.8 mm beads)',
+              'In Stage 5 (4.6 mm beads)',
               'Open Stage 6 to compare',
           ]
           assert all(marker in t for marker in stage_markers), 'One or more worksheet stages missing'
