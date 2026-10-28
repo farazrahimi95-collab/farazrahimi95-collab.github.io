@@ -376,7 +376,7 @@ function renderBeadStage(key) {
   const run = state.beadRuns[key];
   const area = document.getElementById("stageArea");
   area.innerHTML = `<div class="stage-shell">
-    ${stageHeader(stage, `${d.diameter.toFixed(1)} mm bead experiment`, `Set the automatic spectrophotometer, then run 340 equivalent lab minutes in a one-minute playback. ${stage === 4 ? "This establishes the first reactor response." : "Only bead diameter changes from Stage 4."}`, `Same enzyme charge; ${INITIAL_ONPG.toFixed(2)} mM ONPG`)}
+    ${stageHeader(stage, `${d.diameter.toFixed(1)} mm bead experiment`, `First click "Set autosampler · six sample times" to record the initial reading at 0 min and schedule five more. Then click "Start 340-min run (1-minute playback)." Watch the smooth ONP concentration curve and the six recorded readings. ${stage === 4 ? "This is the 2.8 mm run." : "Repeat the same experiment with 4.6 mm beads."}`, `Same enzyme charge; ${INITIAL_ONPG.toFixed(2)} mM ONPG`)}
     <div class="stage-grid">
       <section class="panel" aria-label="Virtual reactor apparatus">
         <div class="apparatus-wrap">${apparatusSvg(key)}</div>
@@ -406,7 +406,7 @@ function renderBeadStage(key) {
         </div>
         <div class="panel-title"><div><h3>Automatic spectrophotometer readings</h3><p>The spectrophotometer automatically records six readings at 0, 28, 85, 170, 255 and 340 equivalent lab minutes. The complete response runs in one minute.</p></div></div>
         <div class="data-table-wrap sample-table-wrap"><table class="data-table"><thead><tr><th>Equivalent lab time [min]</th><th>ABS<sub>415</sub> [-]</th><th>ONP concentration, C<sub>ONP</sub> [mM]</th></tr></thead><tbody id="sampleBody">${sampleRows(run.samples)}</tbody></table></div>
-        <div class="note"><strong>Why ABS<sub>415</sub>?</strong> ONP is yellow and absorbs strongly at 415 nm. Absorbance is a dimensionless measure of how much light the sample absorbs at that wavelength. Before beginning a run, the experimentalist obtains a baseline absorbance for the clear liquid containing ONPG and zeroes the spectrophotometer. This subtracts background absorbance from all samples so that ABS<sub>415</sub> measures ONP alone. The calibration <strong>C<sub>ONP</sub> = ABS<sub>415</sub> / 3.43</strong> converts the reading to ONP concentration.</div>
+        <div class="note"><strong>Why ABS<sub>415</sub>?</strong> Yellow ONP absorbs light at 415 nm. In the laboratory, a clear ONPG reference is used to zero the spectrophotometer and remove background absorbance. The corrected absorbance gives ONP concentration using <strong>C<sub>ONP</sub> = ABS<sub>415</sub> / 3.43</strong>.</div>
       </section>
     </div>
     <div class="continue-row"><button class="button button-dark" id="continueStage" type="button" ${run.complete && run.samples.length === SAMPLE_SCHEDULE.length ? "" : "disabled"}>Continue to Stage ${next}</button></div>
@@ -817,13 +817,13 @@ function renderRateCurve() {
           <button class="button button-secondary" id="halfGuide" type="button" ${!state.curveBuilt || state.halfGuide ? "disabled" : ""}>Show half-maximum guide</button>
         </div>
         ${!ready ? `<div class="note"><strong>Stage 1 is incomplete.</strong> Return to the kinetic scan and reveal all seven initial rates before building this graph.</div>` : ""}
-        ${state.curveBuilt ? `<div class="callout" style="margin-top:15px"><h4>Michaelis–Menten reference</h4><p>V<sub>max</sub> = <code>${KINETICS.vmax.toFixed(6)} mM/s</code> &nbsp;·&nbsp; K<sub>m</sub> = <code>${KINETICS.km.toFixed(2)} mM</code>. The reference is anchored at 19.9 mM rather than fitted to all six laboratory rates. The 39.8 mM virtual assay follows this equation, assuming Michaelis–Menten behavior without substrate inhibition or changing assay conditions.</p></div>` : ""}
+        ${state.curveBuilt ? `<div class="callout" style="margin-top:15px"><h4>Michaelis–Menten reference</h4><p>V<sub>max</sub> = <code>${KINETICS.vmax.toFixed(6)} mM/s</code> &nbsp;·&nbsp; K<sub>m</sub> = <code>${KINETICS.km.toFixed(2)} mM</code>.</p></div>` : ""}
       </section>
       <section class="panel chart-panel">
         <div class="panel-title"><div><h3>Initial-rate saturation · 0–40 mM</h3><p>All seven Stage 1 initial rates appear together with the Michaelis–Menten reference curve.</p></div></div>
         <div class="chart-frame"><canvas id="mmChart" aria-label="Michaelis-Menten graph of initial rate versus initial ONPG concentration"></canvas><div class="chart-placeholder" id="mmPlaceholder" ${state.curveBuilt ? "hidden" : ""}>Click Build kinetics plot after completing Stage 1.</div></div>
         <div class="legend"><span class="legend-item"><i class="legend-swatch point" style="--swatch:${COLORS.navy}"></i>Seven initial rates</span><span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.small}"></i>Michaelis–Menten curve</span>${state.halfGuide?`<span class="legend-item"><i class="legend-swatch" style="--swatch:${COLORS.yellow}"></i>Half maximum</span>`:""}</div>
-        ${state.halfGuide ? `<div class="note"><strong>Read the guide:</strong> one-half V<sub>max</sub> = ${(KINETICS.vmax/2).toFixed(6)} mM/s intersects the reference curve at [S]<sub>0</sub> = ${KINETICS.km.toFixed(2)} mM.</div>` : ""}
+        ${state.halfGuide ? `<div class="note"><strong>Read the guide:</strong> one-half V<sub>max</sub> = ${(KINETICS.vmax/2).toFixed(6)} mM/s intersects the reference curve at C<sub>ONPG,0</sub> = ${KINETICS.km.toFixed(2)} mM.</div>` : ""}
       </section>
     </div>
     <div class="continue-row"><button class="button button-dark" id="continueStage" type="button" ${state.curveBuilt ? "" : "disabled"}>Continue to Stage 3</button></div>
