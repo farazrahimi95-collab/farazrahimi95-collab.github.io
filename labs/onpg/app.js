@@ -609,8 +609,15 @@ function renderComparison() {
   const largeProfile = solveBead(4.6, "large");
   area.innerHTML = `<div class="stage-shell">
     ${stageHeader(6, "Compare bead diameter", "The tables and plot below contrast results for 2.8 and 4.6 mm bead sizes.", "Paired reactor results")}
-    <div class="compare-summary">
-      ${summaryCard("small", small)}${summaryCard("large", large)}
+    <div class="data-table-wrap summary-comparison-wrap">
+      <table class="data-table summary-comparison-table" aria-label="Comparison of 2.8 mm and 4.6 mm bead reactor results">
+        <colgroup><col style="width:20%"><col style="width:25%"><col style="width:25%"><col style="width:30%"></colgroup>
+        <thead><tr><th scope="col">Bead diameter [mm]</th><th scope="col">Initial rate [mM/min]</th><th scope="col">Final conversion [%]</th><th scope="col">Internal effectiveness factor<br><span class="math-eta">η<sub>i</sub></span> [–]</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">2.8</th><td>${small.initialRate.toFixed(5)}</td><td>${format(small.conversion)}%</td><td>${small.eta.toFixed(4)}</td></tr>
+          <tr><th scope="row">4.6</th><td>${large.initialRate.toFixed(5)}</td><td>${format(large.conversion)}%</td><td>${large.eta.toFixed(4)}</td></tr>
+        </tbody>
+      </table>
     </div>
     <p class="assay-source-note">Initial rates come from cubic least-squares fits to the full supplied 0–60 min ONP responses (slope at t = 0), not from the six automatically recorded display points. Effectiveness factors come directly from the bead-scale reaction–diffusion solver.</p>
     <div class="stage-grid analysis-grid">
@@ -651,15 +658,6 @@ function renderComparison() {
   window.addEventListener("resize", draw, { passive:true });
   cleanupStage = () => window.removeEventListener("resize", draw);
   bindStageReset(6);
-}
-
-function summaryCard(key, s) {
-  const d = LAB[key];
-  return `<article class="result-card"><h4><i class="bead-dot" style="--swatch:${d.color}"></i>${d.diameter.toFixed(1)} mm beads</h4><dl>
-    <dt>Initial rate (0–60 min fit)</dt><dd>${s.initialRate.toFixed(5)} mM/min</dd>
-    <dt>Final conversion</dt><dd>${format(s.conversion)}%</dd>
-    <dt>Internal effectiveness factor, <span class='math-eta'>η<sub>i</sub></span></dt><dd>${s.eta.toFixed(4)}</dd>
-  </dl></article>`;
 }
 
 function comparisonRows() {
