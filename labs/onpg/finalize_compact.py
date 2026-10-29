@@ -71,7 +71,7 @@ procedure=parts[pos("Stage 4: Small-Bead Reactor Run (2.8 mm)")+1]
 assert words(procedure)=="Procedure"
 a=el("1. After Stage 3, click “Continue to Stage 4.”")
 b=el("2. Before starting the Stage 4 run, answer Questions 10–12")
-c=el("3. Click “Start 340-min run (1-minute playback).”")
+c=el("3. Click “Start 340-min run (10-second playback).”")
 d=el("1. Click “Continue to Stage 5” at the bottom of Stage 4.")
 e=el("1. Click “Continue to Stage 6” at the bottom of Stage 5.")
 Paragraph(a,doc).text=(
@@ -81,7 +81,7 @@ p=Paragraph(c,doc)
 p.text="2. "+p.text.split(". ",1)[1]
 Paragraph(d,doc).text=(
     "3. Click “Continue to Stage 5” in the simulation. For the 4.6 mm beads, click "
-    "“Set autosampler · six sample times,” then “Start 340-min run (1-minute playback).” "
+    "“Set autosampler · six sample times,” then “Start 340-min run (10-second playback).” "
     "The same six equivalent laboratory times are recorded.")
 Paragraph(e,doc).text=(
     "4. Click “Continue to Stage 6” in the simulation to compare the six readings "

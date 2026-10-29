@@ -78,7 +78,12 @@ for r in para("1. In Stage 3, use the slider or exact-diameter field").runs:
 for r in para("2. Set the diameter to 0.3 mm").runs:
     if "calculate, and save its result" in r.text:
         r.text=r.text.replace("calculate, and save its result",
-                              "click “Calculate” and then “Save result”")
+                              "click “Save result”")
+
+# Stage 3 now saves the entered diameter directly, without a Calculate button.
+p0 = para("1. In Stage 3, use the slider or exact-diameter field")
+assert "Click “Calculate,” then click “Save result”" in p0.text
+p0.text = p0.text.replace("Click “Calculate,” then click “Save result”", "Click “Save result”")
 
 # Existing combined 4-step procedure is split across Stages 4, 5, and 6.
 def one_of(*prefixes):
@@ -89,7 +94,7 @@ def one_of(*prefixes):
     raise AssertionError(("Missing procedure",prefixes))
 
 run4a=one_of("1. In Stage 4 (2.8 mm beads)","1. Open Stage 4 (2.8 mm beads)")
-run4b=para("2. Click “Start 340-min run (1-minute playback).”")
+run4b=para("2. Click “Start 340-min run (10-second playback).”")
 run5=one_of("3. In Stage 5 (4.6 mm beads)","3. Continue to Stage 5 (4.6 mm beads)")
 run6=para("4. Open Stage 6 to compare")
 
@@ -100,7 +105,7 @@ run4a.text=(
 run4b.text="3. "+run4b.text[3:]
 run5.text=(
     "1. Click “Continue to Stage 5” at the bottom of Stage 4. In Stage 5 (4.6 mm beads), "
-    "click “Set autosampler · six sample times,” then “Start 340-min run (1-minute playback).” "
+    "click “Set autosampler · six sample times,” then “Start 340-min run (10-second playback).” "
     "The same six equivalent times are recorded for comparison with Stage 4."
 )
 run6.text=(

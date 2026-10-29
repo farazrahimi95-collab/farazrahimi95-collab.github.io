@@ -32,9 +32,9 @@ change_exact("Before measuring ONP, blank the spectrophotometer using a clear li
 change_exact("1. Open Stage 4 (2.8 mm beads). Click",
     "1. In Stage 4 (2.8 mm beads), click “Set autosampler · six sample times.” This records the initial reading at 0 min and schedules five additional readings.")
 change_exact("2. Click “Start 340-min run (1-minute playback).”",
-    "2. Click “Start 340-min run (1-minute playback).” The simulation displays 340 equivalent laboratory minutes in 60 seconds. Observe the smooth ONP concentration–time curve while the table records readings at 0, 28, 85, 170, 255, and 340 min.")
+    "2. Click “Start 340-min run (10-second playback).” The simulation displays 340 equivalent laboratory minutes in 10 seconds. Observe the smooth ONP concentration–time curve while the table records readings at 0, 28, 85, 170, 255, and 340 min.")
 change_exact("3. Continue to Stage 5 (4.6 mm beads).",
-    "3. In Stage 5 (4.6 mm beads), repeat the same autosampler setup and 60-second run.")
+    "3. In Stage 5 (4.6 mm beads), repeat the same autosampler setup and 10-second run.")
 change_exact("4. Open Stage 6 to compare the two saved runs.",
     "4. Open Stage 6 to compare the six readings and complete curves from both saved runs. No new reactor run is performed in Stage 6.")
 

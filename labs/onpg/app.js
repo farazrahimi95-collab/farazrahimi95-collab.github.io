@@ -7,8 +7,8 @@ const INITIAL_ONPG = 0.83;
 // This profile-model scale is distinct from the free-enzyme kinetic fit (Km = 2.00 mM).
 const PROFILE_CONCENTRATION_SCALE = 2.059220522647014;
 const FAST_MODE = new URLSearchParams(location.search).get("fast") === "1";
-const RUN_SECONDS = 60;
-// Six readings, at exact equivalent laboratory times over the 60-second playback.
+const RUN_SECONDS = 10;
+// Six readings, at exact equivalent laboratory times over the 10-second playback.
 const SAMPLE_LAB_MINUTES = [0, 28, 85, 170, 255, 340];
 const SAMPLE_SCHEDULE = SAMPLE_LAB_MINUTES.map(t => t / 340 * RUN_SECONDS);
 
@@ -376,7 +376,7 @@ function renderBeadStage(key) {
   const run = state.beadRuns[key];
   const area = document.getElementById("stageArea");
   area.innerHTML = `<div class="stage-shell">
-    ${stageHeader(stage, `${d.diameter.toFixed(1)} mm bead experiment`, `First click "Set autosampler · six sample times" to record the initial reading at 0 min and schedule five more. Then click "Start 340-min run (1-minute playback)." Watch the smooth ONP concentration curve and the six recorded readings. ${stage === 4 ? "This is the 2.8 mm run." : "Repeat the same experiment with 4.6 mm beads."}`, `Same enzyme charge; ${INITIAL_ONPG.toFixed(2)} mM ONPG`)}
+    ${stageHeader(stage, `${d.diameter.toFixed(1)} mm bead experiment`, `First click "Set autosampler · six sample times" to record the initial reading at 0 min and schedule five more. Then click "Start 340-min run (10-second playback)." Watch the smooth ONP concentration curve and the six recorded readings. ${stage === 4 ? "This is the 2.8 mm run." : "Repeat the same experiment with 4.6 mm beads."}`, `Same enzyme charge; ${INITIAL_ONPG.toFixed(2)} mM ONPG`)}
     <div class="stage-grid">
       <section class="panel" aria-label="Virtual reactor apparatus">
         <div class="apparatus-wrap">${apparatusSvg(key)}</div>
@@ -384,13 +384,13 @@ function renderBeadStage(key) {
         <p class="sample-progress-label">Autosampler readings · equivalent lab time [min]</p>
          <div class="sample-progress" id="sampleProgress" aria-label="Automatic readings from zero to 340 equivalent lab minutes">${sampleProgress(run.samples)}</div>
         <div class="instrument-strip">
-          <div class="instrument-status"><span class="status-light" id="statusLight"></span><div><strong id="runStatus">${run.complete ? "Simulation complete" : "Reactor ready"}</strong><small id="runSubstatus">60 simulation seconds represent 340 equivalent reaction minutes</small></div></div>
+          <div class="instrument-status"><span class="status-light" id="statusLight"></span><div><strong id="runStatus">${run.complete ? "Simulation complete" : "Reactor ready"}</strong><small id="runSubstatus">10 simulation seconds represent 340 equivalent reaction minutes</small></div></div>
           <div class="clock"><span>EQUIVALENT LAB TIME</span><strong id="clockValue">${formatMinutes(labMinutes(run.elapsed))} min</strong></div>
         </div>
         <div class="panel-pad">
           <div class="controls">
             <button class="button button-secondary autosampler-button" id="armSampler" type="button" ${run.armed ? "disabled" : ""}>${run.armed ? "Autosampler set for six sample times" : "Set autosampler · six sample times"}</button>
-            <button class="button" id="startRun" type="button" ${!run.armed || run.complete ? "disabled" : ""}>${run.complete ? "Simulation complete" : run.elapsed > 0 ? "Resume simulation" : "Start 340-min run (1-minute playback)"}</button>
+            <button class="button" id="startRun" type="button" ${!run.armed || run.complete ? "disabled" : ""}>${run.complete ? "Simulation complete" : run.elapsed > 0 ? "Resume simulation" : "Start 340-min run (10-second playback)"}</button>
           </div>
         </div>
       </section>
@@ -404,7 +404,7 @@ function renderBeadStage(key) {
           <div class="metric"><span>ABS<sub>415</sub></span><strong id="currentA">${format(CALIBRATION*interpolateCurve(d, run.elapsed/RUN_SECONDS*340),3)}</strong></div>
           <div class="metric"><span>Conversion</span><strong id="currentConversion">${format(100*interpolateCurve(d, run.elapsed/RUN_SECONDS*340)/INITIAL_ONPG,1)}</strong> <small>%</small></div>
         </div>
-        <div class="panel-title"><div><h3>Automatic spectrophotometer readings</h3><p>The spectrophotometer automatically records six readings at 0, 28, 85, 170, 255 and 340 equivalent lab minutes. The complete response runs in one minute.</p></div></div>
+        <div class="panel-title"><div><h3>Automatic spectrophotometer readings</h3><p>The spectrophotometer automatically records six readings at 0, 28, 85, 170, 255 and 340 equivalent lab minutes. The complete response runs in 10 seconds.</p></div></div>
         <div class="data-table-wrap sample-table-wrap"><table class="data-table"><thead><tr><th>Equivalent lab time [min]</th><th>ABS<sub>415</sub> [-]</th><th>ONP concentration, C<sub>ONP</sub> [mM]</th></tr></thead><tbody id="sampleBody">${sampleRows(run.samples)}</tbody></table></div>
         <div class="note"><strong>Why ABS<sub>415</sub>?</strong> Yellow ONP absorbs light at 415 nm. In the laboratory, a clear ONPG reference is used to zero the spectrophotometer and remove background absorbance. The corrected absorbance gives ONP concentration using <strong>C<sub>ONP</sub> = ABS<sub>415</sub> / 3.43</strong>.</div>
       </section>
@@ -871,7 +871,7 @@ function renderDesign() {
           <div class="range-scale"><span>0.1 mm</span><span>10 mm</span></div>
           <div class="exact-diameter-controls">
             <label for="diameterInput"><strong>Exact bead diameter [mm]</strong><small>Enter any value from 0.1 to 10 mm</small></label>
-            <div class="exact-diameter-entry"><input id="diameterInput" type="number" min="0.1" max="10" step="any" value="${formatDiameter(d)}" aria-label="Exact bead diameter in millimeters"><button class="button button-secondary" id="applyDiameter" type="button">Calculate</button></div>
+            <div class="exact-diameter-entry"><input id="diameterInput" type="number" min="0.1" max="10" step="any" value="${formatDiameter(d)}" aria-label="Exact bead diameter in millimeters"></div>
           </div>
           <div class="nudge-row"><button class="nudge" id="diameterDown" type="button" aria-label="Decrease diameter by 0.1 millimeter">−</button><button class="button" id="saveDiameter" type="button">Save result</button><button class="nudge" id="diameterUp" type="button" aria-label="Increase diameter by 0.1 millimeter">+</button></div>
           <p><strong>Required:</strong> 0.6 mm ${assigned.six?"✓ saved":"— not saved"} · 0.3 mm ${assigned.three?"✓ saved":"— not saved"}. <strong>Additional saved:</strong> ${state.designTrials.filter(t=>!isAssignedDiameter(t.diameter)).length}.</p>
@@ -909,10 +909,8 @@ function renderDesign() {
     state.designDiameter=candidate;saveState();refreshStageView(renderDesign);
   }
   slider.addEventListener("change",event=>setDiameter(event.target.value));
-  document.getElementById("applyDiameter").addEventListener("click",()=>{
-    const input=document.getElementById("diameterInput");
-    if(!input.value.trim()){toast("Enter a diameter to calculate.");return;}
-    setDiameter(input.value);
+  document.getElementById("diameterInput").addEventListener("change",event=>{
+    if(event.currentTarget.value.trim())setDiameter(event.currentTarget.value);
   });
   document.getElementById("diameterInput").addEventListener("keydown",event=>{
     if(event.key==="Enter"){event.preventDefault();setDiameter(event.currentTarget.value);}
@@ -921,7 +919,7 @@ function renderDesign() {
   document.getElementById("diameterUp").addEventListener("click",()=>setDiameter(Number((d+0.1).toFixed(8))));
   document.getElementById("saveDiameter").addEventListener("click",()=>{
     // Save the diameter currently typed in the exact-value box, even if
-    // the student has not pressed Calculate or Enter first.
+    // the student has not pressed Enter or changed focus first.
     const input = document.getElementById("diameterInput").value.trim();
     const selectedDiameter = Number(input);
     if(!input || !Number.isFinite(selectedDiameter) || selectedDiameter<0.1 || selectedDiameter>10){

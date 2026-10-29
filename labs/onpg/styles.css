@@ -516,10 +516,9 @@ html, body, button, input { font-family: Arial, Helvetica, sans-serif; }
 .exact-diameter-controls { display: grid; gap: 8px; margin: 12px 0; }
 .exact-diameter-controls label { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; font-size: 13px; color: var(--navy); }
 .exact-diameter-controls label small { font-size: 12px; color: var(--muted); font-weight: 400; }
-.exact-diameter-entry { display: grid; grid-template-columns: minmax(110px, 1fr) auto; gap: 8px; align-items: center; }
+.exact-diameter-entry { display: grid; grid-template-columns: minmax(110px, 1fr); gap: 8px; align-items: center; }
 .exact-diameter-entry input { box-sizing: border-box; min-width: 0; width: 100%; border: 1px solid #8ba7ae; border-radius: 8px; padding: 10px 12px; font: 600 16px Arial, sans-serif; color: var(--navy); font-variant-numeric: tabular-nums; background: white; }
 .exact-diameter-entry input:focus-visible { outline: 2px solid #008d83; outline-offset: 2px; }
-.exact-diameter-entry button { white-space: nowrap; }
 .result-table tbody td { border: 1px solid #718994; }
 @media(max-width: 550px) { .exact-diameter-entry { grid-template-columns: 1fr; } }
 
