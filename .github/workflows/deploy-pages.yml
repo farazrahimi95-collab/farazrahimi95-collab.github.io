@@ -49,10 +49,10 @@ jobs:
           test -s "labs/parallel-heat-transfer/Heat Transfer Worksheet.pdf"
 
       # Preserve the uploaded Word file exactly; never regenerate or convert it.
-      - name: Verify original ONPG Word worksheet (unaltered)
+      - name: Verify latest uploaded ONPG Word worksheet (unaltered)
         run: |
           test -s labs/onpg/ONPG_Worksheet.docx
-          echo "6f9b5794dfd229b04e7aadcb4f07f5f68dfa351104a11946e6fba02732b74ae8  labs/onpg/ONPG_Worksheet.docx" | sha256sum --check -
+          echo "8f1a379c08ffd33aa191f2ea08de16d3d9fe3d6306b73f9069781dba7c4482bd  labs/onpg/ONPG_Worksheet.docx" | sha256sum --check -
 
       - name: Upload website
         uses: actions/upload-pages-artifact@v3

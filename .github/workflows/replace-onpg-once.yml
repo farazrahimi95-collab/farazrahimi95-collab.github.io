@@ -1,0 +1,66 @@
+name: Apply exact uploaded ONPG worksheet once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/replace-onpg-once.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  replace-worksheet:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Reconstruct exact uploaded Word file
+        shell: bash
+        run: |
+          python - <<'PY'
+          import base64
+          import hashlib
+          from pathlib import Path
+
+          p = Path("labs/onpg/ONPG_Worksheet.docx")
+          src = p.read_bytes()
+          instructions = Path("labs/onpg/.worksheet-patch.txt").read_text(encoding="ascii").splitlines()
+          expected = instructions[0].split()[1]
+          assert instructions[0].startswith("SHA256 ")
+          chunks = []
+          encoded = None
+          for line in instructions[1:]:
+              if line.startswith("C "):
+                  assert encoded is None
+                  _, start, end = line.split()
+                  chunks.append(src[int(start):int(end)])
+              elif line == "D":
+                  assert encoded is None
+                  encoded = []
+              elif line == "E":
+                  assert encoded is not None
+                  chunks.append(base64.b64decode("".join(encoded), validate=True))
+                  encoded = None
+              else:
+                  assert encoded is not None
+                  encoded.append(line)
+          assert encoded is None
+          data = b"".join(chunks)
+          assert hashlib.sha256(data).hexdigest() == expected, "Upload integrity check failed"
+          p.write_bytes(data)
+          print(f"Verified uploaded Word file: {len(data)} bytes, SHA-256 {expected}")
+          PY
+
+      - name: Commit only replacement worksheet
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add labs/onpg/ONPG_Worksheet.docx
+          git commit -m "Replace ONPG worksheet with exact user-uploaded Word document"
+          git push origin HEAD:main
