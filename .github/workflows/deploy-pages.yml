@@ -74,6 +74,7 @@ jobs:
           python labs/onpg/format_homework_questions.py
           python labs/onpg/align_seven_rate_homework.py
           python labs/onpg/apply_professor_clarifications.py
+          python labs/onpg/organize_worksheet_by_stage.py
           mkdir -p /tmp/onpg-reordered-pdf
           timeout 90s libreoffice -env:UserInstallation=file:///tmp/lo-onpg-reorder --headless --convert-to pdf --outdir /tmp/onpg-reordered-pdf labs/onpg/Worksheet.docx
           cp /tmp/onpg-reordered-pdf/Worksheet.pdf labs/onpg/Worksheet.pdf
