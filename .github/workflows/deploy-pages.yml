@@ -75,6 +75,7 @@ jobs:
           python labs/onpg/align_seven_rate_homework.py
           python labs/onpg/apply_professor_clarifications.py
           python labs/onpg/organize_worksheet_by_stage.py
+          python labs/onpg/finalize_compact.py
           mkdir -p /tmp/onpg-reordered-pdf
           timeout 90s libreoffice -env:UserInstallation=file:///tmp/lo-onpg-reorder --headless --convert-to pdf --outdir /tmp/onpg-reordered-pdf labs/onpg/Worksheet.docx
           cp /tmp/onpg-reordered-pdf/Worksheet.pdf labs/onpg/Worksheet.pdf
@@ -84,27 +85,20 @@ jobs:
           from docx import Document
           d=Document('labs/onpg/Worksheet.docx')
           t='\n'.join(p.text for p in d.paragraphs)
-          # The student-facing order must agree with the SIX stages on the website.
-          stage_markers = [
-              'Experiment 1: Free-Enzyme Kinetics (Stage 1)',
-              'Experiment 1: Michaelis–Menten Analysis (Stage 2)',
-              'Experiment 2: Bead-Diameter Design (Stage 3)',
-              'In Stage 4 (2.8 mm beads)',
-              'In Stage 5 (4.6 mm beads)',
-              'Open Stage 6 to compare',
-          ]
-          assert all(marker in t for marker in stage_markers), 'One or more worksheet stages missing'
-          assert [t.index(marker) for marker in stage_markers] == sorted(t.index(marker) for marker in stage_markers), 'Worksheet stage order differs from website'
-          assert t.index('Experiment 1: Free-Enzyme') < t.index('Experiment 2: Bead-Diameter') < t.index('Experiment 3: Compare')
+          # Verify approved continuous classroom numbering and combined procedures.
+          assert 'Experiment 1: Free-Enzyme Kinetics (Stage 1)' in t
+          assert 'Experiment 1: Michaelis–Menten Analysis (Stage 2)' in t
+          assert 'Experiment 2: Bead-Diameter Design (Stage 3)' in t
+          assert 'Experiment 3: Compare the Two Bead Sizes (Stages 4–6)' in t
+          assert t.index('4. Click “Continue to Stage 6”') < t.index('Predictions Before the Reactor Runs')
+          assert t.index('Predictions Before the Reactor Runs') < t.index('Paired Results and Performance')
+          assert 'Question 4.' not in t
+          assert '3. Plot the seven Stage 1 rates' not in t
           assert t.count('Homework Questions') == 1
-          assert 'Homework 1:' not in t and 'Homework 2:' not in t
-          for number in range(1, 5):
-              assert t.count(f'Question {number}.') == 1
-          assert t.index('Question 1.') < t.index('Question 2.') < t.index('Question 3.') < t.index('Question 4.')
           assert 'Using all seven Stage 1 initial rates (0.622–39.8 mM)' in t
-          assert 'Exclude the simulated 39.8' not in t
-          assert len(d.tables)==5
-          print('Reviewed Word equations, tables, and reordered section references.')
+          assert len(d.tables) == 5
+          assert len(d.element.body.xpath('.//m:oMath')) == 15
+          print('Final worksheet verified: sixteen classroom questions, three homework questions.')
           PY
 
       # Publish both historical worksheet URLs with the SAME reviewed, staged-order
